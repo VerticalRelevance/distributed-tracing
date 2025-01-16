@@ -1,0 +1,122 @@
+{
+    "prompt_clarifications": [
+        "Do not include keywords that are part of a larger identifier (such as 'if' when part of an identifier like 'DataLakePrincipalIdentifier').",
+        "Do not include lines where the keyword is part of a comment.",
+        "Do not include lines where the keyword is contained within a string literal.",
+        "Do not include identifiers that are passed as arguments to a function or method.",
+        "Format any double-quote characters in lines written to output with single backslash."
+    ],
+    "prompt_locators": [
+        {
+            "rank": 1,
+            "category": "Function Entry",
+            "statements": [
+                "def",
+                "async def",
+                "lambda"
+            ]
+        },
+        {
+            "rank": 2,
+            "category": "Function Exit",
+            "statements": [
+                "return",
+                "yield",
+                "await"
+            ]
+        },
+        {
+            "rank": 3,
+            "category": "Error Handling",
+            "statements": [
+                "try",
+                "except",
+                "finally",
+                "raise"
+            ]
+        },
+        {
+            "rank": 4,
+            "category": "Decision Points",
+            "statements": [
+                "if",
+                "elif",
+                "else",
+                "match"
+            ]
+        },
+        {
+            "rank": 5,
+            "category": "External Interactions",
+            "statements": [
+                "open",
+                "read",
+                "write",
+                "requests.get",
+                "requests.post",
+                "os.environ"
+            ]
+        },
+        {
+            "rank": 6,
+            "category": "Variable Changes",
+            "statements": [
+                " = ",
+                "+=",
+                "-=",
+                "*=",
+                "/=",
+                "setdefault"
+            ]
+        },
+        {
+            "rank": 7,
+            "category": "Loop Controls",
+            "statements": [
+                "for",
+                "while",
+                "break",
+                "continue"
+            ]
+        },
+        {
+            "rank": 8,
+            "category": "Context Managers",
+            "statements": [
+                "with",
+                "contextlib.contextmanager",
+                "ExitStack"
+            ]
+        },
+        {
+            "rank": 9,
+            "category": "Asynchronous Operations",
+            "statements": [
+                "async with",
+                "async for",
+                "asyncio.create_task",
+                "asyncio.run",
+                "await"
+            ]
+        },
+        {
+            "rank": 10,
+            "category": "Performance Measurement",
+            "statements": [
+                "time.perf_counter",
+                "time.time",
+                "datetime.now",
+                "cProfile",
+                "timeit"
+            ]
+        },
+        {
+            "rank": 11,
+            "category": "Event Handling",
+            "statements": [
+                "signal.signal",
+                "atexit.register"
+            ]
+        }
+    ]
+}

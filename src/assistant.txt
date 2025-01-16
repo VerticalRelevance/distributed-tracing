@@ -1,0 +1,618 @@
+[
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 17,
+    "line": "def __init__(self):"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 19,
+    "line": "self.sessions = self.initialize_sessions()"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 20,
+    "line": "self.acct_id_map = self.build_account_id_map(self.sessions)"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 21,
+    "line": "self.variables = self.load_variables()"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 23,
+    "line": "def initialize_sessions(self):"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 24,
+    "line": "return {profile : boto3.session.Session(profile_name = profile, region_name = self.region)"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 24,
+    "line": "return {profile : boto3.session.Session(profile_name = profile, region_name = self.region)"
+  },
+  {
+    "search_term": "for ",
+    "category": "Loop Controls",
+    "level": 7,
+    "line_number": 25,
+    "line": "for profile, region in self.PROFILES}"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 27,
+    "line": "def get_client(self, session_name, client_name):"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 28,
+    "line": "return self.sessions[session_name].client(client_name)"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 30,
+    "line": "def grant_tag_resource(self, lakeformation, principal_id, tag_key, tag_values, permissions):"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 31,
+    "line": "return lakeformation.grant_permissions("
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 41,
+    "line": "def grant_tag_policy(self, lakeformation, principal_id, tag_key, tag_values, resource_type, permissions):"
+  },
+  {
+    "search_term": "try",
+    "category": "Error Handling",
+    "level": 3,
+    "line_number": 43,
+    "line": "try:"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 44,
+    "line": "return lakeformation.grant_permissions("
+  },
+  {
+    "search_term": "except",
+    "category": "Error Handling",
+    "level": 3,
+    "line_number": 55,
+    "line": "except lakeformation.exceptions.EntityNotFoundException as e:"
+  },
+  {
+    "search_term": "if ",
+    "category": "Decision Points",
+    "level": 4,
+    "line_number": 61,
+    "line": "if tag_key in tag_keys:"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 65,
+    "line": "return False"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 67,
+    "line": "def grant_tbac_to_user(self, lakeformation, user_arn, tag_key, tag_values):"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 69,
+    "line": "principal_id = user_arn,"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 70,
+    "line": "tag_key = tag_key,"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 71,
+    "line": "tag_values = tag_values,"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 74,
+    "line": "def grant_tbac_to_account(self, lakeformation, account_id, account_type, tag_key, tag_values):"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 92,
+    "line": "resp = self.grant_tag_policy(lakeformation,"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 101,
+    "line": "resp = self.grant_tag_policy(lakeformation,"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 121,
+    "line": "def rwun_glue_crawler(self, glue, crawler_name):"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 123,
+    "line": "return glue.start_crawler(Name=crawler_name)"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 125,
+    "line": "def catalog_table_names(self, glue, dbname):"
+  },
+  {
+    "search_term": "try",
+    "category": "Error Handling",
+    "level": 3,
+    "line_number": 132,
+    "line": "try:"
+  },
+  {
+    "search_term": "except",
+    "category": "Error Handling",
+    "level": 3,
+    "line_number": 134,
+    "line": "except glue.exceptions.EntityNotFoundException:"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 136,
+    "line": "return []"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 138,
+    "line": "def get_glue_crawler(self, glue, crawler_name):"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 139,
+    "line": "return glue.get_crawler(Name=crawler_name)"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 141,
+    "line": "def get_glue_crawler_state(self, glue, crawler_name):"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 142,
+    "line": "return self.get_glue_crawler(glue, crawler_name)['Crawler']['State']"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 146,
+    "line": "i = 0"
+  },
+  {
+    "search_term": "while ",
+    "category": "Loop Controls",
+    "level": 7,
+    "line_number": 147,
+    "line": "while i < wait_for:"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 148,
+    "line": "current_state = self.get_glue_crawler_state(glue, crawler_name)"
+  },
+  {
+    "search_term": "if ",
+    "category": "Decision Points",
+    "level": 4,
+    "line_number": 150,
+    "line": "if current_state == state:"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 152,
+    "line": "return True"
+  },
+  {
+    "search_term": "+=",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 154,
+    "line": "i += 1"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 155,
+    "line": "return False"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 158,
+    "line": "def load_variables(cls):"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 160,
+    "line": "return json.loads(f.read())"
+  },
+  {
+    "search_term": "read",
+    "category": "External Interactions",
+    "level": 5,
+    "line_number": 160,
+    "line": "return json.loads(f.read())"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 163,
+    "line": "def build_account_id_map(cls, sessions):"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 164,
+    "line": "acct_id_map = {}"
+  },
+  {
+    "search_term": "for ",
+    "category": "Loop Controls",
+    "level": 7,
+    "line_number": 165,
+    "line": "for profile, _ in cls.PROFILES:"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 166,
+    "line": "session = sessions.get(profile)"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 168,
+    "line": "return acct_id_map"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 170,
+    "line": "def update_lf_tag(self, lakeformation, tag_key, tag_values):"
+  },
+  {
+    "search_term": "if ",
+    "category": "Decision Points",
+    "level": 4,
+    "line_number": 172,
+    "line": "tagvalues_to_add = [x for x in tag_values if x not in actual_tagvalues]"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 172,
+    "line": "tagvalues_to_add = [x for x in tag_values if x not in actual_tagvalues]"
+  },
+  {
+    "search_term": "for ",
+    "category": "Loop Controls",
+    "level": 7,
+    "line_number": 172,
+    "line": "tagvalues_to_add = [x for x in tag_values if x not in actual_tagvalues]"
+  },
+  {
+    "search_term": "if ",
+    "category": "Decision Points",
+    "level": 4,
+    "line_number": 173,
+    "line": "if tagvalues_to_add:"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 174,
+    "line": "return lakeformation.update_lf_tag(TagKey=tag_key, TagValuesToAdd = tagvalues_to_add)"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 174,
+    "line": "return lakeformation.update_lf_tag(TagKey=tag_key, TagValuesToAdd = tagvalues_to_add)"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 177,
+    "line": "def create_lf_tag(self, lakeformation, tag_key, tag_values):"
+  },
+  {
+    "search_term": "try",
+    "category": "Error Handling",
+    "level": 3,
+    "line_number": 178,
+    "line": "try:"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 179,
+    "line": "return lakeformation.create_lf_tag(TagKey = tag_key, TagValues = tag_values)"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 179,
+    "line": "return lakeformation.create_lf_tag(TagKey = tag_key, TagValues = tag_values)"
+  },
+  {
+    "search_term": "except",
+    "category": "Error Handling",
+    "level": 3,
+    "line_number": 180,
+    "line": "except lakeformation.exceptions.InvalidInputException as e:"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 182,
+    "line": "return self.update_lf_tag(lakeformation, tag_key, tag_values)"
+  },
+  {
+    "search_term": "raise",
+    "category": "Error Handling",
+    "level": 3,
+    "line_number": 183,
+    "line": "raise e"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 186,
+    "line": "def tag_database(lakeformation, database_name, tag_key, tag_values):"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 188,
+    "line": "resp = lakeformation.add_lf_tags_to_resource("
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 191,
+    "line": "LFTags = [{"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 196,
+    "line": "return resp"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 199,
+    "line": "def tag_table(lakeformation, table_name, database_name, tag_key, tag_values):"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 201,
+    "line": "resp = lakeformation.add_lf_tags_to_resource("
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 206,
+    "line": "LFTags = [{"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 211,
+    "line": "return resp"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 213,
+    "line": "def central_glue_tasks(self):"
+  },
+  {
+    "search_term": "for ",
+    "category": "Loop Controls",
+    "level": 7,
+    "line_number": 228,
+    "line": "for tablename in self.catalog_table_names(glue, central_db_name):"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 257,
+    "line": "database_name = consumer_db_name,"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 258,
+    "line": "tag_key = tag_key,"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 259,
+    "line": "tag_values = tag_values)"
+  },
+  {
+    "search_term": "for ",
+    "category": "Loop Controls",
+    "level": 7,
+    "line_number": 260,
+    "line": "for central_table_name in self.catalog_table_names(glue, central_db_name):"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 279,
+    "line": "def create_resource_link(self, glue, create_in_database, new_table_name, source_acct, source_db, source_table):"
+  },
+  {
+    "search_term": "try",
+    "category": "Error Handling",
+    "level": 3,
+    "line_number": 280,
+    "line": "try:"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 281,
+    "line": "return glue.create_table("
+  },
+  {
+    "search_term": "except",
+    "category": "Error Handling",
+    "level": 3,
+    "line_number": 292,
+    "line": "except glue.exceptions.AlreadyExistsException:"
+  },
+  {
+    "search_term": "read",
+    "category": "External Interactions",
+    "level": 5,
+    "line_number": 292,
+    "line": "except glue.exceptions.AlreadyExistsException:"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 294,
+    "line": "return False"
+  },
+  {
+    "search_term": "def ",
+    "category": "Function Entry",
+    "level": 1,
+    "line_number": 297,
+    "line": "def parse():"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 298,
+    "line": "parser = ArgumentParser()"
+  },
+  {
+    "search_term": "return ",
+    "category": "Function Exit",
+    "level": 2,
+    "line_number": 300,
+    "line": "return vars(parser.parse_args())"
+  },
+  {
+    "search_term": " = ",
+    "category": "Variable Changes",
+    "level": 6,
+    "line_number": 303,
+    "line": "client = DataMeshClient()"
+  }
+]
