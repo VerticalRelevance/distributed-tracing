@@ -4,12 +4,17 @@ Initial work toward building application distributed tracing knowledge
 
 ## Notes
  - This repo is currently developed with Python 3.13.1.
- - Currently the input file used for processing is content.py. In the future files will be read from a local repostiory whose location is passed into via the command line.
+ - Currently the input file used for processing is content.py. In the future files will be read from a local repository whose location is passed into via the command line.
+
+## Verify Available Required Model
+```bash
+aws bedrock list-foundation-models --region=us-west-2 --by-provider anthropic --query "modelSummaries[*].modelId" | grep anthropic.claude-3-5-sonnet-20241022-v2:0
+```
 
 ## Running
  1. From the repository root, set up required packages:
 ```bash
-pip install -r requirements.txt
+pip install -U -r requirements.txt
 ```
  2. Change to the source directory
 ```bash
