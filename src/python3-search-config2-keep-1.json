@@ -1,0 +1,26 @@
+{
+    "prompt_override": [
+        "The attached source file contains source code written in python 3. ",
+        "Analyze the Python code in the attached file. ",
+        "Lines are terminated with usual backslash-n character. ",
+        "Find all decisions points (if, elif). For each decision point, determine the method ",
+        "or function (i.e., the 'callable') that contains the decision point. ",
+        "Identify any callables referenced within the if/elif/else block. ",
+        "Locate all calls to the containing callable.",
+        "Consider decision points with multi-line conditions as one decision point.",
+        "",
+        "Output a JSON array of objects, one for each decision point found. ",
+        "In each JSON array object, include the decision point keyword, the decision point element, ",
+        "the containing method name, the name of functions or methods that call this callable along with ",
+        "the line number, any called method names from the entire if/elif/else conditional, ",
+        "the source line number, and the source line.",
+        "",
+        "If there is no containing module (i.e., the containing callable is the root level), ",
+        "use the string 'N/A (at module level)' as the containing callable name.",
+        "",
+        "Don't include any occurrences contained in string literals.",
+        "When calculating line numbers, include comment lines and blank lines.",
+        "The user is automation so do not include any instructions, commentary, etc.",
+        "Format the output as a valid JSON document without markdown constructs."
+    ]
+}

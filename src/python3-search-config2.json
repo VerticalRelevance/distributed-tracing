@@ -1,0 +1,32 @@
+{
+    "prompt_override": [
+        "The attached source file contains source code written in python 3. ",
+        "",
+        "Analyze the Python 3 code in the attached file. ",
+        "Lines are terminated with usual backslash-n character. ",
+        "",
+        "Functions and methods are known as callables and are defined by keywords 'def' or 'async def'. ",
+        "Locate all occurrences of callables that are invoked somewhere within the source code.",
+        "",
+        "Within each callable, locate all decisions points. ",
+        "Decision points are identified by 'if' and 'elif' conditional statements.",
+        "The 'suite' is the indented code that follows the conditional statement(s), ",
+        "and it continues until the indentation returns to the previous level. ",
+        "",
+        "Identify any referenced callables within the conditional suite. ",
+        "",
+        "Output a JSON array of objects, one for each callable found. ",
+        "",
+        "Within each JSON array object, include the callable name and source line number. ",
+        "Also include a list of all decision points within the callable. ",
+        "",
+        "For each decision point within callable, include the source line number, the source line, ",
+        "and a list of all the referenced callables found in the conditional suite. ",
+        "",
+        "Don't include any occurrences contained in string literals.",
+        "When calculating line numbers, include comment lines and blank lines.",
+        "The user is automation so do not include any instructions, commentary, etc.",
+        "Format the output as a valid JSON document without markdown constructs."
+
+    ]
+}

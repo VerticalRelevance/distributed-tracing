@@ -1,0 +1,154 @@
+[
+  {
+    "callable_name": "set_ai_pipeline_name",
+    "line_number": 18,
+    "decision_points": []
+  },
+  {
+    "callable_name": "get_ai_pipeline_name",
+    "line_number": 23,
+    "decision_points": []
+  },
+  {
+    "callable_name": "ai_track",
+    "line_number": 28,
+    "decision_points": []
+  },
+  {
+    "callable_name": "decorator",
+    "line_number": 30,
+    "decision_points": []
+  },
+  {
+    "callable_name": "sync_wrapped",
+    "line_number": 32,
+    "decision_points": [
+      {
+        "line_number": 42,
+        "line": "if curr_pipeline:",
+        "referenced_callables": [
+          "res",
+          "curr_pipeline",
+          "hint",
+          "as",
+          "from",
+          "e",
+          "return",
+          "Exception",
+          "None",
+          "f",
+          "except",
+          "description",
+          "raise"
+        ]
+      }
+    ]
+  },
+  {
+    "callable_name": "def",
+    "line_number": 61,
+    "decision_points": [
+      {
+        "line_number": 71,
+        "line": "if curr_pipeline:",
+        "referenced_callables": [
+          "res",
+          "curr_pipeline",
+          "hint",
+          "as",
+          "from",
+          "e",
+          "return",
+          "Exception",
+          "await",
+          "None",
+          "f",
+          "except",
+          "description",
+          "raise"
+        ]
+      },
+      {
+        "line_number": 90,
+        "line": "if inspect.iscoroutinefunction(f):",
+        "referenced_callables": [
+          "return",
+          "async_wrapped",
+          "sync_wrapped",
+          "f",
+          "wraps"
+        ]
+      }
+    ]
+  },
+  {
+    "callable_name": "record_token_usage",
+    "line_number": 98,
+    "decision_points": [
+      {
+        "line_number": 103,
+        "line": "if ai_pipeline_name:",
+        "referenced_callables": [
+          "ai_pipeline_name",
+          "total_tokens",
+          "is",
+          "completion_tokens",
+          "and",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 105,
+        "line": "if prompt_tokens is not None:",
+        "referenced_callables": [
+          "total_tokens",
+          "is",
+          "completion_tokens",
+          "and",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 107,
+        "line": "if completion_tokens is not None:",
+        "referenced_callables": [
+          "total_tokens",
+          "is",
+          "and",
+          "completion_tokens",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 109,
+        "line": "if (",
+        "referenced_callables": [
+          "total_tokens",
+          "is",
+          "and",
+          "completion_tokens",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 115,
+        "line": "if total_tokens is not None:",
+        "referenced_callables": [
+          "total_tokens"
+        ]
+      }
+    ]
+  }
+]

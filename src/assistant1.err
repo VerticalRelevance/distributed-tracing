@@ -1,0 +1,506 @@
+DEBUG:root:formatted_search_instructions:
+DEBUG:root:['The attached source file contains source code written in python 3. ', '', 'Analyze the Python 3 code in the attached file. ', 'Lines are terminated with usual backslash-n character. ', '', "Functions and methods are known as callables and are defined by keywords 'def' or 'async def'. ", 'Locate all occurrences of callables that are invoked somewhere within the source code.', '', 'Within each callable, locate all decisions points. ', "Decision points are identified by 'if' and 'elif' conditional statements.", "The 'suite' is the indented code that follows the conditional statement(s), ", 'and it continues until the indentation returns to the previous level. ', '', 'Identify any referenced callables within the conditional suite. ', '', 'Output a JSON array of objects, one for each callable found. ', '', 'Within each JSON array object, include the callable name and source line number. ', 'Also include a list of all decision points within the callable. ', '', 'For each decision point within callable, include the source line number, the source line, ', 'and a list of all the referenced callables found in the conditional suite. ', '', "Don't include any occurrences contained in string literals.", 'When calculating line numbers, include comment lines and blank lines.', 'The user is automation so do not include any instructions, commentary, etc.', 'Format the output as a valid JSON document without markdown constructs.']
+DEBUG:root:search_instructions:
+DEBUG:root:The attached source file contains source code written in python 3. 
+
+Analyze the Python 3 code in the attached file. 
+Lines are terminated with usual backslash-n character. 
+
+Functions and methods are known as callables and are defined by keywords 'def' or 'async def'. 
+Locate all occurrences of callables that are invoked somewhere within the source code.
+
+Within each callable, locate all decisions points. 
+Decision points are identified by 'if' and 'elif' conditional statements.
+The 'suite' is the indented code that follows the conditional statement(s), 
+and it continues until the indentation returns to the previous level. 
+
+Identify any referenced callables within the conditional suite. 
+
+Output a JSON array of objects, one for each callable found. 
+
+Within each JSON array object, include the callable name and source line number. 
+Also include a list of all decision points within the callable. 
+
+For each decision point within callable, include the source line number, the source line, 
+and a list of all the referenced callables found in the conditional suite. 
+
+Don't include any occurrences contained in string literals.
+When calculating line numbers, include comment lines and blank lines.
+The user is automation so do not include any instructions, commentary, etc.
+Format the output as a valid JSON document without markdown constructs.
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/files', 'headers': {'Content-Type': 'multipart/form-data'}, 'files': [('file', SerializationIterator(index=0, iterator=SerializationIterator(index=0, iterator=<_io.BufferedReader name='/Users/scaswell/VerticalRelevance/Projects/Internal/Trace-Injection/distributed-tracing/src/examples/content.py'>)))], 'json_data': {'purpose': 'assistants'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/files
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/files "200 OK" Headers([('date', 'Fri, 24 Jan 2025 20:28:18 GMT'), ('content-type', 'application/json'), ('transfer-encoding', 'chunked'), ('connection', 'keep-alive'), ('openai-version', '2020-10-01'), ('openai-organization', 'vertical-relevance-p5p59n'), ('x-request-id', 'req_037a4ce202a2837954cb608643f1d5ac'), ('openai-processing-ms', '649'), ('access-control-allow-origin', '*'), ('strict-transport-security', 'max-age=31536000; includeSubDomains; preload'), ('cf-cache-status', 'DYNAMIC'), ('set-cookie', '__cf_bm=9UVh8j_OAx2loqmNdu1KkzDqeljeADvgZ8ZvUS8df3A-1737750498-1.0.1.1-jyzMu0KFZLSVm7M3gb9CksMzDF14Yij4FEkqyCrhRhYwXqAKrw4BgVUnfnebI_jp.lVQg8nSdcSEyr0JNIendA; path=/; expires=Fri, 24-Jan-25 20:58:18 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('x-content-type-options', 'nosniff'), ('set-cookie', '_cfuvid=LczWboKPfee.7FK6TWTYuvqztwXgIRvKvqCuWzBaPCM-1737750498000-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('server', 'cloudflare'), ('cf-ray', '9072c4de8f8c7416-MIA'), ('content-encoding', 'gzip'), ('alt-svc', 'h3=":443"; ma=86400')])
+DEBUG:openai._base_client:request_id: req_037a4ce202a2837954cb608643f1d5ac
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/assistants', 'headers': {'OpenAI-Beta': 'assistants=v2'}, 'files': None, 'json_data': {'model': 'gpt-4o-mini', 'name': 'Code Tracing Expert', 'tool_resources': {'code_interpreter': {'file_ids': ['file-CMsPWS5VpmijDxoWtd7Pxe']}}, 'tools': [{'type': 'code_interpreter'}]}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/assistants
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/assistants "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:18 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_d049f212344b4c10ef9d9cf803240b1f', 'openai-processing-ms': '729', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c4e4ea2d7416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_d049f212344b4c10ef9d9cf803240b1f
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/threads', 'headers': {'OpenAI-Beta': 'assistants=v2'}, 'files': None, 'json_data': {}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/threads
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/threads "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:19 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_a6d5ff8870bac55fc6cff4b5499d29d8', 'openai-processing-ms': '77', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c4eaabb57416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_a6d5ff8870bac55fc6cff4b5499d29d8
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/messages', 'headers': {'OpenAI-Beta': 'assistants=v2'}, 'files': None, 'json_data': {'content': "The attached source file contains source code written in python 3. \n\nAnalyze the Python 3 code in the attached file. \nLines are terminated with usual backslash-n character. \n\nFunctions and methods are known as callables and are defined by keywords 'def' or 'async def'. \nLocate all occurrences of callables that are invoked somewhere within the source code.\n\nWithin each callable, locate all decisions points. \nDecision points are identified by 'if' and 'elif' conditional statements.\nThe 'suite' is the indented code that follows the conditional statement(s), \nand it continues until the indentation returns to the previous level. \n\nIdentify any referenced callables within the conditional suite. \n\nOutput a JSON array of objects, one for each callable found. \n\nWithin each JSON array object, include the callable name and source line number. \nAlso include a list of all decision points within the callable. \n\nFor each decision point within callable, include the source line number, the source line, \nand a list of all the referenced callables found in the conditional suite. \n\nDon't include any occurrences contained in string literals.\nWhen calculating line numbers, include comment lines and blank lines.\nThe user is automation so do not include any instructions, commentary, etc.\nFormat the output as a valid JSON document without markdown constructs.", 'role': 'user'}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/messages
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/messages "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:19 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_283802cafd62a1eddd1a4de36991539d', 'openai-processing-ms': '165', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c4ec2ebf7416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_283802cafd62a1eddd1a4de36991539d
+DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs', 'params': {}, 'headers': {'OpenAI-Beta': 'assistants=v2'}, 'files': None, 'json_data': {'assistant_id': 'asst_2OVvZWEUF5JIA8ZPfjqwjK8C', 'instructions': 'You are an expert in all known programming languages. You analyze source code, understand code\nstructure, and have vast experience in code tracing. You have a code interpreter available to you\nas you analyze python 3 source files.\n\nThe user is an automation app, so no additional explanation, summaries, or formatting is required.\n', 'stream': False}}
+DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs
+DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:20 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_c0d335bac7e0aeab4df62f4b11096682', 'openai-processing-ms': '467', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c4ee2a787416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_c0d335bac7e0aeab4df62f4b11096682
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:20 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_b2f074832a36422e38bf19331b481876', 'openai-processing-ms': '219', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c4f269f37416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_b2f074832a36422e38bf19331b481876
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:21 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_d29e57a574d7c9b44acff2e56a3a53d5', 'openai-processing-ms': '103', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c4fb68787416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_d29e57a574d7c9b44acff2e56a3a53d5
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:23 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_c1e6067753c10e5e39075607e5840929', 'openai-processing-ms': '110', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5038db87416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_c1e6067753c10e5e39075607e5840929
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:24 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_7ccf6c8e710e1ae293a31b54a6cc2957', 'openai-processing-ms': '179', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c50b8bb77416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_7ccf6c8e710e1ae293a31b54a6cc2957
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:25 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_59b9ceeb967ad71f2b4cba4bbd047e98', 'openai-processing-ms': '118', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c51409f27416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_59b9ceeb967ad71f2b4cba4bbd047e98
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:27 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_51a69534d92874e86c19ee961d77f4e2', 'openai-processing-ms': '113', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c51c68d27416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_51a69534d92874e86c19ee961d77f4e2
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:28 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_4a52175b741292fbdb6895831b222672', 'openai-processing-ms': '129', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c524cff87416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_4a52175b741292fbdb6895831b222672
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:30 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_6bca015664b9f531ce5e3f5afcf36130', 'openai-processing-ms': '115', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c52e68587416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_6bca015664b9f531ce5e3f5afcf36130
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:31 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_3777f0647da262e5c2fc801550b52295', 'openai-processing-ms': '102', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c536cf057416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_3777f0647da262e5c2fc801550b52295
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:32 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_c552528f2bff45dfe750b98721835f1e', 'openai-processing-ms': '127', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c53f0cb77416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_c552528f2bff45dfe750b98721835f1e
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:34 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_575f2d23ec8b2a768625a0e8e12b03b1', 'openai-processing-ms': '103', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5476bd47416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_575f2d23ec8b2a768625a0e8e12b03b1
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:35 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_5130c583b6cd3b3519352bd3dead2808', 'openai-processing-ms': '107', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c54fc9187416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_5130c583b6cd3b3519352bd3dead2808
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:36 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_24acaa7e2b5454797640feb3adbbd304', 'openai-processing-ms': '123', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5580fbf7416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_24acaa7e2b5454797640feb3adbbd304
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:38 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_943d33b6ca8f3def072782215047f6ac', 'openai-processing-ms': '147', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c55ffd267416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_943d33b6ca8f3def072782215047f6ac
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:39 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_ff4c04a7894b523391ab5889b6470d57', 'openai-processing-ms': '204', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5682a937416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_ff4c04a7894b523391ab5889b6470d57
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:40 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_c562dad0d23a2252fe19d7d1f2ce92ee', 'openai-processing-ms': '122', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c571cb4b7416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_c562dad0d23a2252fe19d7d1f2ce92ee
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:42 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_5750cc49a0da98c0b47540ee57fe3eb0', 'openai-processing-ms': '103', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c57aaadb7416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_5750cc49a0da98c0b47540ee57fe3eb0
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:43 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_411e0c40ec445c543fea57fbeb67534d', 'openai-processing-ms': '168', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c582c9997416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_411e0c40ec445c543fea57fbeb67534d
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:45 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_c4263b0e1ef62ac0800fd52462b328e6', 'openai-processing-ms': '272', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c58bea7b7416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_c4263b0e1ef62ac0800fd52462b328e6
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:46 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_5c9e7933ec9e8f085504ba284a8e75db', 'openai-processing-ms': '148', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5959c787416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_5c9e7933ec9e8f085504ba284a8e75db
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:47 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_c163c8fc0d885db105d35be358da123b', 'openai-processing-ms': '105', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c59e0cd67416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_c163c8fc0d885db105d35be358da123b
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:49 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_aabcf66f8ad1a3a88b874e14907bb522', 'openai-processing-ms': '103', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5a6ac9b7416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_aabcf66f8ad1a3a88b874e14907bb522
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:50 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_21d005da5993a0d2a94cee51c04b4358', 'openai-processing-ms': '121', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5ae8ada7416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_21d005da5993a0d2a94cee51c04b4358
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH', 'headers': {'OpenAI-Beta': 'assistants=v2', 'X-Stainless-Poll-Helper': 'true', 'X-Stainless-Raw-Response': 'true'}}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:51 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_3c1d7b63552beabf988799e70d770f72', 'openai-processing-ms': '107', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5b76a167416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_3c1d7b63552beabf988799e70d770f72
+DEBUG:root:Usage:
+DEBUG:root:Usage(completion_tokens=1404, prompt_tokens=2678, total_tokens=4082, prompt_token_details={'cached_tokens': 0})
+DEBUG:root:Run terminated with status 'completed'
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH/steps', 'params': {}, 'headers': {'OpenAI-Beta': 'assistants=v2'}, 'post_parser': <function SyncAPIClient._request_api_list.<locals>._parser at 0x1050a4e00>, 'json_data': None}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH/steps
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/runs/run_A0bnCXHYMDBb6nxg5sD6HFLH/steps "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:52 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_428ab05cbdc3e8316c1b421d7ca5e709', 'openai-processing-ms': '225', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5b96d757416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_428ab05cbdc3e8316c1b421d7ca5e709
+DEBUG:root:run steps:
+DEBUG:root:SyncCursorPage[RunStep](data=[RunStep(id='step_K2aysHF3dBKjsLVGXvL57ke3', assistant_id='asst_2OVvZWEUF5JIA8ZPfjqwjK8C', cancelled_at=None, completed_at=1737750531, created_at=1737750516, expired_at=None, failed_at=None, last_error=None, metadata=None, object='thread.run.step', run_id='run_A0bnCXHYMDBb6nxg5sD6HFLH', status='completed', step_details=MessageCreationStepDetails(message_creation=MessageCreation(message_id='msg_47byiTVF1gDd3mdM775eeQZX'), type='message_creation'), thread_id='thread_CzzmVDQ0Cko8AqOnuuuUvWnB', type='message_creation', usage=Usage(completion_tokens=759, prompt_tokens=2175, total_tokens=2934, prompt_token_details={'cached_tokens': 0}), expires_at=None), RunStep(id='step_0DygHU9OBihkvi2AYrIml4o7', assistant_id='asst_2OVvZWEUF5JIA8ZPfjqwjK8C', cancelled_at=None, completed_at=1737750516, created_at=1737750501, expired_at=None, failed_at=None, last_error=None, metadata=None, object='thread.run.step', run_id='run_A0bnCXHYMDBb6nxg5sD6HFLH', status='completed', step_details=ToolCallsStepDetails(tool_calls=[CodeInterpreterToolCall(id='call_o7bQwpElE99LzrsERzBC8xct', code_interpreter=CodeInterpreter(input="import json\r\n\r\n# Read the content of the uploaded Python file\r\nfile_path = '/mnt/data/file-CMsPWS5VpmijDxoWtd7Pxe'\r\nwith open(file_path, 'r') as file:\r\n    code = file.readlines()\r\n\r\n# Variable to hold the analysis result\r\ncallables_info = []\r\n\r\n# Variables to track the state of the analysis\r\ncurrent_callable_name = None\r\ncurrent_callable_start_line = None\r\ndecision_points = []\r\n\r\ndef is_callable_line(line):\r\n    return line.strip().startswith(('def ', 'async def '))\r\n\r\ndef is_decision_point(line):\r\n    return line.strip().startswith(('if ', 'elif '))\r\n\r\ndef extract_callable_name(line):\r\n    # Extracting the callable name from the line\r\n    return line.split()[1].split('(')[0]\r\n\r\ndef extract_referenced_callables(suite_lines):\r\n    referenced = set()\r\n    for line in suite_lines:\r\n        stripped_line = line.strip()\r\n        if not stripped_line or stripped_line.startswith('#'):\r\n            continue\r\n        # Simple heuristic to extract potential callable names\r\n        tokens = [token for token in stripped_line.replace('(', ' ').replace(')', ' ').split() if token.isidentifier()]\r\n        for token in tokens:\r\n            if token != current_callable_name:  # Avoid counting the current callable\r\n                referenced.add(token)\r\n    return list(referenced)\r\n\r\n\r\n# Iterate through the source code lines to analyze\r\nfor i, line in enumerate(code):\r\n    line_number = i + 1\r\n    if is_callable_line(line):\r\n        # If we were collecting a previous callable, finalize its details\r\n        if current_callable_name is not None:\r\n            callables_info.append({\r\n                'callable_name': current_callable_name,\r\n                'line_number': current_callable_start_line,\r\n                'decision_points': decision_points\r\n            })\r\n        \r\n        # Start a new callable\r\n        current_callable_name = extract_callable_name(line)\r\n        current_callable_start_line = line_number\r\n        decision_points = []\r\n\r\n    elif current_callable_name is not None:\r\n        if is_decision_point(line):\r\n            decision_line_info = {\r\n                'line_number': line_number,\r\n                'line': line.strip(),\r\n                'referenced_callables': []\r\n            }\r\n            indent_level = len(line) - len(line.lstrip(' '))\r\n            suite_lines = []\r\n            # Collect suite lines until we return to previous indentation level\r\n            for subsequent_line in code[i + 1:]:\r\n                if subsequent_line.startswith(' ' * indent_level):\r\n                    suite_lines.append(subsequent_line)\r\n                else:\r\n                    break\r\n            # Extract referenced callables from the suite\r\n            decision_line_info['referenced_callables'] = extract_referenced_callables(suite_lines)\r\n            decision_points.append(decision_line_info)\r\n\r\n# Finalize the last callable\r\nif current_callable_name is not None:\r\n    callables_info.append({\r\n        'callable_name': current_callable_name,\r\n        'line_number': current_callable_start_line,\r\n        'decision_points': decision_points\r\n    })\r\n\r\n# Convert the result to JSON format\r\noutput_json = json.dumps(callables_info, indent=2)\r\noutput_json", outputs=[]), type='code_interpreter')], type='tool_calls'), thread_id='thread_CzzmVDQ0Cko8AqOnuuuUvWnB', type='tool_calls', usage=Usage(completion_tokens=645, prompt_tokens=503, total_tokens=1148, prompt_token_details={'cached_tokens': 0}), expires_at=None)], object='list', first_id='step_K2aysHF3dBKjsLVGXvL57ke3', last_id='step_0DygHU9OBihkvi2AYrIml4o7', has_more=False)
+DEBUG:openai._base_client:Request options: {'method': 'get', 'url': '/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/messages', 'params': {}, 'headers': {'OpenAI-Beta': 'assistants=v2'}, 'post_parser': <function SyncAPIClient._request_api_list.<locals>._parser at 0x105106f20>, 'json_data': None}
+DEBUG:openai._base_client:Sending HTTP Request: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/messages
+DEBUG:openai._base_client:HTTP Response: GET https://api.openai.com/v1/threads/thread_CzzmVDQ0Cko8AqOnuuuUvWnB/messages "200 OK" Headers({'date': 'Fri, 24 Jan 2025 20:28:52 GMT', 'content-type': 'application/json', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'openai-version': '2020-10-01', 'openai-organization': 'vertical-relevance-p5p59n', 'x-request-id': 'req_bdf715d2ceb3331147d13c6e3f46b862', 'openai-processing-ms': '54', 'strict-transport-security': 'max-age=31536000; includeSubDomains; preload', 'cf-cache-status': 'DYNAMIC', 'x-content-type-options': 'nosniff', 'server': 'cloudflare', 'cf-ray': '9072c5bbc9d17416-MIA', 'content-encoding': 'gzip', 'alt-svc': 'h3=":443"; ma=86400'})
+DEBUG:openai._base_client:request_id: req_bdf715d2ceb3331147d13c6e3f46b862
+DEBUG:root:messages.data len: 2
+DEBUG:root:messages.data[0].content len: 1
+DEBUG:root:logger effective level: 10
+DEBUG:root:item:
+DEBUG:root:Message(id='msg_47byiTVF1gDd3mdM775eeQZX', assistant_id='asst_2OVvZWEUF5JIA8ZPfjqwjK8C', attachments=[], completed_at=None, content=[TextContentBlock(text=Text(annotations=[], value='[\n  {\n    "callable_name": "set_ai_pipeline_name",\n    "line_number": 18,\n    "decision_points": []\n  },\n  {\n    "callable_name": "get_ai_pipeline_name",\n    "line_number": 23,\n    "decision_points": []\n  },\n  {\n    "callable_name": "ai_track",\n    "line_number": 28,\n    "decision_points": []\n  },\n  {\n    "callable_name": "decorator",\n    "line_number": 30,\n    "decision_points": []\n  },\n  {\n    "callable_name": "sync_wrapped",\n    "line_number": 32,\n    "decision_points": [\n      {\n        "line_number": 42,\n        "line": "if curr_pipeline:",\n        "referenced_callables": [\n          "res",\n          "curr_pipeline",\n          "hint",\n          "as",\n          "from",\n          "e",\n          "return",\n          "Exception",\n          "None",\n          "f",\n          "except",\n          "description",\n          "raise"\n        ]\n      }\n    ]\n  },\n  {\n    "callable_name": "def",\n    "line_number": 61,\n    "decision_points": [\n      {\n        "line_number": 71,\n        "line": "if curr_pipeline:",\n        "referenced_callables": [\n          "res",\n          "curr_pipeline",\n          "hint",\n          "as",\n          "from",\n          "e",\n          "return",\n          "Exception",\n          "await",\n          "None",\n          "f",\n          "except",\n          "description",\n          "raise"\n        ]\n      },\n      {\n        "line_number": 90,\n        "line": "if inspect.iscoroutinefunction(f):",\n        "referenced_callables": [\n          "return",\n          "async_wrapped",\n          "sync_wrapped",\n          "f",\n          "wraps"\n        ]\n      }\n    ]\n  },\n  {\n    "callable_name": "record_token_usage",\n    "line_number": 98,\n    "decision_points": [\n      {\n        "line_number": 103,\n        "line": "if ai_pipeline_name:",\n        "referenced_callables": [\n          "ai_pipeline_name",\n          "total_tokens",\n          "is",\n          "completion_tokens",\n          "and",\n          "None",\n          "prompt_tokens",\n          "not",\n          "if"\n        ]\n      },\n      {\n        "line_number": 105,\n        "line": "if prompt_tokens is not None:",\n        "referenced_callables": [\n          "total_tokens",\n          "is",\n          "completion_tokens",\n          "and",\n          "None",\n          "prompt_tokens",\n          "not",\n          "if"\n        ]\n      },\n      {\n        "line_number": 107,\n        "line": "if completion_tokens is not None:",\n        "referenced_callables": [\n          "total_tokens",\n          "is",\n          "and",\n          "completion_tokens",\n          "None",\n          "prompt_tokens",\n          "not",\n          "if"\n        ]\n      },\n      {\n        "line_number": 109,\n        "line": "if (",\n        "referenced_callables": [\n          "total_tokens",\n          "is",\n          "and",\n          "completion_tokens",\n          "None",\n          "prompt_tokens",\n          "not",\n          "if"\n        ]\n      },\n      {\n        "line_number": 115,\n        "line": "if total_tokens is not None:",\n        "referenced_callables": [\n          "total_tokens"\n        ]\n      }\n    ]\n  }\n]'), type='text')], created_at=1737750516, incomplete_at=None, incomplete_details=None, metadata={}, object='thread.message', role='assistant', run_id='run_A0bnCXHYMDBb6nxg5sD6HFLH', status=None, thread_id='thread_CzzmVDQ0Cko8AqOnuuuUvWnB')
+DEBUG:root:class: <class 'list'>
+DEBUG:root:content:
+DEBUG:root:[
+  {
+    "callable_name": "set_ai_pipeline_name",
+    "line_number": 18,
+    "decision_points": []
+  },
+  {
+    "callable_name": "get_ai_pipeline_name",
+    "line_number": 23,
+    "decision_points": []
+  },
+  {
+    "callable_name": "ai_track",
+    "line_number": 28,
+    "decision_points": []
+  },
+  {
+    "callable_name": "decorator",
+    "line_number": 30,
+    "decision_points": []
+  },
+  {
+    "callable_name": "sync_wrapped",
+    "line_number": 32,
+    "decision_points": [
+      {
+        "line_number": 42,
+        "line": "if curr_pipeline:",
+        "referenced_callables": [
+          "res",
+          "curr_pipeline",
+          "hint",
+          "as",
+          "from",
+          "e",
+          "return",
+          "Exception",
+          "None",
+          "f",
+          "except",
+          "description",
+          "raise"
+        ]
+      }
+    ]
+  },
+  {
+    "callable_name": "def",
+    "line_number": 61,
+    "decision_points": [
+      {
+        "line_number": 71,
+        "line": "if curr_pipeline:",
+        "referenced_callables": [
+          "res",
+          "curr_pipeline",
+          "hint",
+          "as",
+          "from",
+          "e",
+          "return",
+          "Exception",
+          "await",
+          "None",
+          "f",
+          "except",
+          "description",
+          "raise"
+        ]
+      },
+      {
+        "line_number": 90,
+        "line": "if inspect.iscoroutinefunction(f):",
+        "referenced_callables": [
+          "return",
+          "async_wrapped",
+          "sync_wrapped",
+          "f",
+          "wraps"
+        ]
+      }
+    ]
+  },
+  {
+    "callable_name": "record_token_usage",
+    "line_number": 98,
+    "decision_points": [
+      {
+        "line_number": 103,
+        "line": "if ai_pipeline_name:",
+        "referenced_callables": [
+          "ai_pipeline_name",
+          "total_tokens",
+          "is",
+          "completion_tokens",
+          "and",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 105,
+        "line": "if prompt_tokens is not None:",
+        "referenced_callables": [
+          "total_tokens",
+          "is",
+          "completion_tokens",
+          "and",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 107,
+        "line": "if completion_tokens is not None:",
+        "referenced_callables": [
+          "total_tokens",
+          "is",
+          "and",
+          "completion_tokens",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 109,
+        "line": "if (",
+        "referenced_callables": [
+          "total_tokens",
+          "is",
+          "and",
+          "completion_tokens",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 115,
+        "line": "if total_tokens is not None:",
+        "referenced_callables": [
+          "total_tokens"
+        ]
+      }
+    ]
+  }
+]
+DEBUG:root:item:
+DEBUG:root:Message(id='msg_klC6Zp9BoKVCx4iTiFrSQBbU', assistant_id=None, attachments=[], completed_at=None, content=[TextContentBlock(text=Text(annotations=[], value="The attached source file contains source code written in python 3. \n\nAnalyze the Python 3 code in the attached file. \nLines are terminated with usual backslash-n character. \n\nFunctions and methods are known as callables and are defined by keywords 'def' or 'async def'. \nLocate all occurrences of callables that are invoked somewhere within the source code.\n\nWithin each callable, locate all decisions points. \nDecision points are identified by 'if' and 'elif' conditional statements.\nThe 'suite' is the indented code that follows the conditional statement(s), \nand it continues until the indentation returns to the previous level. \n\nIdentify any referenced callables within the conditional suite. \n\nOutput a JSON array of objects, one for each callable found. \n\nWithin each JSON array object, include the callable name and source line number. \nAlso include a list of all decision points within the callable. \n\nFor each decision point within callable, include the source line number, the source line, \nand a list of all the referenced callables found in the conditional suite. \n\nDon't include any occurrences contained in string literals.\nWhen calculating line numbers, include comment lines and blank lines.\nThe user is automation so do not include any instructions, commentary, etc.\nFormat the output as a valid JSON document without markdown constructs."), type='text')], created_at=1737750499, incomplete_at=None, incomplete_details=None, metadata={}, object='thread.message', role='user', run_id=None, status=None, thread_id='thread_CzzmVDQ0Cko8AqOnuuuUvWnB')
+DEBUG:root:class: <class 'list'>
+DEBUG:root:content:
+DEBUG:root:The attached source file contains source code written in python 3. 
+
+Analyze the Python 3 code in the attached file. 
+Lines are terminated with usual backslash-n character. 
+
+Functions and methods are known as callables and are defined by keywords 'def' or 'async def'. 
+Locate all occurrences of callables that are invoked somewhere within the source code.
+
+Within each callable, locate all decisions points. 
+Decision points are identified by 'if' and 'elif' conditional statements.
+The 'suite' is the indented code that follows the conditional statement(s), 
+and it continues until the indentation returns to the previous level. 
+
+Identify any referenced callables within the conditional suite. 
+
+Output a JSON array of objects, one for each callable found. 
+
+Within each JSON array object, include the callable name and source line number. 
+Also include a list of all decision points within the callable. 
+
+For each decision point within callable, include the source line number, the source line, 
+and a list of all the referenced callables found in the conditional suite. 
+
+Don't include any occurrences contained in string literals.
+When calculating line numbers, include comment lines and blank lines.
+The user is automation so do not include any instructions, commentary, etc.
+Format the output as a valid JSON document without markdown constructs.
+DEBUG:root:response:
+DEBUG:root:[
+  {
+    "callable_name": "set_ai_pipeline_name",
+    "line_number": 18,
+    "decision_points": []
+  },
+  {
+    "callable_name": "get_ai_pipeline_name",
+    "line_number": 23,
+    "decision_points": []
+  },
+  {
+    "callable_name": "ai_track",
+    "line_number": 28,
+    "decision_points": []
+  },
+  {
+    "callable_name": "decorator",
+    "line_number": 30,
+    "decision_points": []
+  },
+  {
+    "callable_name": "sync_wrapped",
+    "line_number": 32,
+    "decision_points": [
+      {
+        "line_number": 42,
+        "line": "if curr_pipeline:",
+        "referenced_callables": [
+          "res",
+          "curr_pipeline",
+          "hint",
+          "as",
+          "from",
+          "e",
+          "return",
+          "Exception",
+          "None",
+          "f",
+          "except",
+          "description",
+          "raise"
+        ]
+      }
+    ]
+  },
+  {
+    "callable_name": "def",
+    "line_number": 61,
+    "decision_points": [
+      {
+        "line_number": 71,
+        "line": "if curr_pipeline:",
+        "referenced_callables": [
+          "res",
+          "curr_pipeline",
+          "hint",
+          "as",
+          "from",
+          "e",
+          "return",
+          "Exception",
+          "await",
+          "None",
+          "f",
+          "except",
+          "description",
+          "raise"
+        ]
+      },
+      {
+        "line_number": 90,
+        "line": "if inspect.iscoroutinefunction(f):",
+        "referenced_callables": [
+          "return",
+          "async_wrapped",
+          "sync_wrapped",
+          "f",
+          "wraps"
+        ]
+      }
+    ]
+  },
+  {
+    "callable_name": "record_token_usage",
+    "line_number": 98,
+    "decision_points": [
+      {
+        "line_number": 103,
+        "line": "if ai_pipeline_name:",
+        "referenced_callables": [
+          "ai_pipeline_name",
+          "total_tokens",
+          "is",
+          "completion_tokens",
+          "and",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 105,
+        "line": "if prompt_tokens is not None:",
+        "referenced_callables": [
+          "total_tokens",
+          "is",
+          "completion_tokens",
+          "and",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 107,
+        "line": "if completion_tokens is not None:",
+        "referenced_callables": [
+          "total_tokens",
+          "is",
+          "and",
+          "completion_tokens",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 109,
+        "line": "if (",
+        "referenced_callables": [
+          "total_tokens",
+          "is",
+          "and",
+          "completion_tokens",
+          "None",
+          "prompt_tokens",
+          "not",
+          "if"
+        ]
+      },
+      {
+        "line_number": 115,
+        "line": "if total_tokens is not None:",
+        "referenced_callables": [
+          "total_tokens"
+        ]
+      }
+    ]
+  }
+]

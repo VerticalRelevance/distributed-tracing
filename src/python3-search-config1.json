@@ -1,0 +1,10 @@
+{
+    "prompt_override": [
+        "The attached source file contains source code written in python 3.",
+        "Analyze the 'central_glue_tasks' method.",
+        "Report methods or functions called in this method, along with the line number",
+        "Include methods or functions from 'for', 'while' statements, along with the line number.",
+        "Include methods or functions from 'for', 'while' blocks, along with the line number.",
+        "Format the response as a valid JSON document without markdown constructs."
+    ]
+}
