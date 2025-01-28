@@ -9,8 +9,6 @@ import logging
 import openai
 from pprint import pformat
 
-from analyze_source_ast import SourceLocationTraceAnalyzer
-
 class Utils:
     # Class attributes
     stdout_logger = None
@@ -105,11 +103,11 @@ class Utils:
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imports[alias.name] = f"(import: {alias.asname}" or f"import: {alias.name}"
+                    imports[alias.name] = alias.asname or alias.name
             elif isinstance(node, ast.ImportFrom):
                 module = node.module
                 for alias in node.names:
-                    imports[alias.name] = f"import: {module}.{alias.name}"
+                    imports[alias.name] = f"{module}.{alias.name}"
         Utils.stdout_logger.info(f"Extracted {len(imports)} imports: {', '.join(imports.keys())}")
         # Utils.stdout_logger.info(f"Extracted {len(imports)} imports: {', '.join(imports.values())}")
 
@@ -125,7 +123,7 @@ class Utils:
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 func_code = ast.get_source_segment(code, node)
-                functions[f"f: {node.name}"] = func_code
+                functions[node.name] = func_code
         Utils.stdout_logger.info(f"Extracted {len(functions)} functions: {', '.join(functions.keys())}")
 
         Utils.stderr_logger.debug("end extract_functions")

@@ -518,6 +518,8 @@ if __name__ == "__main__":
 
         functions = Utils.extract_functions(hierarchical_code)
         imports = Utils.extract_imports(full_code)
+        Utils.stdout_logger.info(f"Extracted functions:\n{pformat(functions)}")
+        Utils.stdout_logger.info(f"Extracted imports:\n{pformat(imports)}")
         functions_and_imports = functions | imports
 
         # Create a dependency graph
