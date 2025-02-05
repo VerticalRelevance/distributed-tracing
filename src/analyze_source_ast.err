@@ -1,1000 +1,537 @@
-2025-01-28 08:20:35,651 - DEBUG - start __main__
-DEBUG:analyze_source_ast.stderr:start __main__
-2025-01-28 08:20:35,651 - DEBUG - start get_source_code
-DEBUG:analyze_source_ast.stderr:start get_source_code
-2025-01-28 08:20:35,652 - DEBUG - end get_source_code
-DEBUG:analyze_source_ast.stderr:end get_source_code
-2025-01-28 08:20:35,652 - DEBUG - start convert_to_hierarchical
-DEBUG:analyze_source_ast.stderr:start convert_to_hierarchical
-INFO:analyze_source_ast.stdout:Converting code to hierarchical structure
-2025-01-28 08:20:35,652 - DEBUG - Attempt 1 of 1 for converting code to tree-style hierarchical structure
-DEBUG:analyze_source_ast.stderr:Attempt 1 of 1 for converting code to tree-style hierarchical structure
-2025-01-28 08:20:35,652 - DEBUG - start get_completion_with_retry
-DEBUG:analyze_source_ast.stderr:start get_completion_with_retry
-2025-01-28 08:20:35,652 - DEBUG - Get completion attempt:  (attempt 1/3)
-DEBUG:analyze_source_ast.stderr:Get completion attempt:  (attempt 1/3)
-INFO:analyze_source_ast.stdout:Attempting LLM call (attempt 1/3)
-INFO:analyze_source_ast.stdout:Input messages: 
-        Convert the following Python code into a tree-style hierarchical structure with multiple levels of sub-functions.
-        Each significant step or logical block should be its own function, and functions can call other sub-functions.
-        Ensure that the main function calls these sub-functions in the correct order, creating a tree-like structure.
+2025-02-05 15:41:38,244 - DEBUG - start __main__
+2025-02-05 15:41:38,273 - DEBUG - source_path: /Users/scaswell/VerticalRelevance/Projects/Internal/Trace-Injection/distributed-tracing/src/analyze_source_ast-keep-250131.py
+2025-02-05 15:41:38,273 - DEBUG - start process_file
+2025-02-05 15:41:38,273 - DEBUG - input_source_path: /Users/scaswell/VerticalRelevance/Projects/Internal/Trace-Injection/distributed-tracing/src/analyze_source_ast-keep-250131.py
+2025-02-05 15:41:38,273 - DEBUG - start get_source_code
+2025-02-05 15:41:38,274 - DEBUG - end get_source_code
+2025-02-05 15:41:38,274 - DEBUG - full_code len: 12888
+2025-02-05 15:41:38,276 - DEBUG - source_tree class: SourceCodeNode name: SourceCodeNode
+2025-02-05 15:41:38,276 - DEBUG - start tree_dumps
+2025-02-05 15:41:38,276 - DEBUG - tree_dumps type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start _tree_to_str
+2025-02-05 15:41:38,276 - DEBUG - _tree_to_str type(node): <class '__main__.SourceCodeNode'>
+2025-02-05 15:41:38,276 - DEBUG - start extract_functions
+2025-02-05 15:41:38,276 - DEBUG - type(code): <class 'str'>
+2025-02-05 15:41:38,276 - DEBUG - Extracting functions from code
+2025-02-05 15:41:38,277 - DEBUG - node:
+2025-02-05 15:41:38,277 - DEBUG - {'name': '__init__', 'args': <ast.arguments object at 0x10535f510>, 'body': [<ast.Expr object at 0x10535f450>, <ast.Expr object at 0x10535f110>], 'decorator_list': [], 'returns': None, 'type_comment': None, 'type_params': [], 'lineno': 30, 'col_offset': 4, 'end_lineno': 32, 'end_col_offset': 31}
+2025-02-05 15:41:38,277 - DEBUG - node:
+2025-02-05 15:41:38,277 - DEBUG - {'name': 'is_silent', 'args': <ast.arguments object at 0x10535ef90>, 'body': [<ast.Return object at 0x10535ef10>], 'decorator_list': [], 'returns': <ast.Name object at 0x10535ee50>, 'type_comment': None, 'type_params': [], 'lineno': 35, 'col_offset': 4, 'end_lineno': 36, 'end_col_offset': 26}
+2025-02-05 15:41:38,277 - DEBUG - node:
+2025-02-05 15:41:38,277 - DEBUG - {'name': 'set_silent', 'args': <ast.arguments object at 0x10535edd0>, 'body': [<ast.Assign object at 0x10535ecd0>], 'decorator_list': [], 'returns': <ast.Constant object at 0x10535eb50>, 'type_comment': None, 'type_params': [], 'lineno': 39, 'col_offset': 4, 'end_lineno': 40, 'end_col_offset': 28}
+2025-02-05 15:41:38,277 - DEBUG - node:
+2025-02-05 15:41:38,277 - DEBUG - {'name': 'get_completion_with_retry', 'args': <ast.arguments object at 0x10535ea50>, 'body': [<ast.Expr object at 0x10535e610>, <ast.For object at 0x10535c4d0>], 'decorator_list': [], 'returns': None, 'type_comment': None, 'type_params': [], 'lineno': 42, 'col_offset': 4, 'end_lineno': 83, 'end_col_offset': 25}
+2025-02-05 15:41:38,277 - DEBUG - node:
+2025-02-05 15:41:38,277 - DEBUG - {'name': 'analyze_function_for_decision_points', 'args': <ast.arguments object at 0x1052ffa90>, 'body': [<ast.Expr object at 0x1052fff90>, <ast.Assign object at 0x105312dd0>, <ast.Assign object at 0x105310050>, <ast.If object at 0x105310c90>, <ast.If object at 0x105311010>, <ast.Assign object at 0x105311410>, <ast.Expr object at 0x105311a90>, <ast.Expr object at 0x105313e90>, <ast.Expr object at 0x1052f3750>, <ast.Expr object at 0x1052f2050>], 'decorator_list': [], 'returns': None, 'type_comment': None, 'type_params': [], 'lineno': 86, 'col_offset': 4, 'end_lineno': 129, 'end_col_offset': 77}
+2025-02-05 15:41:38,277 - DEBUG - node:
+2025-02-05 15:41:38,277 - DEBUG - {'name': 'process_file', 'args': <ast.arguments object at 0x1052f2450>, 'body': [<ast.Expr object at 0x1052f28d0>, <ast.Expr object at 0x1052f2c50>, <ast.Expr object at 0x1052f3350>, <ast.Expr object at 0x1052f36d0>, <ast.Assign object at 0x1052f2dd0>, <ast.Try object at 0x10534bf90>, <ast.If object at 0x105322d50>, <ast.Try object at 0x1053234d0>, <ast.Expr object at 0x10532a590>, <ast.Return object at 0x10532a990>], 'decorator_list': [], 'returns': None, 'type_comment': None, 'type_params': [], 'lineno': 132, 'col_offset': 4, 'end_lineno': 219, 'end_col_offset': 19}
+2025-02-05 15:41:38,278 - DEBUG - node:
+2025-02-05 15:41:38,278 - DEBUG - {'name': 'process_directory', 'args': <ast.arguments object at 0x10532a8d0>, 'body': [<ast.Expr object at 0x10532a050>, <ast.Expr object at 0x105329cd0>, <ast.If object at 0x105329bd0>, <ast.For object at 0x105328750>, <ast.Expr object at 0x105350b50>], 'decorator_list': [], 'returns': <ast.Constant object at 0x105350890>, 'type_comment': None, 'type_params': [], 'lineno': 223, 'col_offset': 4, 'end_lineno': 239, 'end_col_offset': 58}
+2025-02-05 15:41:38,278 - DEBUG - Extracted 7 functions: __init__, is_silent, set_silent, get_completion_with_retry, analyze_function_for_decision_points, process_file, process_directory
+2025-02-05 15:41:38,278 - DEBUG - end extract_functions
+2025-02-05 15:41:38,278 - DEBUG - Extracted functions:
+dict_keys(['__init__', 'is_silent', 'set_silent', 'get_completion_with_retry', 'analyze_function_for_decision_points', 'process_file', 'process_directory'])
+2025-02-05 15:41:38,278 - DEBUG - Extracted function class:
+2025-02-05 15:41:38,278 - DEBUG - {'__init__': <ast.FunctionDef object at 0x10535f550>,
+ 'analyze_function_for_decision_points': <ast.FunctionDef object at 0x1052ff990>,
+ 'get_completion_with_retry': <ast.FunctionDef object at 0x10535ead0>,
+ 'is_silent': <ast.FunctionDef object at 0x10535efd0>,
+ 'process_directory': <ast.FunctionDef object at 0x10532a910>,
+ 'process_file': <ast.FunctionDef object at 0x1052f2390>,
+ 'set_silent': <ast.FunctionDef object at 0x10535ee10>}
+2025-02-05 15:41:38,278 - DEBUG - Extracted functions (new):
+dict_keys([])
+2025-02-05 15:41:38,278 - DEBUG - Extracted function (new) class:
+2025-02-05 15:41:38,278 - DEBUG - {}
+2025-02-05 15:41:38,278 - DEBUG - start extract_imports
+2025-02-05 15:41:38,278 - DEBUG - Extracting imports from code
+2025-02-05 15:41:38,280 - DEBUG - Extracted 9 imports: sys, os, Path, time, json, logging, openai, pformat, Utils
+2025-02-05 15:41:38,280 - DEBUG - end extract_imports
+2025-02-05 15:41:38,280 - DEBUG - Extracted imports:
+dict_values([(<class 'ast.Import'>, 'sys'), (<class 'ast.Import'>, 'os'), (<class 'ast.ImportFrom'>, 'pathlib.Path'), (<class 'ast.Import'>, 'time'), (<class 'ast.Import'>, 'json'), (<class 'ast.Import'>, 'logging'), (<class 'ast.Import'>, 'openai'), (<class 'ast.ImportFrom'>, 'pprint.pformat'), (<class 'ast.ImportFrom'>, 'ast_utils.Utils')])
+2025-02-05 15:41:38,280 - DEBUG - Extracted import class:
+2025-02-05 15:41:38,280 - DEBUG - {'Path': <class 'ast.ImportFrom'>,
+ 'Utils': <class 'ast.ImportFrom'>,
+ 'json': <class 'ast.Import'>,
+ 'logging': <class 'ast.Import'>,
+ 'openai': <class 'ast.Import'>,
+ 'os': <class 'ast.Import'>,
+ 'pformat': <class 'ast.ImportFrom'>,
+ 'sys': <class 'ast.Import'>,
+ 'time': <class 'ast.Import'>}
+2025-02-05 15:41:38,280 - DEBUG - start analyze_function_for_decision_points
+2025-02-05 15:41:38,280 - DEBUG - start get_completion_with_retry
+2025-02-05 15:41:38,280 - DEBUG - Get completion attempt: (attempt 1/10)
+2025-02-05 15:41:38,280 - DEBUG - Input messages: 
+Analyze the following Python source code and identify critical locations for adding trace statements based on these priorities:
 
-        ### Original Code:
-        # from https://github.com/getsentry/sentry-python/blob/master/sentry_sdk/ai/monitoring.py
-import inspect
-from functools import wraps
+Exception Handling Blocks, Function Entry/Exit Points, Complex Algorithm Sections, Performance-Critical Code Paths, State Changes, External Resource Interactions, Conditional Branches
 
-import sentry_sdk.utils
-from sentry_sdk import start_span
-from sentry_sdk.tracing import Span
-from sentry_sdk.utils import ContextVar
+Provide a detailed breakdown of:
+1. Specific code blocks/lines to trace. Include the function/method name and parent if applicable.
+2. Rationale for tracing
+3. Recommended trace information to capture
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import Optional, Callable, Any
-
-_ai_pipeline_name = ContextVar("ai_pipeline_name", default=None)
-
-
-def set_ai_pipeline_name(name):
-    # type: (Optional[str]) -> None
-    _ai_pipeline_name.set(name)
-
-
-def get_ai_pipeline_name():
-    # type: () -> Optional[str]
-    return _ai_pipeline_name.get()
-
-
-def ai_track(description, **span_kwargs):
-    # type: (str, Any) -> Callable[..., Any]
-    def decorator(f):
-        # type: (Callable[..., Any]) -> Callable[..., Any]
-        def sync_wrapped(*args, **kwargs):
-            # type: (Any, Any) -> Any
-            curr_pipeline = _ai_pipeline_name.get()
-            op = span_kwargs.get("op", "ai.run" if curr_pipeline else "ai.pipeline")
-
-            with start_span(name=description, op=op, **span_kwargs) as span:
-                for k, v in kwargs.pop("sentry_tags", {}).items():
-                    span.set_tag(k, v)
-                for k, v in kwargs.pop("sentry_data", {}).items():
-                    span.set_data(k, v)
-                if curr_pipeline:
-                    span.set_data("ai.pipeline.name", curr_pipeline)
-                    return f(*args, **kwargs)
-                else:
-                    _ai_pipeline_name.set(description)
-                    try:
-                        res = f(*args, **kwargs)
-                    except Exception as e:
-                        event, hint = sentry_sdk.utils.event_from_exception(
-                            e,
-                            client_options=sentry_sdk.get_client().options,
-                            mechanism={"type": "ai_monitoring", "handled": False},
-                        )
-                        sentry_sdk.capture_event(event, hint=hint)
-                        raise e from None
-                    finally:
-                        _ai_pipeline_name.set(None)
-                    return res
-
-        async def async_wrapped(*args, **kwargs):
-            # type: (Any, Any) -> Any
-            curr_pipeline = _ai_pipeline_name.get()
-            op = span_kwargs.get("op", "ai.run" if curr_pipeline else "ai.pipeline")
-
-            with start_span(name=description, op=op, **span_kwargs) as span:
-                for k, v in kwargs.pop("sentry_tags", {}).items():
-                    span.set_tag(k, v)
-                for k, v in kwargs.pop("sentry_data", {}).items():
-                    span.set_data(k, v)
-                if curr_pipeline:
-                    span.set_data("ai.pipeline.name", curr_pipeline)
-                    return await f(*args, **kwargs)
-                else:
-                    _ai_pipeline_name.set(description)
-                    try:
-                        res = await f(*args, **kwargs)
-                    except Exception as e:
-                        event, hint = sentry_sdk.utils.event_from_exception(
-                            e,
-                            client_options=sentry_sdk.get_client().options,
-                            mechanism={"type": "ai_monitoring", "handled": False},
-                        )
-                        sentry_sdk.capture_event(event, hint=hint)
-                        raise e from None
-                    finally:
-                        _ai_pipeline_name.set(None)
-                    return res
-
-        if inspect.iscoroutinefunction(f):
-            return wraps(f)(async_wrapped)
-        else:
-            return wraps(f)(sync_wrapped)
-
-    return decorator
-
-
-def record_token_usage(
-    span, prompt_tokens=None, completion_tokens=None, total_tokens=None
-):
-    # type: (Span, Optional[int], Optional[int], Optional[int]) -> None
-    ai_pipeline_name = get_ai_pipeline_name()
-    if ai_pipeline_name:
-        span.set_data("ai.pipeline.name", ai_pipeline_name)
-    if prompt_tokens is not None:
-        span.set_measurement("ai_prompt_tokens_used", value=prompt_tokens)
-    if completion_tokens is not None:
-        span.set_measurement("ai_completion_tokens_used", value=completion_tokens)
-    if (
-        total_tokens is None
-        and prompt_tokens is not None
-        and completion_tokens is not None
-    ):
-        total_tokens = prompt_tokens + completion_tokens
-    if total_tokens is not None:
-        span.set_measurement("ai_total_tokens_used", total_tokens)
-
-
-        
-
-        ### Instructions:
-        Please first analyze the codes step by step, and then provide the converted code in a Python code block (```python ... ```). When providing the final converted code, make sure to include all the functions in a flattened format, where each function is defined separately.
-        
-DEBUG:openai._base_client:Request options: {'method': 'post', 'url': '/chat/completions', 'files': None, 'json_data': {'messages': [{'role': 'system', 'content': 'You are an AI assistant specialized in refactoring Python code into a tree-style hierarchical structure.'}, {'role': 'user', 'content': '\n        Convert the following Python code into a tree-style hierarchical structure with multiple levels of sub-functions.\n        Each significant step or logical block should be its own function, and functions can call other sub-functions.\n        Ensure that the main function calls these sub-functions in the correct order, creating a tree-like structure.\n\n        ### Original Code:\n        # from https://github.com/getsentry/sentry-python/blob/master/sentry_sdk/ai/monitoring.py\nimport inspect\nfrom functools import wraps\n\nimport sentry_sdk.utils\nfrom sentry_sdk import start_span\nfrom sentry_sdk.tracing import Span\nfrom sentry_sdk.utils import ContextVar\n\nfrom typing import TYPE_CHECKING\n\nif TYPE_CHECKING:\n    from typing import Optional, Callable, Any\n\n_ai_pipeline_name = ContextVar("ai_pipeline_name", default=None)\n\n\ndef set_ai_pipeline_name(name):\n    # type: (Optional[str]) -> None\n    _ai_pipeline_name.set(name)\n\n\ndef get_ai_pipeline_name():\n    # type: () -> Optional[str]\n    return _ai_pipeline_name.get()\n\n\ndef ai_track(description, **span_kwargs):\n    # type: (str, Any) -> Callable[..., Any]\n    def decorator(f):\n        # type: (Callable[..., Any]) -> Callable[..., Any]\n        def sync_wrapped(*args, **kwargs):\n            # type: (Any, Any) -> Any\n            curr_pipeline = _ai_pipeline_name.get()\n            op = span_kwargs.get("op", "ai.run" if curr_pipeline else "ai.pipeline")\n\n            with start_span(name=description, op=op, **span_kwargs) as span:\n                for k, v in kwargs.pop("sentry_tags", {}).items():\n                    span.set_tag(k, v)\n                for k, v in kwargs.pop("sentry_data", {}).items():\n                    span.set_data(k, v)\n                if curr_pipeline:\n                    span.set_data("ai.pipeline.name", curr_pipeline)\n                    return f(*args, **kwargs)\n                else:\n                    _ai_pipeline_name.set(description)\n                    try:\n                        res = f(*args, **kwargs)\n                    except Exception as e:\n                        event, hint = sentry_sdk.utils.event_from_exception(\n                            e,\n                            client_options=sentry_sdk.get_client().options,\n                            mechanism={"type": "ai_monitoring", "handled": False},\n                        )\n                        sentry_sdk.capture_event(event, hint=hint)\n                        raise e from None\n                    finally:\n                        _ai_pipeline_name.set(None)\n                    return res\n\n        async def async_wrapped(*args, **kwargs):\n            # type: (Any, Any) -> Any\n            curr_pipeline = _ai_pipeline_name.get()\n            op = span_kwargs.get("op", "ai.run" if curr_pipeline else "ai.pipeline")\n\n            with start_span(name=description, op=op, **span_kwargs) as span:\n                for k, v in kwargs.pop("sentry_tags", {}).items():\n                    span.set_tag(k, v)\n                for k, v in kwargs.pop("sentry_data", {}).items():\n                    span.set_data(k, v)\n                if curr_pipeline:\n                    span.set_data("ai.pipeline.name", curr_pipeline)\n                    return await f(*args, **kwargs)\n                else:\n                    _ai_pipeline_name.set(description)\n                    try:\n                        res = await f(*args, **kwargs)\n                    except Exception as e:\n                        event, hint = sentry_sdk.utils.event_from_exception(\n                            e,\n                            client_options=sentry_sdk.get_client().options,\n                            mechanism={"type": "ai_monitoring", "handled": False},\n                        )\n                        sentry_sdk.capture_event(event, hint=hint)\n                        raise e from None\n                    finally:\n                        _ai_pipeline_name.set(None)\n                    return res\n\n        if inspect.iscoroutinefunction(f):\n            return wraps(f)(async_wrapped)\n        else:\n            return wraps(f)(sync_wrapped)\n\n    return decorator\n\n\ndef record_token_usage(\n    span, prompt_tokens=None, completion_tokens=None, total_tokens=None\n):\n    # type: (Span, Optional[int], Optional[int], Optional[int]) -> None\n    ai_pipeline_name = get_ai_pipeline_name()\n    if ai_pipeline_name:\n        span.set_data("ai.pipeline.name", ai_pipeline_name)\n    if prompt_tokens is not None:\n        span.set_measurement("ai_prompt_tokens_used", value=prompt_tokens)\n    if completion_tokens is not None:\n        span.set_measurement("ai_completion_tokens_used", value=completion_tokens)\n    if (\n        total_tokens is None\n        and prompt_tokens is not None\n        and completion_tokens is not None\n    ):\n        total_tokens = prompt_tokens + completion_tokens\n    if total_tokens is not None:\n        span.set_measurement("ai_total_tokens_used", total_tokens)\n\n\n        \n\n        ### Instructions:\n        Please first analyze the codes step by step, and then provide the converted code in a Python code block (```python ... ```). When providing the final converted code, make sure to include all the functions in a flattened format, where each function is defined separately.\n        '}], 'model': 'gpt-4o-mini', 'temperature': 0.0}}
-DEBUG:openai._base_client:Sending HTTP Request: POST https://api.openai.com/v1/chat/completions
-DEBUG:openai._base_client:HTTP Response: POST https://api.openai.com/v1/chat/completions "200 OK" Headers([('date', 'Tue, 28 Jan 2025 13:21:00 GMT'), ('content-type', 'application/json'), ('transfer-encoding', 'chunked'), ('connection', 'keep-alive'), ('access-control-expose-headers', 'X-Request-ID'), ('openai-organization', 'vertical-relevance-p5p59n'), ('openai-processing-ms', '24374'), ('openai-version', '2020-10-01'), ('x-ratelimit-limit-requests', '30000'), ('x-ratelimit-limit-tokens', '150000000'), ('x-ratelimit-remaining-requests', '29999'), ('x-ratelimit-remaining-tokens', '149998641'), ('x-ratelimit-reset-requests', '2ms'), ('x-ratelimit-reset-tokens', '0s'), ('x-request-id', 'req_a283ee038864fe68a423bf50310a2bc8'), ('strict-transport-security', 'max-age=31536000; includeSubDomains; preload'), ('cf-cache-status', 'DYNAMIC'), ('set-cookie', '__cf_bm=SFL1a54pefQuO8nymvRNN6n3SLFBgnpDKZgIGDSw.Rw-1738070460-1.0.1.1-EtPlaUg9e1USgFrGum8JTwXFpmj8TlEJVM2u12KRk61LBSVkXPe7vCJhwUapnzsoxgobDrgYdERll0doLJn8ww; path=/; expires=Tue, 28-Jan-25 13:51:00 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('x-content-type-options', 'nosniff'), ('set-cookie', '_cfuvid=L08LKbpWkKxH7fr1YHhFK.Y4ZkCTXw9EdTZX9nXslYM-1738070460394-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'), ('server', 'cloudflare'), ('cf-ray', '909147e0a8161d6e-ATL'), ('content-encoding', 'gzip'), ('alt-svc', 'h3=":443"; ma=86400')])
-DEBUG:openai._base_client:request_id: req_a283ee038864fe68a423bf50310a2bc8
-INFO:analyze_source_ast.stdout:LLM response: To convert the provided Python code into a tree-style hierarchical structure, we will break down the code into logical blocks and create sub-functions for each significant step. The main function will call these sub-functions in the correct order, creating a clear hierarchy.
-
-### Analysis of the Code
-
-1. **Context Variable Management**:
-   - `set_ai_pipeline_name(name)`: Sets the AI pipeline name.
-   - `get_ai_pipeline_name()`: Retrieves the current AI pipeline name.
-
-2. **Decorator for Tracking**:
-   - `ai_track(description, **span_kwargs)`: A decorator that wraps a function to track its execution with Sentry spans. It handles both synchronous and asynchronous functions.
-
-3. **Token Usage Recording**:
-   - `record_token_usage(span, prompt_tokens, completion_tokens, total_tokens)`: Records the usage of tokens in the current span.
-
-### Refactored Code Structure
-
-The refactored code will have a main function that orchestrates the calls to the sub-functions. Each significant step will be encapsulated in its own function.
-
+Source Code:
 ```python
-import inspect
-from functools import wraps
-import sentry_sdk.utils
-from sentry_sdk import start_span
-from sentry_sdk.tracing import Span
-from sentry_sdk.utils import ContextVar
-from typing import TYPE_CHECKING, Optional, Callable, Any
+import sys
+import os
+from pathlib import Path
+import time
+import json
+import logging
+import openai
+from pprint import pformat
+from ast_utils import Utils
 
-if TYPE_CHECKING:
-    pass
 
-_ai_pipeline_name = ContextVar("ai_pipeline_name", default=None)
+class SourceLocationTraceAnalyzer:
+    # Class attributes
 
-def set_ai_pipeline_name(name: Optional[str]) -> None:
-    _ai_pipeline_name.set(name)
+    MODEL = "gpt-4o-mini"
 
-def get_ai_pipeline_name() -> Optional[str]:
-    return _ai_pipeline_name.get()
+    # MAX_VLLM_RETRIES = 10  # maximum number of retries for the VLLM call
+    MAX_VLLM_RETRIES = 3  # maximum number of retries for the VLLM call
+    RETRY_DELAY = 0  # seconds
+    # TEMPERATURE = 0.8  # 0.8 better than 1.0 better than 0.2
+    TEMPERATURE = 0.0
 
-def ai_track(description: str, **span_kwargs: Any) -> Callable[..., Any]:
-    def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
-        if inspect.iscoroutinefunction(f):
-            return wraps(f)(async_wrapped(f, description, **span_kwargs))
+    TOTAL_PROMPT_TOKENS = 0
+    TOTAL_COMPLETION_TOKENS = 0
+
+    client = openai.OpenAI()
+
+    # Class methods
+
+    def __init__(self, silent=False):
+        Utils.setup_loggers(__name__, logging.INFO if not silent else logging.ERROR, logging.ERROR)
+        self.set_silent(silent)
+
+# TODO move to Utils?
+    def is_silent(self) -> bool:
+        return self.silent
+
+# TODO move to Utils?
+    def set_silent(self, silent: bool) -> None:
+        self.silent = silent
+    
+    def get_completion_with_retry(self, messages, model, max_vllm_retries):
+        Utils.stderr_logger.debug("start get_completion_with_retry")
+
+        for attempt in range(max_vllm_retries):
+            if not self.is_silent():
+                Utils.stdout_logger.info(f"Get completion attempt: (attempt {attempt + 1}/{max_vllm_retries})")
+            Utils.stderr_logger.debug(f"Get completion attempt: (attempt {attempt + 1}/{max_vllm_retries})")
+            try:
+                Utils.stderr_logger.debug(f"Input messages: {messages[-1]['content']}")
+                chat_completion = SourceLocationTraceAnalyzer.client.chat.completions.create(
+                    messages=messages,
+                    model=model,
+                    temperature=SourceLocationTraceAnalyzer.TEMPERATURE,
+                )
+                response = chat_completion.choices[0].message.content
+                # Utils.stdout_logger.info(f"LLM response: {response}")
+                if not self.is_silent():
+                    Utils.stdout_logger.info("LLM response received")
+
+                # Update token counts
+                SourceLocationTraceAnalyzer.TOTAL_PROMPT_TOKENS += chat_completion.usage.prompt_tokens
+                SourceLocationTraceAnalyzer.TOTAL_COMPLETION_TOKENS += chat_completion.usage.completion_tokens
+                Utils.stderr_logger.debug("tokens:")
+                Utils.stderr_logger.debug(pformat(chat_completion.usage))
+                Utils.stderr_logger.debug(f"total tokens:")
+                Utils.stderr_logger.debug(pformat(
+                    {"total_prompt_tokens": SourceLocationTraceAnalyzer.TOTAL_PROMPT_TOKENS
+                    ,"total_completion_tokens": SourceLocationTraceAnalyzer.TOTAL_COMPLETION_TOKENS
+                }))
+                Utils.stderr_logger.debug("end get_completion_with_retry")
+                return response
+            except Exception as e:
+                if not self.is_silent():
+                    Utils.stdout_logger.error(f"LLM call failed: {str(e)}")
+                if attempt < max_vllm_retries - 1:
+                    if not self.is_silent():
+                        Utils.stdout_logger.info(f"Retrying in {SourceLocationTraceAnalyzer.RETRY_DELAY} seconds...")
+                    time.sleep(SourceLocationTraceAnalyzer.RETRY_DELAY)
+                else:
+                    Utils.stdout_logger.error("Max retries reached. Giving up.")
+                    Utils.stderr_logger.debug(f"end get_completion_with_retry raise Exception: {e}")
+                    raise
+
+    
+    def analyze_function_for_decision_points(self, code):
+        Utils.stderr_logger.debug("start analyze_function_for_decision_points")
+
+        prompt = f"""
+Analyze the following Python code. The Python code is contained below surrounded by backticks.
+Identify decision points within the code. Decision points are statements such as if, elif, else, for, while.
+Decision points are also source lines where flow control moves outside the current function.
+Before performing the analysis, reconstruct the code as line-based text, with
+each line terminated by a newline character.
+
+In the response, include the decision point search term and the source line text where the search term was located.
+Do not include any occurrences if contained in string literals.
+Do not include any occurrences if contained on a commented source line.
+Format the response as a valid JSON document.
+
+```
+{code}
+```
+        """
+
+        messages = [
+            {'role': 'system', 'content': 'You are an AI assistant specialized in code analysis.'},
+            {'role': 'user', 'content': prompt},
+        ]
+
+        if "starcoder2" in SourceLocationTraceAnalyzer.MODEL.lower():
+            # remove the system message
+            messages = messages[1:]
+
+        if not self.is_silent():
+            Utils.stdout_logger.info("Analyzing code")
+        response = self.get_completion_with_retry(messages, model=SourceLocationTraceAnalyzer.MODEL, max_vllm_retries=SourceLocationTraceAnalyzer.MAX_VLLM_RETRIES)
+        Utils.stderr_logger.debug(f"LLM response: {response}")
+
+        # text_blocks = Utils.extract_text_blocks(response)
+        # if text_blocks:
+        #     for block in text_blocks:
+        #         Utils.stderr_logger.debug(f"Text block: {block}")
+        #         if block.startswith("### Analysis"):
+        #             Utils.stdout_logger.info(block)
+        Utils.stdout_logger.info("Analysis complete")
+        Utils.stdout_logger.info(response)
+
+        Utils.stderr_logger.debug("end analyze_function_for_decision_points")
+
+    
+    def process_file(self, input_source_path: str):
+        Utils.stderr_logger.debug("start process_file")
+        Utils.stderr_logger.debug(f"input_source_path: {input_source_path}")
+        Utils.stdout_logger.info("")
+        Utils.stdout_logger.info(f"Process file '{input_source_path}'")
+
+        # input_source_language = SourceLocationTraceAnalyzer.get_source_language(
+        #     input_source_path
+        # )
+        # search_config = SourceLocationTraceAnalyzer.load_language_search_config(
+        #     language=input_source_language
+        # )
+        # search_instructions = SourceLocationTraceAnalyzer.format_search_instructions(
+        #     language_config=search_config
+        # )
+
+        # Utils.stderr_logger.debug("search_instructions:")
+        # Utils.stderr_logger.debug(search_instructions)
+
+        # llm_model = "gpt-3.5-turbo-0125"
+
+#         system_content = """\
+# You are an AI assistant specialized in analyzing Python functions and identifying critical decision points.
+
+# The user is automation, so no additional explanation, summaries, or markdown formatting is required.
+# """
+        # messages = [
+        #     {'role': 'system', 'content': system_content},
+        #     {'role': 'user', 'content': search_instructions},
+        # ]
+        dependency_graph = None
+        try:
+            full_code = Utils.get_source_code(input_source_path)
+            Utils.stderr_logger.debug(f"full_code len: {len(full_code)}")
+            # Convert to tree-style hierarchical structure
+            # hierarchical_code = SourceLocationTraceAnalyzer.convert_to_hierarchical(full_code, include_example=False)
+            # Utils.stderr_logger.debug(f"Converted code to tree-style hierarchical structure:\n{hierarchical_code}")
+
+            # Analyze the code
+            # if not self.is_silent():
+            #     self.analyze_code(full_code)
+
+            # functions = Utils.extract_functions(hierarchical_code)
+            functions = Utils.extract_functions(full_code)
+            imports = Utils.extract_imports(full_code)
+            Utils.stderr_logger.debug(f"Extracted functions:\n{pformat(functions.keys())}")
+            Utils.stderr_logger.debug("Extracted function class:")
+            Utils.stderr_logger.debug(pformat( {k: v[0] for k, v in functions.items()} ))
+            Utils.stderr_logger.debug(f"Extracted imports:\n{pformat(imports.values())}")
+            Utils.stderr_logger.debug("Extracted import class:")
+            Utils.stderr_logger.debug(pformat( {k: v[0] for k, v in imports.items()} ))
+            functions_and_imports = functions | imports
+
+            # Create a dependency graph
+            # dependency_graph = Utils.create_dependency_graph(functions)
+            dependency_graph = Utils.create_dependency_graph(functions_and_imports)
+            Utils.stderr_logger.debug(f"dependency_graph: {pformat(dependency_graph)}")
+            Utils.stdout_logger.info(f"Dependency graph:\n{Utils.get_dependency_graph_str(dependency_graph)}")
+        except Exception as e:
+            Utils.stderr_logger.error(f"Failed to analyze code: {str(e)}", exc_info=True)
+            return False
+
+        if dependency_graph is None:
+            Utils.stdout_logger.error("Failed to create dependency graph")
+            return False
+
+        try:
+            # loop over functions
+            for function_name, (_, function_code) in functions.items():
+                Utils.stderr_logger.debug(f"function_name: {function_name}")
+                Utils.stdout_logger.info(f"Function: {function_name}")
+
+                # Convert to tree-style hierarchical structure
+                # hierarchical_code = SourceLocationTraceAnalyzer.convert_to_hierarchical(function_code, include_example=False)
+                # Utils.stderr_logger.debug(f"Converted code to tree-style hierarchical structure:\n{hierarchical_code}")
+
+                # Analyze the code
+                self.analyze_function_for_decision_points(function_code)
+        except:
+            Utils.stderr_logger.error(f"Failed to analyze code function '{function_name}'", exc_info=True)
+            return False
+
+        # # Sort functions based on their dependencies (bottom-up)
+        # sorted_functions = Utils.topological_sort(dependency_graph)
+        # Utils.stderr_logger.debug(f"sorted_functions: {sorted_functions}")
+
+        Utils.stderr_logger.debug("end process_file")
+        return True
+
+
+    
+    def process_directory(self, source_path: str) -> None:
+        Utils.stderr_logger.debug("start process_directory")
+        Utils.stderr_logger.debug(f"source_path: {source_path}")
+        if not self.is_silent():
+            Utils.stdout_logger.info(f"Process directory '{source_path}'")
+
+        for root, dirs, files in Path(source_dir).walk():
+            # Utils.stderr_logger.debug(pformat(path))
+            Utils.stderr_logger.debug(f"root: {root}")
+            Utils.stderr_logger.debug(f"dirs: {dirs}")
+            Utils.stderr_logger.debug(f"files: {files}")
+            for file in files:
+                if file.endswith(".py"):
+                    source_path = f"{root}/{file}"
+                    self.process_file(source_path)
+
+        Utils.stderr_logger.debug("end process_directory")
+
+# Main loop to process file(s)
+if __name__ == "__main__":
+    # Get logging level from environment variable, default to INFO
+    # Validate and set logging level
+# TODO change default to DEBUG when finished development
+    # log_level = os.getenv("LOG_LEVEL", "WARNING").upper()
+    # level = getattr(logging, log_level, logging.WARNING)
+    log_level = os.getenv("LOG_LEVEL", "DEBUG").upper()
+    level = getattr(logging, log_level, logging.DEBUG)
+    Utils.setup_loggers(name=Path(__file__).stem, logger_stderr_level = level)
+
+    logging.getLogger("boto3").setLevel(logging.CRITICAL)
+    logging.getLogger("botocore").setLevel(logging.CRITICAL)
+    logging.getLogger("urllib3").setLevel(logging.CRITICAL)
+    logging.getLogger("httpcore").setLevel(logging.CRITICAL)
+    logging.getLogger("httpx").setLevel(logging.CRITICAL)
+
+    Utils.stderr_logger.debug("start __main__")
+    be_silent: bool = os.getenv("SILENT", "false").lower() == "True"
+
+    analyzer: SourceLocationTraceAnalyzer = SourceLocationTraceAnalyzer(be_silent)
+    analyzer.set_silent(be_silent)
+    if not analyzer.is_silent():
+        Utils.stdout_logger.info("Starting...")
+
+    SourceLocationTraceAnalyzer.MODEL = Utils.get_ai_model()
+    SourceLocationTraceAnalyzer.MAX_VLLM_RETRIES = Utils.get_max_vllm_retries()
+    SourceLocationTraceAnalyzer.TEMPERATURE = Utils.get_temperature()
+
+    source_file = os.getenv("SOURCE_FILE")
+    if source_file:
+        Utils.stderr_logger.debug(f"source_file: {source_file}")
+        analyzer.process_file(input_source_path=source_file)
+    else:
+        Utils.stderr_logger.debug("SOURCE_FILE not set")
+        source_dir = os.getenv("SOURCE_DIR")
+        if source_dir:
+            Utils.stderr_logger.debug(f"source_dir: {source_dir}")
+            analyzer.process_directory(source_dir)
         else:
-            return wraps(f)(sync_wrapped(f, description, **span_kwargs))
-    return decorator
+            Utils.stderr_logger.debug("SOURCE_DIR not set")
+            msg = "Please set either SOURCE_FILE or SOURCE_DIR environment variable."
+            Utils.stderr_logger.error(msg)
+            raise ValueError(msg)
 
-def sync_wrapped(f: Callable[..., Any], description: str, **span_kwargs: Any) -> Callable[..., Any]:
-    @wraps(f)
-    def wrapper(*args, **kwargs) -> Any:
-        curr_pipeline = get_ai_pipeline_name()
-        op = span_kwargs.get("op", "ai.run" if curr_pipeline else "ai.pipeline")
-        with start_span(name=description, op=op, **span_kwargs) as span:
-            set_span_tags_and_data(span, kwargs)
-            if curr_pipeline:
-                span.set_data("ai.pipeline.name", curr_pipeline)
-                return f(*args, **kwargs)
-            else:
-                set_ai_pipeline_name(description)
-                try:
-                    res = f(*args, **kwargs)
-                except Exception as e:
-                    handle_exception(e)
-                    raise e from None
-                finally:
-                    set_ai_pipeline_name(None)
-                return res
-    return wrapper
+    Utils.stderr_logger.debug("end __main__")
 
-def async_wrapped(f: Callable[..., Any], description: str, **span_kwargs: Any) -> Callable[..., Any]:
-    @wraps(f)
-    async def wrapper(*args, **kwargs) -> Any:
-        curr_pipeline = get_ai_pipeline_name()
-        op = span_kwargs.get("op", "ai.run" if curr_pipeline else "ai.pipeline")
-        with start_span(name=description, op=op, **span_kwargs) as span:
-            set_span_tags_and_data(span, kwargs)
-            if curr_pipeline:
-                span.set_data("ai.pipeline.name", curr_pipeline)
-                return await f(*args, **kwargs)
-            else:
-                set_ai_pipeline_name(description)
-                try:
-                    res = await f(*args, **kwargs)
-                except Exception as e:
-                    handle_exception(e)
-                    raise e from None
-                finally:
-                    set_ai_pipeline_name(None)
-                return res
-    return wrapper
-
-def set_span_tags_and_data(span, kwargs) -> None:
-    for k, v in kwargs.pop("sentry_tags", {}).items():
-        span.set_tag(k, v)
-    for k, v in kwargs.pop("sentry_data", {}).items():
-        span.set_data(k, v)
-
-def handle_exception(e: Exception) -> None:
-    event, hint = sentry_sdk.utils.event_from_exception(
-        e,
-        client_options=sentry_sdk.get_client().options,
-        mechanism={"type": "ai_monitoring", "handled": False},
-    )
-    sentry_sdk.capture_event(event, hint=hint)
-
-def record_token_usage(span: Span, prompt_tokens: Optional[int] = None, completion_tokens: Optional[int] = None, total_tokens: Optional[int] = None) -> None:
-    ai_pipeline_name = get_ai_pipeline_name()
-    if ai_pipeline_name:
-        span.set_data("ai.pipeline.name", ai_pipeline_name)
-    if prompt_tokens is not None:
-        span.set_measurement("ai_prompt_tokens_used", value=prompt_tokens)
-    if completion_tokens is not None:
-        span.set_measurement("ai_completion_tokens_used", value=completion_tokens)
-    if total_tokens is None and prompt_tokens is not None and completion_tokens is not None:
-        total_tokens = prompt_tokens + completion_tokens
-    if total_tokens is not None:
-        span.set_measurement("ai_total_tokens_used", total_tokens)
 ```
 
-### Explanation of the Refactored Code
+2025-02-05 15:41:51,075 - DEBUG - tokens:
+2025-02-05 15:41:51,075 - DEBUG - CompletionUsage(completion_tokens=1034, prompt_tokens=2750, total_tokens=3784, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=0, audio_tokens=0, reasoning_tokens=0, rejected_prediction_tokens=0), prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0))
+2025-02-05 15:41:51,075 - DEBUG - total tokens:
+2025-02-05 15:41:51,076 - DEBUG - {'total_completion_tokens': 1034, 'total_prompt_tokens': 2750}
+2025-02-05 15:41:51,076 - DEBUG - end get_completion_with_retry
+2025-02-05 15:41:51,076 - DEBUG - LLM response: To effectively add trace statements to the provided Python source code, we will focus on the critical locations based on the specified priorities: Exception Handling Blocks, Function Entry/Exit Points, Complex Algorithm Sections, Performance-Critical Code Paths, State Changes, External Resource Interactions, and Conditional Branches. Below is a detailed breakdown of specific code blocks/lines to trace, the rationale for tracing, and the recommended trace information to capture.
 
-- **Context Management**: The functions `set_ai_pipeline_name` and `get_ai_pipeline_name` manage the context variable for the AI pipeline name.
-- **Decorator Structure**: The `ai_track` function serves as a decorator that determines whether to wrap the function in a synchronous or asynchronous manner.
-- **Synchronous and Asynchronous Wrappers**: The `sync_wrapped` and `async_wrapped` functions handle the actual function execution, span management, and error handling.
-- **Span Tagging and Data Setting**: The `set_span_tags_and_data` function centralizes the logic for setting tags and data on the span.
-- **Error Handling**: The `handle_exception` function captures exceptions and sends them to Sentry.
-- **Token Usage Recording**: The `record_token_usage` function records token usage metrics.
+### 1. Exception Handling Blocks
 
-This structure provides a clear and maintainable hierarchy, making it easier to understand and modify the code in the future.
-INFO:analyze_source_ast.stdout:LLM call received
-2025-01-28 08:21:00,343 - DEBUG - end get_completion_with_retry
-DEBUG:analyze_source_ast.stderr:end get_completion_with_retry
-2025-01-28 08:21:00,343 - DEBUG - start extract_code_blocks
-DEBUG:analyze_source_ast.stderr:start extract_code_blocks
-2025-01-28 08:21:00,343 - DEBUG - end extract_code_blocks
-DEBUG:analyze_source_ast.stderr:end extract_code_blocks
-2025-01-28 08:21:00,343 - DEBUG - start extract_functions
-DEBUG:analyze_source_ast.stderr:start extract_functions
-INFO:analyze_source_ast.stdout:Extracting functions from code
-INFO:analyze_source_ast.stdout:Extracted 10 functions: set_ai_pipeline_name, get_ai_pipeline_name, ai_track, sync_wrapped, async_wrapped, set_span_tags_and_data, handle_exception, record_token_usage, decorator, wrapper
-2025-01-28 08:21:00,347 - DEBUG - end extract_functions
-DEBUG:analyze_source_ast.stderr:end extract_functions
-INFO:analyze_source_ast.stdout:Converted code to tree-style hierarchical structure with 9 sub-functions
-2025-01-28 08:21:00,347 - DEBUG - start split_nested_functions
-DEBUG:analyze_source_ast.stderr:start split_nested_functions
-2025-01-28 08:21:00,349 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,349 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,349 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,349 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,350 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,351 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - start extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:start extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end extract_functions_from_code
-DEBUG:analyze_source_ast.stderr:end extract_functions_from_code
-2025-01-28 08:21:00,352 - DEBUG - end split_nested_functions
-DEBUG:analyze_source_ast.stderr:end split_nested_functions
-2025-01-28 08:21:00,354 - DEBUG - end convert_to_hierarchical: best conversion
-DEBUG:analyze_source_ast.stderr:end convert_to_hierarchical: best conversion
-INFO:analyze_source_ast.stdout:Converted code to tree-style hierarchical structure:
-def set_ai_pipeline_name(name: Optional[str]) -> None:
-    _ai_pipeline_name.set(name)
+**Code Block:**
+```python
+try:
+    # Code that may raise an exception
+except Exception as e:
+    Utils.stderr_logger.error(f"Failed to analyze code: {str(e)}", exc_info=True)
+```
 
-def get_ai_pipeline_name() -> Optional[str]:
-    return _ai_pipeline_name.get()
+**Rationale for Tracing:**
+- Exception handling is critical for understanding failures in the application. Tracing here will help identify the context of errors.
 
-def ai_track(description: str, **span_kwargs: Any) -> Callable[..., Any]:
-    return decorator
+**Recommended Trace Information:**
+- Capture the exception type and message.
+- Include the stack trace for better debugging.
+- Log the state of relevant variables at the time of the exception.
 
-def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
-    if inspect.iscoroutinefunction(f):
-        return wraps(f)(async_wrapped(f, description, **span_kwargs))
-    else:
-        return wraps(f)(sync_wrapped(f, description, **span_kwargs))
+### 2. Function Entry/Exit Points
 
-def sync_wrapped(f: Callable[..., Any], description: str, **span_kwargs: Any) -> Callable[..., Any]:
-    return wrapper
+**Code Block:**
+```python
+def get_completion_with_retry(self, messages, model, max_vllm_retries):
+    Utils.stderr_logger.debug("start get_completion_with_retry")
+    # Function logic
+    Utils.stderr_logger.debug("end get_completion_with_retry")
+```
 
-@wraps(f)
-def wrapper(*args, **kwargs) -> Any:
-    curr_pipeline = get_ai_pipeline_name()
-    op = span_kwargs.get('op', 'ai.run' if curr_pipeline else 'ai.pipeline')
-    with start_span(name=description, op=op, **span_kwargs) as span:
-        set_span_tags_and_data(span, kwargs)
-        if curr_pipeline:
-            span.set_data('ai.pipeline.name', curr_pipeline)
-            return f(*args, **kwargs)
-        else:
-            set_ai_pipeline_name(description)
-            try:
-                res = f(*args, **kwargs)
-            except Exception as e:
-                handle_exception(e)
-                raise e from None
-            finally:
-                set_ai_pipeline_name(None)
-            return res
+**Rationale for Tracing:**
+- Tracing function entry and exit points helps in monitoring the flow of execution and understanding the performance of the application.
 
-def async_wrapped(f: Callable[..., Any], description: str, **span_kwargs: Any) -> Callable[..., Any]:
+**Recommended Trace Information:**
+- Log the function name, parameters received, and any relevant state information at entry.
+- Log the return value or outcome at exit.
 
-    @wraps(f)
-    async def wrapper(*args, **kwargs) -> Any:
-        curr_pipeline = get_ai_pipeline_name()
-        op = span_kwargs.get('op', 'ai.run' if curr_pipeline else 'ai.pipeline')
-        with start_span(name=description, op=op, **span_kwargs) as span:
-            set_span_tags_and_data(span, kwargs)
-            if curr_pipeline:
-                span.set_data('ai.pipeline.name', curr_pipeline)
-                return await f(*args, **kwargs)
-            else:
-                set_ai_pipeline_name(description)
-                try:
-                    res = await f(*args, **kwargs)
-                except Exception as e:
-                    handle_exception(e)
-                    raise e from None
-                finally:
-                    set_ai_pipeline_name(None)
-                return res
-    return wrapper
+### 3. Complex Algorithm Sections
 
-def set_span_tags_and_data(span, kwargs) -> None:
-    for k, v in kwargs.pop('sentry_tags', {}).items():
-        span.set_tag(k, v)
-    for k, v in kwargs.pop('sentry_data', {}).items():
-        span.set_data(k, v)
+**Code Block:**
+```python
+for function_name, (_, function_code) in functions.items():
+    self.analyze_function_for_decision_points(function_code)
+```
 
-def handle_exception(e: Exception) -> None:
-    event, hint = sentry_sdk.utils.event_from_exception(e, client_options=sentry_sdk.get_client().options, mechanism={'type': 'ai_monitoring', 'handled': False})
-    sentry_sdk.capture_event(event, hint=hint)
+**Rationale for Tracing:**
+- This section involves iterating over functions and analyzing them, which can be complex and may have performance implications.
 
-def record_token_usage(span: Span, prompt_tokens: Optional[int]=None, completion_tokens: Optional[int]=None, total_tokens: Optional[int]=None) -> None:
-    ai_pipeline_name = get_ai_pipeline_name()
-    if ai_pipeline_name:
-        span.set_data('ai.pipeline.name', ai_pipeline_name)
-    if prompt_tokens is not None:
-        span.set_measurement('ai_prompt_tokens_used', value=prompt_tokens)
-    if completion_tokens is not None:
-        span.set_measurement('ai_completion_tokens_used', value=completion_tokens)
-    if total_tokens is None and prompt_tokens is not None and (completion_tokens is not None):
-        total_tokens = prompt_tokens + completion_tokens
-    if total_tokens is not None:
-        span.set_measurement('ai_total_tokens_used', total_tokens)
-2025-01-28 08:21:00,354 - DEBUG - start extract_functions
-DEBUG:analyze_source_ast.stderr:start extract_functions
-INFO:analyze_source_ast.stdout:Extracting functions from code
-INFO:analyze_source_ast.stdout:Extracted 10 functions: set_ai_pipeline_name, get_ai_pipeline_name, ai_track, decorator, sync_wrapped, wrapper, async_wrapped, set_span_tags_and_data, handle_exception, record_token_usage
-2025-01-28 08:21:00,356 - DEBUG - end extract_functions
-DEBUG:analyze_source_ast.stderr:end extract_functions
-2025-01-28 08:21:00,356 - DEBUG - start extract_imports
-DEBUG:analyze_source_ast.stderr:start extract_imports
-INFO:analyze_source_ast.stdout:Extracting imports from code
-INFO:analyze_source_ast.stdout:Extracted 10 imports: inspect, wraps, sentry_sdk.utils, start_span, Span, ContextVar, TYPE_CHECKING, Optional, Callable, Any
-2025-01-28 08:21:00,358 - DEBUG - end extract_imports
-DEBUG:analyze_source_ast.stderr:end extract_imports
-INFO:analyze_source_ast.stdout:Extracted functions:
-{'ai_track': 'def ai_track(description: str, **span_kwargs: Any) -> '
-             'Callable[..., Any]:\n'
-             '    return decorator',
- 'async_wrapped': 'def async_wrapped(f: Callable[..., Any], description: str, '
-                  '**span_kwargs: Any) -> Callable[..., Any]:\n'
-                  '\n'
-                  '    @wraps(f)\n'
-                  '    async def wrapper(*args, **kwargs) -> Any:\n'
-                  '        curr_pipeline = get_ai_pipeline_name()\n'
-                  "        op = span_kwargs.get('op', 'ai.run' if "
-                  "curr_pipeline else 'ai.pipeline')\n"
-                  '        with start_span(name=description, op=op, '
-                  '**span_kwargs) as span:\n'
-                  '            set_span_tags_and_data(span, kwargs)\n'
-                  '            if curr_pipeline:\n'
-                  "                span.set_data('ai.pipeline.name', "
-                  'curr_pipeline)\n'
-                  '                return await f(*args, **kwargs)\n'
-                  '            else:\n'
-                  '                set_ai_pipeline_name(description)\n'
-                  '                try:\n'
-                  '                    res = await f(*args, **kwargs)\n'
-                  '                except Exception as e:\n'
-                  '                    handle_exception(e)\n'
-                  '                    raise e from None\n'
-                  '                finally:\n'
-                  '                    set_ai_pipeline_name(None)\n'
-                  '                return res\n'
-                  '    return wrapper',
- 'decorator': 'def decorator(f: Callable[..., Any]) -> Callable[..., Any]:\n'
-              '    if inspect.iscoroutinefunction(f):\n'
-              '        return wraps(f)(async_wrapped(f, description, '
-              '**span_kwargs))\n'
-              '    else:\n'
-              '        return wraps(f)(sync_wrapped(f, description, '
-              '**span_kwargs))',
- 'get_ai_pipeline_name': 'def get_ai_pipeline_name() -> Optional[str]:\n'
-                         '    return _ai_pipeline_name.get()',
- 'handle_exception': 'def handle_exception(e: Exception) -> None:\n'
-                     '    event, hint = '
-                     'sentry_sdk.utils.event_from_exception(e, '
-                     'client_options=sentry_sdk.get_client().options, '
-                     "mechanism={'type': 'ai_monitoring', 'handled': False})\n"
-                     '    sentry_sdk.capture_event(event, hint=hint)',
- 'record_token_usage': 'def record_token_usage(span: Span, prompt_tokens: '
-                       'Optional[int]=None, completion_tokens: '
-                       'Optional[int]=None, total_tokens: Optional[int]=None) '
-                       '-> None:\n'
-                       '    ai_pipeline_name = get_ai_pipeline_name()\n'
-                       '    if ai_pipeline_name:\n'
-                       "        span.set_data('ai.pipeline.name', "
-                       'ai_pipeline_name)\n'
-                       '    if prompt_tokens is not None:\n'
-                       "        span.set_measurement('ai_prompt_tokens_used', "
-                       'value=prompt_tokens)\n'
-                       '    if completion_tokens is not None:\n'
-                       '        '
-                       "span.set_measurement('ai_completion_tokens_used', "
-                       'value=completion_tokens)\n'
-                       '    if total_tokens is None and prompt_tokens is not '
-                       'None and (completion_tokens is not None):\n'
-                       '        total_tokens = prompt_tokens + '
-                       'completion_tokens\n'
-                       '    if total_tokens is not None:\n'
-                       "        span.set_measurement('ai_total_tokens_used', "
-                       'total_tokens)',
- 'set_ai_pipeline_name': 'def set_ai_pipeline_name(name: Optional[str]) -> '
-                         'None:\n'
-                         '    _ai_pipeline_name.set(name)',
- 'set_span_tags_and_data': 'def set_span_tags_and_data(span, kwargs) -> None:\n'
-                           "    for k, v in kwargs.pop('sentry_tags', "
-                           '{}).items():\n'
-                           '        span.set_tag(k, v)\n'
-                           "    for k, v in kwargs.pop('sentry_data', "
-                           '{}).items():\n'
-                           '        span.set_data(k, v)',
- 'sync_wrapped': 'def sync_wrapped(f: Callable[..., Any], description: str, '
-                 '**span_kwargs: Any) -> Callable[..., Any]:\n'
-                 '    return wrapper',
- 'wrapper': 'def wrapper(*args, **kwargs) -> Any:\n'
-            '    curr_pipeline = get_ai_pipeline_name()\n'
-            "    op = span_kwargs.get('op', 'ai.run' if curr_pipeline else "
-            "'ai.pipeline')\n"
-            '    with start_span(name=description, op=op, **span_kwargs) as '
-            'span:\n'
-            '        set_span_tags_and_data(span, kwargs)\n'
-            '        if curr_pipeline:\n'
-            "            span.set_data('ai.pipeline.name', curr_pipeline)\n"
-            '            return f(*args, **kwargs)\n'
-            '        else:\n'
-            '            set_ai_pipeline_name(description)\n'
-            '            try:\n'
-            '                res = f(*args, **kwargs)\n'
-            '            except Exception as e:\n'
-            '                handle_exception(e)\n'
-            '                raise e from None\n'
-            '            finally:\n'
-            '                set_ai_pipeline_name(None)\n'
-            '            return res'}
-INFO:analyze_source_ast.stdout:Extracted imports:
-{'Any': 'typing.Any',
- 'Callable': 'typing.Callable',
- 'ContextVar': 'sentry_sdk.utils.ContextVar',
- 'Optional': 'typing.Optional',
- 'Span': 'sentry_sdk.tracing.Span',
- 'TYPE_CHECKING': 'typing.TYPE_CHECKING',
- 'inspect': 'inspect',
- 'sentry_sdk.utils': 'sentry_sdk.utils',
- 'start_span': 'sentry_sdk.start_span',
- 'wraps': 'functools.wraps'}
-2025-01-28 08:21:00,358 - DEBUG - start create_dependency_graph
-DEBUG:analyze_source_ast.stderr:start create_dependency_graph
-2025-01-28 08:21:00,359 - DEBUG - end create_dependency_graph
-DEBUG:analyze_source_ast.stderr:end create_dependency_graph
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,359 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,360 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,361 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,362 - DEBUG - start get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:start get_dependency_graph_str
-2025-01-28 08:21:00,362 - DEBUG - end get_dependency_graph_str
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str
-2025-01-28 08:21:00,362 - DEBUG - end get_dependency_graph_str root is None
-DEBUG:analyze_source_ast.stderr:end get_dependency_graph_str root is None
-INFO:analyze_source_ast.stdout:Dependency graph:
-├── ai_track
-│   ├── Any
-│   ├── Callable
-│   └── decorator
-│       ├── Any
-│       ├── Callable
-│       ├── async_wrapped
-│       │   ├── Any
-│       │   ├── Callable
-│       │   ├── get_ai_pipeline_name
-│       │   │   └── Optional
-│       │   ├── handle_exception
-│       │   │   └── sentry_sdk.utils
-│       │   ├── set_ai_pipeline_name
-│       │   │   └── Optional
-│       │   ├── set_span_tags_and_data
-│       │   ├── start_span
-│       │   ├── sync_wrapped
-│       │   │   ├── Any
-│       │   │   ├── Callable
-│       │   │   └── wrapper
-│       │   │       ├── Any
-│       │   │       ├── get_ai_pipeline_name
-│       │   │       │   └── Optional
-│       │   │       ├── handle_exception
-│       │   │       │   └── sentry_sdk.utils
-│       │   │       ├── set_ai_pipeline_name
-│       │   │       │   └── Optional
-│       │   │       ├── set_span_tags_and_data
-│       │   │       └── start_span
-│       │   ├── wrapper
-│       │   │   ├── Any
-│       │   │   ├── get_ai_pipeline_name
-│       │   │   │   └── Optional
-│       │   │   ├── handle_exception
-│       │   │   │   └── sentry_sdk.utils
-│       │   │   ├── set_ai_pipeline_name
-│       │   │   │   └── Optional
-│       │   │   ├── set_span_tags_and_data
-│       │   │   └── start_span
-│       │   └── wraps
-│       ├── inspect
-│       ├── sync_wrapped
-│       │   ├── Any
-│       │   ├── Callable
-│       │   └── wrapper
-│       │       ├── Any
-│       │       ├── get_ai_pipeline_name
-│       │       │   └── Optional
-│       │       ├── handle_exception
-│       │       │   └── sentry_sdk.utils
-│       │       ├── set_ai_pipeline_name
-│       │       │   └── Optional
-│       │       ├── set_span_tags_and_data
-│       │       └── start_span
-│       └── wraps
-├── record_token_usage
-│   ├── Optional
-│   ├── Span
-│   └── get_ai_pipeline_name
-│       └── Optional
-├── ContextVar
-│   └── sentry_sdk.utils
-└── TYPE_CHECKING
-2025-01-28 08:21:00,362 - DEBUG - start topological_sort
-DEBUG:analyze_source_ast.stderr:start topological_sort
-2025-01-28 08:21:00,362 - DEBUG - end topological_sort
-DEBUG:analyze_source_ast.stderr:end topological_sort
-INFO:analyze_source_ast.stdout:Sorted functions: ['Optional', 'set_ai_pipeline_name', 'get_ai_pipeline_name', 'Callable', 'sentry_sdk.utils', 'handle_exception', 'start_span', 'set_span_tags_and_data', 'Any', 'wrapper', 'sync_wrapped', 'wraps', 'async_wrapped', 'inspect', 'decorator', 'ai_track', 'Span', 'record_token_usage', 'ContextVar', 'TYPE_CHECKING']
-2025-01-28 08:21:00,362 - DEBUG - end __main__
-DEBUG:analyze_source_ast.stderr:end __main__
+**Recommended Trace Information:**
+- Log the function name being analyzed.
+- Capture the length or complexity of the function code being processed.
+
+### 4. Performance-Critical Code Paths
+
+**Code Block:**
+```python
+chat_completion = SourceLocationTraceAnalyzer.client.chat.completions.create(
+    messages=messages,
+    model=model,
+    temperature=SourceLocationTraceAnalyzer.TEMPERATURE,
+)
+```
+
+**Rationale for Tracing:**
+- This line interacts with an external API, which can be a performance bottleneck. Tracing here can help identify latency issues.
+
+**Recommended Trace Information:**
+- Log the start and end time of the API call.
+- Capture the size of the request and response payloads.
+
+### 5. State Changes
+
+**Code Block:**
+```python
+SourceLocationTraceAnalyzer.TOTAL_PROMPT_TOKENS += chat_completion.usage.prompt_tokens
+SourceLocationTraceAnalyzer.TOTAL_COMPLETION_TOKENS += chat_completion.usage.completion_tokens
+```
+
+**Rationale for Tracing:**
+- State changes in token counts are important for understanding the usage of the model and can impact billing or performance.
+
+**Recommended Trace Information:**
+- Log the previous and new values of `TOTAL_PROMPT_TOKENS` and `TOTAL_COMPLETION_TOKENS`.
+
+### 6. External Resource Interactions
+
+**Code Block:**
+```python
+full_code = Utils.get_source_code(input_source_path)
+```
+
+**Rationale for Tracing:**
+- This line reads from an external source (file system), which can fail or be slow.
+
+**Recommended Trace Information:**
+- Log the path being read and the size of the content read.
+- Capture any errors encountered during the read operation.
+
+### 7. Conditional Branches
+
+**Code Block:**
+```python
+if not self.is_silent():
+    Utils.stdout_logger.info("Analyzing code")
+```
+
+**Rationale for Tracing:**
+- Conditional branches can affect the flow of execution and the information logged.
+
+**Recommended Trace Information:**
+- Log the condition being evaluated and the outcome (true/false).
+- Capture any relevant state information that influences the condition.
+
+### Summary of Trace Locations
+
+1. **Exception Handling Blocks**: Trace exceptions in `process_file` and `analyze_function_for_decision_points`.
+2. **Function Entry/Exit Points**: Trace entry and exit in `get_completion_with_retry`, `analyze_function_for_decision_points`, and `process_file`.
+3. **Complex Algorithm Sections**: Trace function analysis in `process_file`.
+4. **Performance-Critical Code Paths**: Trace API calls in `get_completion_with_retry`.
+5. **State Changes**: Trace token updates in `get_completion_with_retry`.
+6. **External Resource Interactions**: Trace file reading in `process_file`.
+7. **Conditional Branches**: Trace conditions in `process_directory` and other methods.
+
+By implementing these trace statements, you will enhance the observability of the application, making it easier to diagnose issues and understand the flow of execution.
+2025-02-05 15:41:51,076 - DEBUG - end analyze_function_for_decision_points
+2025-02-05 15:41:51,076 - DEBUG - end process_file
+2025-02-05 15:41:51,077 - DEBUG - end __main__

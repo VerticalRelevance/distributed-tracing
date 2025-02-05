@@ -1,549 +1,502 @@
 import sys
-import os
-from pathlib import Path
 import time
+from pathlib import Path
 import ast
-import re
-import json
-import logging
-import openai
 from pprint import pformat
+import openai
+from analyze_source_ast_utils import SourceCodeAnalyzerUtils
 
-class Utils:
-    # Class attributes
-    stdout_logger = None
-    stderr_logger = None
+class SourceCodeNode:
+    def __init__(self, name, node_type, source_location=None):
+        self.name = name
+        self.type = node_type
+        self.source_location = source_location
+        self.children = {}  # Use dict for easier management of unique children
 
-    @staticmethod
-    def setup_stdout_logger(name: str, logger_level: int = logging.INFO) ->  None:
-        Utils.stdout_logger = logging.getLogger(f"{name}.stdout")
-        if not Utils.stdout_logger:
-            # Configure the stdout logger
-            Utils.stdout_logger = logging.getLogger(f"{name}.stdout")
-            Utils.stdout_logger.setLevel(logger_level)
+    def add_child(self, child):
+        # Ensure unique children by name
+        if child.name not in self.children:
+            self.children[child.name] = child
+        return self.children[child.name]
 
-            console_handler = logging.StreamHandler(stream=sys.stdout)
-            console_handler.setLevel(logger_level)
+class SourceCodeTreeBuilder(ast.NodeVisitor):
+    def __init__(self):
+        self.root = SourceCodeNode("Root", "root")
+        self.current_branch = [self.root]
 
-            formatter = logging.Formatter("%(message)s")
-            console_handler.setFormatter(formatter)
+    # def build_tree(self, source_code):
+    #     tree = ast.parse(source_code)
+    #     self.visit(tree)
+    #     return self.root
 
-            Utils.stdout_logger.addHandler(console_handler)
+    def _add_module_to_tree(self, module_name, node_type='module', source_location=None):
+        # Split module name into parts
+        parts = module_name.split('.')
+        current_node = self.current_branch[-1]
 
-    @staticmethod
-    def setup_stderr_logger(name: str, logger_level: int = logging.ERROR) -> None:
-        Utils.stderr_logger = logging.getLogger(f"{name}.stderr")
-        if not Utils.stderr_logger.handlers:
-            # Configure the stderr logger
-            Utils.stderr_logger = logging.getLogger(f"{name}.stderr")
-            Utils.stderr_logger.setLevel(logger_level)
+        for part in parts:
+            # Add or get existing child node
+            current_node = current_node.add_child(
+                SourceCodeNode(part, node_type, source_location)
+            )
 
-            console_handler = logging.StreamHandler(stream=sys.stderr)
-            console_handler.setLevel(logger_level)
+        return current_node
 
-            formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-            console_handler.setFormatter(formatter)
+    def visit_Import(self, node):
+        for alias in node.names:
+            self._add_module_to_tree(
+                alias.name,
+                'import',
+                source_location=(node.lineno, node.col_offset, node.end_lineno)
+            )
+        self.generic_visit(node)
 
-            Utils.stderr_logger.addHandler(console_handler)
+    def visit_ImportFrom(self, node):
+        module = node.module or ''
+        for alias in node.names:
+            full_name = f"{module}.{alias.name}" if module else alias.name
+            self._add_module_to_tree(
+                full_name,
+                'import_from',
+                source_location=(node.lineno, node.col_offset, node.end_lineno)
+            )
+        self.generic_visit(node)
 
-    @staticmethod
-    def setup_loggers(name: str, logger_stdout_level: int = logging.INFO, logger_stderr_level: int = logging.ERROR) -> None:
-        Utils.setup_stdout_logger(name, logger_stdout_level)
-        Utils.setup_stderr_logger(name, logger_stderr_level)
+    def visit_ClassDef(self, node):
+        # Create class node
+        class_node = SourceCodeNode(
+            node.name,
+            "class",
+            source_location=(node.lineno, node.col_offset, node.end_lineno)
+        )
 
-    @staticmethod
-    def get_source_code(source_path: str) -> str:
-        Utils.stderr_logger.debug("start get_source_code")
-        with open(source_path, "r", encoding="utf-8") as file:
-            source_code = file.read()
+        # Add to current branch
+        current_parent = self.current_branch[-1]
+        current_parent.add_child(class_node)
 
-        Utils.stderr_logger.debug("end get_source_code")
-        return source_code
+        # Push this class as the current branch
+        self.current_branch.append(class_node)
 
+        # Visit children of the class
+        self.generic_visit(node)
 
-    @staticmethod
-    def create_dependency_graph(graph_items):
-        Utils.stderr_logger.debug("start create_dependency_graph")
-        graph = {item_name: set() for item_name in graph_items}
-        for item_name, item_code in graph_items.items():
-            for other_item in graph_items:
-                if other_item in item_code and other_item != item_name:
-                    graph[item_name].add(other_item)
+        # Pop back to previous branch
+        self.current_branch.pop()
 
-        Utils.stderr_logger.debug("end create_dependency_graph")
-        return graph
+    def visit_FunctionDef(self, node):
+        # Create function node
+        func_node = SourceCodeNode(
+            node.name,
+            "function",
+            source_location=(node.lineno, node.col_offset, node.end_lineno)
+        )
 
+        # Add to current branch
+        current_parent = self.current_branch[-1]
+        current_parent.add_child(func_node)
 
-    @staticmethod
-    def topological_sort(graph):
-        Utils.stderr_logger.debug("start topological_sort")
-        visited = set()
-        stack = []
+        # Push this function as the current branch
+        self.current_branch.append(func_node)
 
-        def dfs(node):
-            visited.add(node)
-            for neighbor in graph[node]:
-                if neighbor not in visited:
-                    dfs(neighbor)
-            stack.append(node)
+        # Visit children of the function
+        self.generic_visit(node)
 
-        for node in graph:
-            if node not in visited:
-                dfs(node)
+        # Pop back to previous branch
+        self.current_branch.pop()
 
-        Utils.stderr_logger.debug("end topological_sort")
-        return stack
+class SourceCodeAnalyzer:
+    def __init__(self):
+        self.utils = SourceCodeAnalyzerUtils()
+        self.client = openai.OpenAI()
 
-    @staticmethod
-    def extract_imports(code):
-        Utils.stderr_logger.debug("start extract_imports")
-        Utils.stdout_logger.info("Extracting imports from code")
-        tree = ast.parse(code)
-        imports = {}
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    imports[alias.name] = alias.asname or alias.name
-            elif isinstance(node, ast.ImportFrom):
-                module = node.module
-                for alias in node.names:
-                    imports[alias.name] = f"{module}.{alias.name}"
-        Utils.stdout_logger.info(f"Extracted {len(imports)} imports: {', '.join(imports.keys())}")
+    def tree_dumps(self, node) -> str:
+        """
+        Recursively build string from the tree structure
+        """
+        self.utils.debug(__name__, "start tree_dumps")
+        self.utils.debug(__name__, f"tree_dumps type(node): {type(node)}")
+        tree_str_parts = []
+        return self._tree_to_str(node, tree_str_parts)
 
-        Utils.stderr_logger.debug("end extract_imports")
-        return imports
+    def _tree_to_str(self, node, tree_str_parts: list[str], prefix='', is_last=True):
+        """
+        Recursively dump the tree structure with branch-like representation
+        """
+        self.utils.debug(__name__, "start _tree_to_str")
+        self.utils.debug(__name__, f"_tree_to_str type(node): {type(node)}")
 
-    @staticmethod
-    def extract_functions(code):
-        Utils.stderr_logger.debug("start extract_functions")
-        Utils.stdout_logger.info("Extracting functions from code")
-        tree = ast.parse(code)
-        functions = {}
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                func_code = ast.get_source_segment(code, node)
-                functions[node.name] = func_code
-        Utils.stdout_logger.info(f"Extracted {len(functions)} functions: {', '.join(functions.keys())}")
+        # Prepare line number and type string
+        # print(f"node name: {node.name} class: {type(node).__name__} source location: {node.source_location}")
+        location_info = f" (line {node.source_location[0]})" if node.source_location else ""
+        type_info = f"[{node.type}]"
 
-        Utils.stderr_logger.debug("end extract_functions")
-        return functions
+        # Prepare prefix for current node
+        connector = '└── ' if is_last else '├── '
+        tree_str_parts.append(f"{prefix}{connector}{node.name} {type_info}{location_info}")
 
+        # Prepare prefix for children
+        child_prefix = prefix + ('    ' if is_last else '│   ')
 
-    @staticmethod
-    def extract_code_blocks(response):
-        """Extract all code blocks from the response."""
-        Utils.stderr_logger.debug("start extract_code_blocks")
-        Utils.stderr_logger.debug("end extract_code_blocks")
-        return re.findall(r'```python\s*(.*?)\s*```', response, re.DOTALL)
+        # Get sorted children to ensure consistent output
+        sorted_children = sorted(node.children.values(), key=lambda x: x.name)
 
+        # Recursively print children
+        for i, child in enumerate(sorted_children):
+            is_child_last = (i == len(sorted_children) - 1)
+            self._tree_to_str(child, tree_str_parts, child_prefix, is_child_last)
 
-    @staticmethod
-    def extract_function(code_block, function_name):
-        """Extract a specific function from a code block."""
-        Utils.stderr_logger.debug("start extract_function")
+        return '\n'.join(tree_str_parts)
+
+    # def print_tree(self, node, prefix='', is_last=True):
+    #     """
+    #     Recursively print the tree structure with branch-like representation
+    #     """
+    #     # Prepare line number and type string
+    #     # print(f"node name: {node.name} class: {type(node).__name__} source location: {node.source_location}")
+    #     location_info = f" (line {node.source_location[0]})" if node.source_location else ""
+    #     type_info = f"[{node.type}]"
+
+    #     # Prepare prefix for current node
+    #     connector = '└── ' if is_last else '├── '
+    #     print(f"{prefix}{connector}{node.name} {type_info}{location_info}")
+
+    #     # Prepare prefix for children
+    #     child_prefix = prefix + ('    ' if is_last else '│   ')
+
+    #     # Get sorted children to ensure consistent output
+    #     sorted_children = sorted(node.children.values(), key=lambda x: x.name)
+
+    #     # Recursively print children
+    #     for i, child in enumerate(sorted_children):
+    #         is_child_last = (i == len(sorted_children) - 1)
+    #         self.print_tree(child, child_prefix, is_child_last)
+
+    def analyze_source_code(self, source_code: str):
+        """
+        Analyze the source code
+        """
+        # try:
+        #     source_code = self.utils.get_source_code_from_file(file_path)
+        #     print(f"len(source_code): {len(source_code)}")
+        # except FileNotFoundError:
+        #     print(f"Error: File {file_path} not found.")
+        #     return None
+
+        # Parse the source code
+        tree_builder = SourceCodeTreeBuilder()
         try:
-            tree = ast.parse(code_block)
-        except:
-            Utils.stderr_logger.error(f"Failed to parse code block for function: {function_name} from\n{code_block}")
-            return None
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) and node.name == function_name:
-                return ast.get_source_segment(code_block, node)
-
-        Utils.stderr_logger.debug("end extract_function")
-        return None
-
-    @staticmethod
-    def get_dependency_graph_str(graph, root=None, prefix="", is_last=True):
-        Utils.stderr_logger.debug("start get_dependency_graph_str")
-        result = []
-
-        if root is None:
-            # Collect all roots if no specific root is given
-            roots = [node for node in graph if not any(node in children for children in graph.values())]
-            for i, root in enumerate(roots):
-                result.append(Utils.get_dependency_graph_str(graph, root, "", i == len(roots) - 1))
-            return "\n".join(result)
-
-        connector = "└── " if is_last else "├── "
-        result.append(prefix + connector + root)
-
-        if root in graph:
-            children = sorted(graph[root])
-            new_prefix = prefix + ("    " if is_last else "│   ")
-            for i, child in enumerate(children):
-                is_last_child = (i == len(children) - 1)
-                result.append(Utils.get_dependency_graph_str(graph, child, new_prefix, is_last_child))
-
-        Utils.stderr_logger.debug("end get_dependency_graph_str")
-        return "\n".join(result)
-
-
-    @staticmethod
-    def extract_functions_from_code(node, parent=None):
-        """ Recursively extract functions and set parents. """
-        Utils.stderr_logger.debug("start extract_functions_from_code")
-        if isinstance(node, ast.Module):
-            for n in node.body:
-                Utils.extract_functions_from_code(n, parent=node)
-        elif isinstance(node, ast.FunctionDef):
-            node.parent = parent
-            if parent is not None and isinstance(parent, (ast.FunctionDef, ast.Module)):
-                parent.children.append(node)
-            for n in node.body:
-                Utils.extract_functions_from_code(n, parent=node)
-
-        Utils.stderr_logger.debug("end extract_functions_from_code")
-
-    @staticmethod
-    def split_nested_functions(code):
-        Utils.stderr_logger.debug("start split_nested_functions")
-        tree = ast.parse(code)
-        for node in ast.walk(tree):
-            node.children = []
-        Utils.extract_functions_from_code(tree)
-
-        flat_functions = []
-
-        def flatten_functions(node):
-            if isinstance(node, ast.FunctionDef):
-                flat_functions.append(node)
-                # Remove nested function definitions from the body
-                node.body = [n for n in node.body if not isinstance(n, ast.FunctionDef)]
-            for child in node.children:
-                flatten_functions(child)
-
-        flatten_functions(tree)
-
-        # Function to correct indentation for function docstrings
-        def correct_indentation(functions):
-            for func in functions:
-                # Get existing docstring if present
-                docstring = ast.get_docstring(func)
-                if docstring:
-                    # Replace existing docstring node with corrected indentation
-                    corrected_docstring = "\n".join([line if line.strip() != "" else "" for line in docstring.split("\n")])
-                    func.body[0].value.s = corrected_docstring
-
-        correct_indentation(flat_functions)
-
-        Utils.stderr_logger.debug("end split_nested_functions")
-        return '\n\n'.join(ast.unparse(f).strip() for f in flat_functions)
-
-    @staticmethod
-    def get_dependency_graph_str(graph, root=None, prefix="", is_last=True):
-        Utils.stderr_logger.debug("start get_dependency_graph_str")
-
-        result = []
-
-        if root is None:
-            # Collect all roots if no specific root is given
-            roots = [node for node in graph if not any(node in children for children in graph.values())]
-            for i, root in enumerate(roots):
-                result.append(Utils.get_dependency_graph_str(graph, root, "", i == len(roots) - 1))
-            Utils.stderr_logger.debug("end get_dependency_graph_str root is None")
-            return "\n".join(result)
-
-        connector = "└── " if is_last else "├── "
-        result.append(prefix + connector + root)
-
-        if root in graph:
-            children = sorted(graph[root])
-            new_prefix = prefix + ("    " if is_last else "│   ")
-            for i, child in enumerate(children):
-                is_last_child = (i == len(children) - 1)
-                result.append(Utils.get_dependency_graph_str(graph, child, new_prefix, is_last_child))
-
-        Utils.stderr_logger.debug("end get_dependency_graph_str")
-        return "\n".join(result)
-
-
-class SourceLocationTraceAnalyzer:
-    # Class attributes
-    MODEL = "gpt-4o-mini"
-
-    # MAX_VLLM_RETRIES = 10  # maximum number of retries for the VLLM call
-    MAX_VLLM_RETRIES = 3  # maximum number of retries for the VLLM call
-    RETRY_DELAY = 0  # seconds
-    REPEAT_CONVERT_HIERARCHICAL_NUM = 1  # seems unimportant    MODEL = "gpt-4o-mini"
-    # TEMPERATURE = 0.8  # 0.8 better than 1.0 better than 0.2
-    TEMPERATURE = 0.0
-
-    TOTAL_PROMPT_TOKENS = 0
-    TOTAL_COMPLETION_TOKENS = 0
-    TOTAL_CONVERT_HIERARCHICAL_CALLS = 0
-
-    client = openai.OpenAI()
-
-    # Class methods
-    @staticmethod
-    def get_file_extension(file_path):
-        _, ext = os.path.splitext(file_path)
-        return ext.lower()
-
-    @staticmethod
-    def what_language(file_type: str) -> str:
-        file_type_language_mapping = {".py": "python 3", ".js": "node"}
-        return file_type_language_mapping.get(file_type, None)
-
-    @staticmethod
-    def load_language_search_config(language: str) -> dict:
-        file_path = "".join(language.split()) + "-search-config2.json"
-        with open(file_path, "r", encoding="utf-8") as file:
-            config_data = json.load(file)
-
-        return config_data
-
-    @staticmethod
-    def format_search_instructions(language_config: dict):
-        Utils.stderr_logger.debug("start format_search_instructions")
-        formatted_search_instructions = []
-
-        prompt_override = language_config.get("prompt_override", [])
-        if len(prompt_override) > 0:
-            formatted_search_instructions = prompt_override[:]
-        else:
-            prompt_clarifications = language_config.get("prompt_clarifications", [])
-            if len(prompt_clarifications) > 0:
-                formatted_search_instructions.append("\n".join(prompt_clarifications))
-            prompt_locators = language_config.get("prompt_locators")
-            for locator in prompt_locators:
-                statements = ",".join(locator.get("statements"))
-                rank = locator.get("rank")
-                category = locator.get("category")
-                line1 = f"Locate lines containing one of the following values: {statements}."
-                # line1 += "\n".join(prompt_clarifications)
-                line2 = f"Give each line a level value of {rank} and a category of '{category}'."
-                formatted_search_instructions.append(line1)
-                formatted_search_instructions.append(line2)
-
-        Utils.stderr_logger.debug("formatted_search_instructions:")
-        Utils.stderr_logger.debug(formatted_search_instructions)
-
-        Utils.stderr_logger.debug("end format_search_instructions")
-        return "\n".join(formatted_search_instructions)
-
-    @staticmethod
-    def get_source_language(source_path: str) -> str:
-        source_file_type = SourceLocationTraceAnalyzer.get_file_extension(source_path)
-        source_language = SourceLocationTraceAnalyzer.what_language(source_file_type)
-        if not source_language:
-            logging.warning(f"File type '{source_file_type}' is not yet supported.")
+            parsed_ast = ast.parse(source_code)
+            tree_builder.visit(parsed_ast)
+        except SyntaxError as e:
+            print(f"Error parsing source code: {e}")
             return None
 
-        return source_language
+        print(f"tree_builder.root class: {type(tree_builder.root).__name__}")
+        return tree_builder.root
 
-    @staticmethod
-    def get_completion_with_retry(messages, model, max_vllm_retries):
-        Utils.stderr_logger.debug("start get_completion_with_retry")
+    def get_completion_with_retry(self, messages, model, max_vllm_retries):
+        self.utils.debug(__class__, "start get_completion_with_retry")
 
-        for attempt in range(max_vllm_retries):
-            Utils.stderr_logger.debug(f"Get completion attempt:  (attempt {attempt + 1}/{max_vllm_retries})")
+        total_completion_tokens = 0
+        total_prompt_tokens = 0
+        for attempt in range(self.utils.get_max_vllm_retries()):
+            if not self.utils.is_silent():
+                self.utils.info(__class__, f"Get completion attempt: (attempt {attempt + 1}/{self.utils.get_max_vllm_retries()})")
+            self.utils.debug(__class__, f"Get completion attempt: (attempt {attempt + 1}/{self.utils.get_max_vllm_retries()})")
             try:
-                Utils.stdout_logger.info(f"Attempting LLM call (attempt {attempt + 1}/{max_vllm_retries})")
-                Utils.stdout_logger.info(f"Input messages: {messages[-1]['content']}")
-                chat_completion = SourceLocationTraceAnalyzer.client.chat.completions.create(
+                self.utils.debug(__class__, f"Input messages: {messages[-1]['content']}")
+                chat_completion = self.client.chat.completions.create(
                     messages=messages,
                     model=model,
-                    temperature=SourceLocationTraceAnalyzer.TEMPERATURE,
+                    temperature=self.utils.get_temperature(),
                 )
                 response = chat_completion.choices[0].message.content
-                Utils.stdout_logger.info(f"LLM response: {response}")
-                Utils.stdout_logger.info("LLM call received")
+                # self.utils.info(__class__, f"LLM response: {response}")
+                if not self.utils.is_silent():
+                    self.utils.info(__class__, "LLM response received")
 
                 # Update token counts
-                SourceLocationTraceAnalyzer.TOTAL_PROMPT_TOKENS += chat_completion.usage.prompt_tokens
-                SourceLocationTraceAnalyzer.TOTAL_COMPLETION_TOKENS += chat_completion.usage.completion_tokens
-
-                Utils.stderr_logger.debug("end get_completion_with_retry")
+                total_prompt_tokens += chat_completion.usage.prompt_tokens
+                total_completion_tokens += chat_completion.usage.completion_tokens
+                self.utils.debug(__class__, "tokens:")
+                self.utils.debug(__class__, pformat(chat_completion.usage))
+                self.utils.debug(__class__, f"total tokens:")
+                self.utils.debug(__class__, pformat(
+                    {"total_prompt_tokens": total_prompt_tokens
+                    ,"total_completion_tokens": total_completion_tokens
+                }))
+                self.utils.debug(__class__, "end get_completion_with_retry")
                 return response
             except Exception as e:
-                Utils.stderr_logger.error(f"LLM call failed: {str(e)}")
-                if attempt < max_vllm_retries - 1:
-                    Utils.stdout_logger.info(f"Retrying in {SourceLocationTraceAnalyzer.RETRY_DELAY} seconds...")
-                    time.sleep(SourceLocationTraceAnalyzer.RETRY_DELAY)
+                if not self.utils.is_silent():
+                    self.utils.error(__class__, f"LLM call failed: {str(e)}")
+                if attempt < self.utils().get_max_vllm_retries() - 1:
+                    if not self.utils.is_silent():
+                        self.utils.info(__class__, f"Retrying in {self.utils.get.retry_delay} seconds...")
+                    time.sleep(self.utils.get.retry_delay())
                 else:
-                    Utils.stderr_logger.error("Max retries reached. Giving up.")
-                    Utils.stderr_logger.debug(f"end get_completion_with_retry raise Exception: {e}")
+                    self.utils.error(__class__, "Max retries reached. Giving up.")
+                    self.utils.debug(__class__, f"end get_completion_with_retry raise Exception: {e}")
                     raise
 
-    @staticmethod
-    def run(input_source_path: str):
-        Utils.stderr_logger.debug("start run")
-        Utils.stderr_logger.debug(f"input_source_path: {input_source_path}")
 
-        input_source_language = SourceLocationTraceAnalyzer.get_source_language(
-            input_source_path
-        )
-        search_config = SourceLocationTraceAnalyzer.load_language_search_config(
-            language=input_source_language
-        )
-        search_instructions = SourceLocationTraceAnalyzer.format_search_instructions(
-            language_config=search_config
-        )
+    def analyze_function_for_decision_points(self, source_code):
+        trace_strategy = [
+            "Exception Handling Blocks",
+            "Function Entry/Exit Points",
+            "Complex Algorithm Sections",
+            "Performance-Critical Code Paths",
+            "State Changes",
+            "External Resource Interactions",
+            "Conditional Branches"
+        ]
 
-        Utils.stderr_logger.debug("search_instructions:")
-        Utils.stderr_logger.debug(search_instructions)
+        self.utils.debug(__class__, "start analyze_function_for_decision_points")
 
-        # llm_model = "gpt-3.5-turbo-0125"
+        prompt1 = f"""
 
-        system_content = """\
-You are an AI assistant specialized in analyzing Python functions and identifying critical decision points.
 
-The user is automation, so no additional explanation, summaries, or markdown formatting is required.
-"""
-        # messages = [
-        #     {'role': 'system', 'content': system_content},
-        #     {'role': 'user', 'content': search_instructions},
-        # ]
+Here's a prioritized list of critical areas trace statements should be place in Python code.
 
-    @staticmethod
-    def convert_to_hierarchical(code, include_example=False):
-        Utils.stderr_logger.debug("start convert_to_hierarchical")
+1. Exception Handling Blocks
+    - Add traces in try/except blocks to capture specific error conditions and exception details
+    - Record input values, stack trace, and context when exceptions occur
+2. Function Entry/Exit Points
+    - Log input parameters and return values to track function behavior
+    - Help diagnose unexpected function outputs or side effects
+3. Complex Algorithm Sections
+    - Trace key computational steps in algorithms with multiple branches
+    - Capture intermediate calculation results and decision points
+6. Performance-Critical Code Paths
+    - Place traces in loops or recursive functions to monitor execution time
+    - Track iteration counts, computational complexity
+7. State Changes
+    - Log modifications to critical object states or global variables
+    - Help track unexpected mutations or state transitions
+8. External Resource Interactions
+    - Trace database queries, file operations, network calls
+    - Capture connection details, transaction outcomes, potential failures
+9. Conditional Branches
+    - Add traces in complex conditional logic to understand which code paths are executed
+    - Record conditions that trigger specific branches
 
-        SourceLocationTraceAnalyzer.TOTAL_CONVERT_HIERARCHICAL_CALLS += 1
+Tracing strategy: Start with highest-priority areas, use targeted, informative log messages that capture context and key data points.
 
-        Utils.stdout_logger.info("Converting code to hierarchical structure")
+Given the above apporach,
+analyze the following Python code contained below surrounded by backticks.
+Before performing the analysis, reconstruct the code as line-based text, with
+each line terminated by a newline character.
 
-        example = """
-        ### Example of tree-style hierarchical structure:
-        
-        ```python
-        def main_function(input):
-            preprocessed_data = preprocess(input)
-            result = process(preprocessed_data)
-            return result
+In the response, include the decision point search term and the source line text where the search term was located.
+Do not include any occurrences if contained in string literals.
+Do not include any occurrences if contained on a commented source line.
+Format the response as a valid JSON document.
 
-        def preprocess(data):
-            cleaned_data = clean_data(data)
-            normalized_data = normalize_data(cleaned_data)
-            return normalized_data
-
-        def clean_data(data):
-            # Implementation of data cleaning
-            pass
-
-        def normalize_data(data):
-            # Implementation of data normalization
-            pass
-
-        def process(data):
-            feature_vector = extract_features(data)
-            result = classify(feature_vector)
-            return result
-
-        def extract_features(data):
-            # Implementation of feature extraction
-            pass
-
-        def classify(feature_vector):
-            # Implementation of classification
-            pass
-        ```
-        """ if include_example else ""
-
-        prompt = f"""
-        Convert the following Python code into a tree-style hierarchical structure with multiple levels of sub-functions.
-        Each significant step or logical block should be its own function, and functions can call other sub-functions.
-        Ensure that the main function calls these sub-functions in the correct order, creating a tree-like structure.
-
-        ### Original Code:
-        {code}
-
-        {example}
-
-        ### Instructions:
-        Please first analyze the codes step by step, and then provide the converted code in a Python code block (```python ... ```). When providing the final converted code, make sure to include all the functions in a flattened format, where each function is defined separately.
+```
+{source_code}
+```
         """
 
+        prompt = f"""
+Analyze the following Python source code and identify critical locations for adding trace statements based on these priorities:
+
+{', '.join(trace_strategy)}
+
+Provide a detailed breakdown of:
+1. Specific code blocks/lines to trace. Include the function/method name and parent if applicable.
+2. Rationale for tracing
+3. Recommended trace information to capture
+
+Source Code:
+```python
+{source_code}
+```
+"""
+
         messages = [
-            {'role': 'system', 'content': 'You are an AI assistant specialized in refactoring Python code into a tree-style hierarchical structure.'},
+            {'role': 'system', 'content': 'You are an AI assistant specialized in Python code analysis.'},
             {'role': 'user', 'content': prompt},
         ]
 
-        if "starcoder2" in SourceLocationTraceAnalyzer.MODEL.lower():
-            
+        if "starcoder2" in self.utils.get_ai_model().lower():
             # remove the system message
             messages = messages[1:]
 
-        best_conversion = None
-        max_subfunctions = 0
+        if not self.utils.is_silent():
+            self.utils.info(__class__, "Analyzing code")
+        response = self.get_completion_with_retry(messages, model=self.utils.get_ai_model(), max_vllm_retries=self.utils.get_max_vllm_retries)
+        self.utils.debug(__class__, f"LLM response: {response}")
 
-        for _ in range(SourceLocationTraceAnalyzer.REPEAT_CONVERT_HIERARCHICAL_NUM):
-            Utils.stderr_logger.debug(f"Attempt {_ + 1} of {SourceLocationTraceAnalyzer.REPEAT_CONVERT_HIERARCHICAL_NUM} for converting code to tree-style hierarchical structure")
-            response = SourceLocationTraceAnalyzer.get_completion_with_retry(messages, model="gpt-4o-mini", max_vllm_retries=SourceLocationTraceAnalyzer.MAX_VLLM_RETRIES)
-            code_blocks = Utils.extract_code_blocks(response)
+        # text_blocks = self.utils.extract_text_blocks(response)
+        # if text_blocks:
+        #     for block in text_blocks:
+        #         self.utils.debug(__class__, f"Text block: {block}")
+        #         if block.startswith("### Analysis"):
+        #             self.utils.info(block)
+        self.utils.info(__class__, "Analysis complete")
+        self.utils.info(__class__, response)
 
-            if code_blocks:
-                converted_code = code_blocks[0]
-                subfunctions = len(Utils.extract_functions(converted_code)) - 1  # Subtract 1 to exclude the main function
-
-                if subfunctions > max_subfunctions:
-                    max_subfunctions = subfunctions
-                    best_conversion = converted_code
-
-        if best_conversion:
-            Utils.stdout_logger.info(f"Converted code to tree-style hierarchical structure with {max_subfunctions} sub-functions")
-            # split nested functions
-            best_conversion = Utils.split_nested_functions(best_conversion)
-            Utils.stderr_logger.debug("end convert_to_hierarchical: best conversion")
-            return best_conversion
-        else:
-            Utils.stderr_logger.error("Failed to convert code to tree-style hierarchical structure")
-            code = Utils.split_nested_functions(code)
-            Utils.stderr_logger.debug("end convert_to_hierarchical: conversion failed")
-            return code
+        self.utils.debug(__class__, "end analyze_function_for_decision_points")
 
 
-# Main loop to process file(s)
-if __name__ == "__main__":
-    Utils.setup_loggers(name=Path(__file__).stem, logger_stderr_level = logging.DEBUG)
+    def process_file(self, input_source_path: str):
+        self.utils.debug(__class__, "start process_file")
+        self.utils.debug(__class__, f"input_source_path: {input_source_path}")
+        self.utils.info(__class__, "")
+        self.utils.info(__class__, f"Process file '{input_source_path}'")
 
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger("boto3").setLevel(logging.CRITICAL)
-    logging.getLogger("botocore").setLevel(logging.CRITICAL)
-    logging.getLogger("urllib3").setLevel(logging.CRITICAL)
-    logging.getLogger("httpcore").setLevel(logging.CRITICAL)
-    logging.getLogger("httpx").setLevel(logging.CRITICAL)
+        dependency_graph = None
+        try:
+            full_code = self.utils.get_source_code_from_file(source_path=input_source_path)
+            self.utils.debug(__class__, f"full_code len: {len(full_code)}")
 
-    source_path = "/Users/scaswell/VerticalRelevance/Projects/Internal/Trace-Injection/distributed-tracing/src/examples/content.py"
-    Utils.stderr_logger.debug("start __main__")
+            # source_tree = self.analyze_source_code(file_path=input_source_path)
+            source_tree = self.analyze_source_code(source_code=full_code)
+            self.utils.debug(__class__, f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}")
+            if source_tree:
+                print(f"source_tree: {type(source_tree).__name__}")
+                print("\n--- Source Code Tree Structure ---")
+                # self.print_tree(node=source_tree)
+                self.utils.info(__class__, self.tree_dumps(node=source_tree))
 
-    dependency_graph = None
-    try:
-        full_code = Utils.get_source_code(source_path)
-        # Convert to tree-style hierarchical structure
-        hierarchical_code = SourceLocationTraceAnalyzer.convert_to_hierarchical(full_code, include_example=False)
-        Utils.stdout_logger.info(f"Converted code to tree-style hierarchical structure:\n{hierarchical_code}")
+            functions = self.utils.extract_functions(full_code)
+            self.utils.debug(__class__, f"Extracted functions:\n{pformat(functions.keys())}")
+            self.utils.debug(__class__, "Extracted function class:")
+            self.utils.debug(__class__, pformat( {k: v[0] for k, v in functions.items()} ))
+            functions_new = self.utils.extract_functions_new(full_code, source_tree)
+            self.utils.debug(__class__, f"Extracted functions (new):\n{pformat(functions_new.keys())}")
+            self.utils.debug(__class__, "Extracted function (new) class:")
+            self.utils.debug(__class__, pformat( {k: v[0] for k, v in functions_new.items()} ))
+            imports = self.utils.extract_imports(full_code)
+            self.utils.debug(__class__, f"Extracted imports:\n{pformat(imports.values())}")
+            self.utils.debug(__class__, "Extracted import class:")
+            self.utils.debug(__class__, pformat( {k: v[0] for k, v in imports.items()} ))
+            functions_and_imports = functions | imports
 
-        functions = Utils.extract_functions(hierarchical_code)
-        imports = Utils.extract_imports(full_code)
-        Utils.stdout_logger.info(f"Extracted functions:\n{pformat(functions)}")
-        Utils.stdout_logger.info(f"Extracted imports:\n{pformat(imports)}")
-        functions_and_imports = functions | imports
+            if source_tree:
+                # Future placeholder for OpenAI analysis
+                print("\n--- OpenAI Analysis Placeholder ---")
+                print("Note: OpenAI integration would go here for analyzing decision points and external references.")
 
-        # Create a dependency graph
-        # dependency_graph = Utils.create_dependency_graph(functions)
-        dependency_graph = Utils.create_dependency_graph(functions_and_imports)
-        Utils.stdout_logger.info(f"Dependency graph:\n{Utils.get_dependency_graph_str(dependency_graph)}")
-    except Exception as e:
-        Utils.stderr_logger.error(f"Failed to convert code to hierarchical structure: {str(e)}")
+        except Exception as e:
+            self.utils.error(__class__, f"Failed to analyze code: {str(e)}", exc_info=True)
+            return False
 
-    if dependency_graph is None:
-        Utils.stderr_logger.error("Failed to create dependency graph")
+        # try:
+        #     dependency_graph = self.utils.create_dependency_graph(functions_and_imports)
+        #     self.utils.debug(__class__, f"dependency_graph: {pformat(dependency_graph)}")
+        # except Exception as e:
+        #     self.utils.error(__class__, f"Failed to create dependency graph: {str(e)}", exc_info=True)
+        #     return False
+
+        # if dependency_graph is None:
+        #     self.utils.error(__class__, "Failed to create dependency graph")
+        #     return False
+
+        try:
+            # loop over functions
+            # for function_name, (_, function_code) in functions.items():
+            #     self.utils.debug(__class__, f"function_name: {function_name}")
+            #     self.utils.info(__class__, f"Function: {function_name}")
+
+            #     # Analyze the code
+            #     self.analyze_function_for_decision_points(function_code)
+                # Analyze the code
+            self.analyze_function_for_decision_points(full_code)
+        except:
+            # self.utils.error(__class__, f"Failed to analyze code function '{function_name}'", exc_info=True)
+            self.utils.error(__class__, f"Failed to analyze source code", exc_info=True)
+            self.utils.debug(__class__, "end process_file (error)")
+            return False
+
+        # # Sort functions based on their dependencies (bottom-up)
+        # sorted_functions = self.utils.topological_sort(dependency_graph)
+        # self.utils.debug(__class__, f"sorted_functions: {sorted_functions}")
+
+        self.utils.debug(__class__, "end process_file")
+        return True
+
+    def process_directory(self, source_path: str) -> None:
+        self.utils.debug(__class__, "start process_directory")
+        self.utils.debug(__class__, f"source_path: {source_path}")
+        if not self.utils.is_silent():
+            self.utils.info(__class__, f"Process directory '{source_path}'")
+
+        if not Path(source_path).exists():
+            self.utils.error(__class__, f"Source path '{source_path}' does not exist")
+            return
+        if not Path(source_path).is_dir():
+            self.utils.error(__class__, f"Source path '{source_path}' is not a directory")
+            return
+
+        for root, dirs, files in Path(source_path).walk():
+            # self.utils.debug(pformat(path))
+            self.utils.debug(__class__, f"root: {root}")
+            self.utils.debug(__class__, f"dirs: {dirs}")
+            self.utils.debug(__class__, f"files: {files}")
+            for file in files:
+                if file.endswith(".py"):
+                    source_path = f"{root}/{file}"
+                    self.process_file(source_path)
+
+        self.utils.debug(__class__, "end process_directory")
+
+def main():
+
+    utils: SourceCodeAnalyzerUtils = SourceCodeAnalyzerUtils()
+    utils.debug(__name__, "start __main__")
+    # be_silent: bool = os.getenv("SILENT", "false").lower() == "True"
+    # utils.set_silent(be_silent)
+    if not utils.is_silent():
+        utils.info(__name__, "Starting...")
+
+    # Check if file path is provided
+    if len(sys.argv) < 2:
+        print(f"Usage: python {sys.argv[0]} source_directory_path|source_file_path")
         sys.exit(1)
 
-    # Sort functions based on their dependencies (bottom-up)
-    sorted_functions = Utils.topological_sort(dependency_graph)
-    Utils.stdout_logger.info(f"Sorted functions: {sorted_functions}")
+    analyzer: SourceCodeAnalyzer = SourceCodeAnalyzer()
 
-    Utils.stderr_logger.debug("end __main__")
+    # Analyze the source code
+    source_path = sys.argv[1]
+    utils.debug(__name__, f"source_path: {source_path}")
 
+    # source_tree = analyzer.analyze_source_code(source_path)
 
+    # if source_tree:
+    #     print(f"source_tree: {type(source_tree).__name__}")
+    #     print("\n--- Source Code Tree Structure ---")
+    #     analyzer.print_tree(node=source_tree)
 
+    #     # Future placeholder for OpenAI analysis
+    #     print("\n--- OpenAI Analysis Placeholder ---")
+    #     print("Note: OpenAI integration would go here for analyzing decision points and external references.")
 
+    if Path(source_path).is_file():
+        analyzer.process_file(source_path)
+    else:
+        if Path(source_path).is_dir():
+            analyzer.process_directory(source_path)
+        else:
+            utils.error(__name__, f"Source path '{source_path}' is neither a file nor a directory")
 
+    # source_file = os.getenv("SOURCE_FILE")
+    # if source_file:
+    #     utils.debug(f"source_file: {source_file}")
+    #     analyzer.process_file(input_source_path=source_file)
+    # else:
+    #     utils.debug("SOURCE_FILE not set")
+    #     source_dir = os.getenv("SOURCE_DIR")
+    #     if source_dir:
+    #         utils.debug(f"source_dir: {source_dir}")
+    #         analyzer.process_directory(source_dir)
+    #     else:
+    #         utils.debug("SOURCE_DIR not set")
+    #         msg = "Please set either SOURCE_FILE or SOURCE_DIR environment variable."
+    #         utils.error(msg)
+    #         raise ValueError(msg)
 
-    # response = SourceLocationTraceAnalyzer.run(input_source_path=source_path)
-    # print(json.dumps(response))
-    # print(response)
+    utils.debug(__name__, "end __main__")
+
+if __name__ == "__main__":
+    main()
