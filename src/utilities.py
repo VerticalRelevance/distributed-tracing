@@ -8,6 +8,7 @@ Classes:
 import sys
 import os
 import logging
+from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
 from timeit import default_timer
@@ -139,6 +140,66 @@ class Utilities:
             logger.addHandler(console_handler)
 
         return logger
+
+    def is_dir(self, check_path: str) -> bool:
+        """
+        Checks if the given path is a directory.
+
+        Parameters:
+            path (str): The path to check.
+
+        Returns:
+            bool: True if the path is a directory, False otherwise.
+        """
+        return Path.is_dir(Path(check_path))
+
+    def is_file(self, check_path: str) -> bool:
+        """
+        Checks if the given path is a file.
+
+        Parameters:
+            path (str): The path to check.
+
+        Returns:
+            bool: True if the path is a file, False otherwise.
+        """
+        return Path.is_file(Path(check_path))
+
+    def path_exists(self, check_path: str) -> bool:
+        """
+        Checks if the given path exists.
+
+        Parameters:
+            path (str): The path to check.
+
+        Returns:
+            bool: True if the path exists, False otherwise.
+        """
+        return Path.exists(check_path)
+
+    def directory_exists(self, check_path) -> bool:
+        # TODO test: path exists, is directory
+        # TODO test: path exists, is not directory
+        # TODO test: path not exists
+        if self.path_exists(check_path):
+            if not self.is_dir(check_path):
+                raise ValueError(f"Path '{check_path}' is not a directory.")
+        return self.path_exists(check_path)
+
+    def file_exists(self, check_path) -> bool:
+        """
+        Checks if a file exists at the specified path.
+
+        Parameters:
+            path (str): The path to the file.
+
+        Returns:
+            bool: True if the file exists, False otherwise.
+        """
+        if self.path_exists(check_path):
+            if not self.is_file(check_path):
+                raise ValueError(f"Path '{check_path}' is not a file.")
+        return Path.exists(check_path)
 
     def get_ascii_file_contents(self, source_path: str) -> str:
         self.debug(__class__, "start get_source_code")
