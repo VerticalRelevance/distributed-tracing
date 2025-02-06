@@ -196,15 +196,15 @@ class SourceCodeAnalyzer:
         self.utils.debug(__class__, f"tree_builder.root class: {type(tree_builder.root).__name__}")
         return tree_builder.root
 
-    def get_completion_with_retry(self, messages, model, max_vllm_retries):
+    def get_completion_with_retry(self, messages, model, max_vllm_retries: int, retry_delay: int):
         self.utils.debug(__class__, "start get_completion_with_retry")
 
         total_completion_tokens = 0
         total_prompt_tokens = 0
-        for attempt in range(self.ast_utils.get_max_vllm_retries()):
+        for attempt in range(max_vllm_retries):
             if not self.utils.is_silent():
-                self.utils.info(__class__, f"Get completion attempt: (attempt {attempt + 1}/{self.ast_utils.get_max_vllm_retries()})")
-            self.utils.debug(__class__, f"Get completion attempt: (attempt {attempt + 1}/{self.ast_utils.get_max_vllm_retries()})")
+                self.utils.info(__class__, f"Get completion attempt: (attempt {attempt + 1}/{max_vllm_retries})")
+            self.utils.debug(__class__, f"Get completion attempt: (attempt {attempt + 1}/{max_vllm_retries})")
             try:
                 self.utils.debug(__class__, f"Input messages: {messages[-1]['content']}")
                 chat_completion = self.client.chat.completions.create(
@@ -234,8 +234,8 @@ class SourceCodeAnalyzer:
                     self.utils.error(__class__, f"LLM call failed: {str(e)}")
                 if attempt < self.ast_utils().get_max_vllm_retries() - 1:
                     if not self.utils.is_silent():
-                        self.utils.info(__class__, f"Retrying in {self.utils.get.retry_delay} seconds...")
-                    time.sleep(self.ast_utils.get_retry_delay())
+                        self.utils.info(__class__, f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
                 else:
                     self.utils.error(__class__, "Max retries reached. Giving up.")
                     self.utils.debug(__class__, f"end get_completion_with_retry raise Exception: {e}")
