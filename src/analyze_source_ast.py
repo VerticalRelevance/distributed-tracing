@@ -184,7 +184,7 @@ class SourceCodeAnalyzer:
                 total_completion_tokens += chat_completion.usage.completion_tokens
                 self.utils.debug(__class__, "tokens:")
                 self.utils.debug(__class__, pformat(chat_completion.usage))
-                self.utils.debug(__class__, f"total tokens:")
+                self.utils.debug(__class__, "total tokens:")
                 self.utils.debug(__class__, pformat(
                     {"total_prompt_tokens": total_prompt_tokens
                     ,"total_completion_tokens": total_completion_tokens
@@ -234,7 +234,8 @@ Source Code:
 """
 
         messages = [
-            {'role': 'system', 'content': 'You are an AI assistant specialized in Python code analysis.'},
+            {'role': 'system',
+             'content': 'You are an AI assistant specialized in Python code analysis.'},
             {'role': 'user', 'content': prompt},
         ]
 
