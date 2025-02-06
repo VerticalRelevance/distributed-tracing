@@ -223,7 +223,7 @@ Analyze the following Python source code and identify critical locations for add
 {', '.join(trace_strategy)}
 
 Provide a detailed breakdown of:
-1. Specific code blocks/lines to trace. Include the function/method name and parent if applicable.
+1. Specific code blocks/lines to trace. Include the function/method name and parent class when applicable.
 2. Rationale for tracing
 3. Recommended trace information to capture
 
