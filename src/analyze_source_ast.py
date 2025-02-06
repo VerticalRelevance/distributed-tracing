@@ -190,10 +190,10 @@ class SourceCodeAnalyzer:
             parsed_ast = ast.parse(source_code)
             tree_builder.visit(parsed_ast)
         except SyntaxError as e:
-            print(f"Error parsing source code: {e}")
+            self.utils.error(__class__, f"Error parsing source code: {e}")
             return None
 
-        print(f"tree_builder.root class: {type(tree_builder.root).__name__}")
+        self.utils.debug(__class__, f"tree_builder.root class: {type(tree_builder.root).__name__}")
         return tree_builder.root
 
     def get_completion_with_retry(self, messages, model, max_vllm_retries):
