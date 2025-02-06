@@ -25,11 +25,6 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
         self.root = SourceCodeNode("Root", "root")
         self.current_branch = [self.root]
 
-    # def build_tree(self, source_code):
-    #     tree = ast.parse(source_code)
-    #     self.visit(tree)
-    #     return self.root
-
     def _add_module_to_tree(self, module_name, node_type='module', source_location=None):
         # Split module name into parts
         parts = module_name.split('.')
@@ -128,7 +123,6 @@ class SourceCodeAnalyzer:
         self.utils.debug(__name__, f"_tree_to_str type(node): {type(node)}")
 
         # Prepare line number and type string
-        # print(f"node name: {node.name} class: {type(node).__name__} source location: {node.source_location}")
         location_info = f" (line {node.source_location[0]})" if node.source_location else ""
         type_info = f"[{node.type}]"
 
@@ -149,41 +143,10 @@ class SourceCodeAnalyzer:
 
         return '\n'.join(tree_str_parts)
 
-    # def print_tree(self, node, prefix='', is_last=True):
-    #     """
-    #     Recursively print the tree structure with branch-like representation
-    #     """
-    #     # Prepare line number and type string
-    #     # print(f"node name: {node.name} class: {type(node).__name__} source location: {node.source_location}")
-    #     location_info = f" (line {node.source_location[0]})" if node.source_location else ""
-    #     type_info = f"[{node.type}]"
-
-    #     # Prepare prefix for current node
-    #     connector = '└── ' if is_last else '├── '
-    #     print(f"{prefix}{connector}{node.name} {type_info}{location_info}")
-
-    #     # Prepare prefix for children
-    #     child_prefix = prefix + ('    ' if is_last else '│   ')
-
-    #     # Get sorted children to ensure consistent output
-    #     sorted_children = sorted(node.children.values(), key=lambda x: x.name)
-
-    #     # Recursively print children
-    #     for i, child in enumerate(sorted_children):
-    #         is_child_last = (i == len(sorted_children) - 1)
-    #         self.print_tree(child, child_prefix, is_child_last)
-
     def analyze_source_code(self, source_code: str):
         """
         Analyze the source code
         """
-        # try:
-        #     source_code = self.utils.get_source_code_from_file(file_path)
-        #     print(f"len(source_code): {len(source_code)}")
-        # except FileNotFoundError:
-        #     print(f"Error: File {file_path} not found.")
-        #     return None
-
         # Parse the source code
         tree_builder = SourceCodeTreeBuilder()
         try:
@@ -213,7 +176,6 @@ class SourceCodeAnalyzer:
                     temperature=self.ast_utils.get_temperature(),
                 )
                 response = chat_completion.choices[0].message.content
-                # self.utils.info(__class__, f"LLM response: {response}")
                 if not self.utils.is_silent():
                     self.utils.info(__class__, "LLM response received")
 
@@ -255,50 +217,6 @@ class SourceCodeAnalyzer:
 
         self.utils.debug(__class__, "start analyze_function_for_decision_points")
 
-        prompt1 = f"""
-
-
-Here's a prioritized list of critical areas trace statements should be place in Python code.
-
-1. Exception Handling Blocks
-    - Add traces in try/except blocks to capture specific error conditions and exception details
-    - Record input values, stack trace, and context when exceptions occur
-2. Function Entry/Exit Points
-    - Log input parameters and return values to track function behavior
-    - Help diagnose unexpected function outputs or side effects
-3. Complex Algorithm Sections
-    - Trace key computational steps in algorithms with multiple branches
-    - Capture intermediate calculation results and decision points
-6. Performance-Critical Code Paths
-    - Place traces in loops or recursive functions to monitor execution time
-    - Track iteration counts, computational complexity
-7. State Changes
-    - Log modifications to critical object states or global variables
-    - Help track unexpected mutations or state transitions
-8. External Resource Interactions
-    - Trace database queries, file operations, network calls
-    - Capture connection details, transaction outcomes, potential failures
-9. Conditional Branches
-    - Add traces in complex conditional logic to understand which code paths are executed
-    - Record conditions that trigger specific branches
-
-Tracing strategy: Start with highest-priority areas, use targeted, informative log messages that capture context and key data points.
-
-Given the above apporach,
-analyze the following Python code contained below surrounded by backticks.
-Before performing the analysis, reconstruct the code as line-based text, with
-each line terminated by a newline character.
-
-In the response, include the decision point search term and the source line text where the search term was located.
-Do not include any occurrences if contained in string literals.
-Do not include any occurrences if contained on a commented source line.
-Format the response as a valid JSON document.
-
-```
-{source_code}
-```
-        """
-
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements based on these priorities:
 
@@ -329,12 +247,6 @@ Source Code:
         response = self.get_completion_with_retry(messages, model=self.ast_utils.get_ai_model(), max_vllm_retries=self.ast_utils.get_max_vllm_retries)
         self.utils.debug(__class__, f"LLM response: {response}")
 
-        # text_blocks = self.utils.extract_text_blocks(response)
-        # if text_blocks:
-        #     for block in text_blocks:
-        #         self.utils.debug(__class__, f"Text block: {block}")
-        #         if block.startswith("### Analysis"):
-        #             self.utils.info(block)
         self.utils.info(__class__, "Analysis complete")
         self.utils.info(__class__, response)
 
@@ -347,72 +259,32 @@ Source Code:
         self.utils.info(__class__, "")
         self.utils.info(__class__, f"Process file '{input_source_path}'")
 
-        dependency_graph = None
         try:
             full_code = self.utils.get_ascii_file_contents(source_path=input_source_path)
             self.utils.debug(__class__, f"full_code len: {len(full_code)}")
 
-            # source_tree = self.analyze_source_code(file_path=input_source_path)
             source_tree = self.analyze_source_code(source_code=full_code)
             self.utils.debug(__class__, f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}")
             if source_tree:
                 self.utils.debug(__class__, f"source_tree: {type(source_tree).__name__}")
                 self.utils.info(__class__, "\n--- Source Code Tree Structure ---")
-                # self.print_tree(node=source_tree)
                 self.utils.info(__class__, self.tree_dumps(node=source_tree))
-
-            # functions = self.utils.extract_functions(full_code)
-            # self.utils.debug(__class__, f"Extracted functions:\n{pformat(functions.keys())}")
-            # self.utils.debug(__class__, "Extracted function class:")
-            # self.utils.debug(__class__, pformat( {k: v[0] for k, v in functions.items()} ))
-            # functions_new = self.utils.extract_functions_new(full_code, source_tree)
-            # self.utils.debug(__class__, f"Extracted functions (new):\n{pformat(functions_new.keys())}")
-            # self.utils.debug(__class__, "Extracted function (new) class:")
-            # self.utils.debug(__class__, pformat( {k: v[0] for k, v in functions_new.items()} ))
-            # imports = self.utils.extract_imports(full_code)
-            # self.utils.debug(__class__, f"Extracted imports:\n{pformat(imports.values())}")
-            # self.utils.debug(__class__, "Extracted import class:")
-            # self.utils.debug(__class__, pformat( {k: v[0] for k, v in imports.items()} ))
-            # functions_and_imports = functions | imports
 
         except Exception as e:
             self.utils.error(__class__, f"Failed to build source tree: {str(e)}", exc_info=True)
-            return False
-
-        # try:
-        #     dependency_graph = self.ast_utils.create_dependency_graph(functions_and_imports)
-        #     self.utils.debug(__class__, f"dependency_graph: {pformat(dependency_graph)}")
-        # except Exception as e:
-        #     self.utils.error(__class__, f"Failed to create dependency graph: {str(e)}", exc_info=True)
-        #     return False
-
-        # if dependency_graph is None:
-        #     self.utils.error(__class__, "Failed to create dependency graph")
-        #     return False
+            return
 
         # TODO change to return if no source_tree was returned
         if source_tree:
             self.utils.info(__class__, "\n--- OpenAI Analysis ---")
 
         try:
-            # loop over functions
-            # for function_name, (_, function_code) in functions.items():
-            #     self.utils.debug(__class__, f"function_name: {function_name}")
-            #     self.utils.info(__class__, f"Function: {function_name}")
-
-            #     # Analyze the code
-            #     self.analyze_function_for_decision_points(function_code)
-                # Analyze the code
+            # Analyze the code
             self.analyze_function_for_decision_points(full_code)
         except:
-            # self.utils.error(__class__, f"Failed to analyze code function '{function_name}'", exc_info=True)
             self.utils.error(__class__, f"Failed to analyze source code", exc_info=True)
             self.utils.debug(__class__, "end process_file (error)")
-            return False
-
-        # # Sort functions based on their dependencies (bottom-up)
-        # sorted_functions = self.utils.topological_sort(dependency_graph)
-        # self.utils.debug(__class__, f"sorted_functions: {sorted_functions}")
+            return
 
         self.utils.debug(__class__, "end process_file")
         return True
@@ -431,7 +303,6 @@ Source Code:
             return
 
         for root, dirs, files in Path(source_path).walk():
-            # self.utils.debug(pformat(path))
             self.utils.debug(__class__, f"root: {root}")
             self.utils.debug(__class__, f"dirs: {dirs}")
             self.utils.debug(__class__, f"files: {files}")
@@ -446,8 +317,6 @@ def main():
 
     utils: Utilities = Utilities()
     utils.debug(__name__, "start __main__")
-    # be_silent: bool = os.getenv("SILENT", "false").lower() == "True"
-    # utils.set_silent(be_silent)
     if not utils.is_silent():
         utils.info(__name__, "Starting...")
 
@@ -462,40 +331,13 @@ def main():
     source_path = sys.argv[1]
     utils.debug(__name__, f"source_path: {source_path}")
 
-    # source_tree = analyzer.analyze_source_code(source_path)
-
-    # if source_tree:
-    #     print(f"source_tree: {type(source_tree).__name__}")
-    #     print("\n--- Source Code Tree Structure ---")
-    #     analyzer.print_tree(node=source_tree)
-
-    #     # Future placeholder for OpenAI analysis
-    #     print("\n--- OpenAI Analysis Placeholder ---")
-    #     print("Note: OpenAI integration would go here for analyzing decision points and external references.")
-
-    if Path(source_path).is_file():
+    if utils.is_file(source_path):
         analyzer.process_file(source_path)
     else:
         if Path(source_path).is_dir():
             analyzer.process_directory(source_path)
         else:
             utils.error(__name__, f"Source path '{source_path}' is neither a file nor a directory")
-
-    # source_file = os.getenv("SOURCE_FILE")
-    # if source_file:
-    #     utils.debug(f"source_file: {source_file}")
-    #     analyzer.process_file(input_source_path=source_file)
-    # else:
-    #     utils.debug("SOURCE_FILE not set")
-    #     source_dir = os.getenv("SOURCE_DIR")
-    #     if source_dir:
-    #         utils.debug(f"source_dir: {source_dir}")
-    #         analyzer.process_directory(source_dir)
-    #     else:
-    #         utils.debug("SOURCE_DIR not set")
-    #         msg = "Please set either SOURCE_FILE or SOURCE_DIR environment variable."
-    #         utils.error(msg)
-    #         raise ValueError(msg)
 
     utils.debug(__name__, "end __main__")
 
