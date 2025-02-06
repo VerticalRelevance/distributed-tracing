@@ -173,3 +173,5 @@ cython_debug/
 # Visual Studio Code folder settings
 .vscode/settings.json
 
+*.err
+*.out
