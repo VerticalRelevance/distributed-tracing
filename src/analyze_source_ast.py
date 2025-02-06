@@ -5,6 +5,7 @@ import ast
 from pprint import pformat
 import openai
 from analyze_source_ast_utils import SourceCodeAnalyzerUtils
+from utilities import Utilities
 
 class SourceCodeNode:
     def __init__(self, name, node_type, source_location=None):
@@ -106,7 +107,8 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
 
 class SourceCodeAnalyzer:
     def __init__(self):
-        self.utils = SourceCodeAnalyzerUtils()
+        self.utils = Utilities()
+        self.ast_utils = SourceCodeAnalyzerUtils()
         self.client = openai.OpenAI()
 
     def tree_dumps(self, node) -> str:
@@ -199,16 +201,16 @@ class SourceCodeAnalyzer:
 
         total_completion_tokens = 0
         total_prompt_tokens = 0
-        for attempt in range(self.utils.get_max_vllm_retries()):
+        for attempt in range(self.ast_utils.get_max_vllm_retries()):
             if not self.utils.is_silent():
-                self.utils.info(__class__, f"Get completion attempt: (attempt {attempt + 1}/{self.utils.get_max_vllm_retries()})")
-            self.utils.debug(__class__, f"Get completion attempt: (attempt {attempt + 1}/{self.utils.get_max_vllm_retries()})")
+                self.utils.info(__class__, f"Get completion attempt: (attempt {attempt + 1}/{self.ast_utils.get_max_vllm_retries()})")
+            self.utils.debug(__class__, f"Get completion attempt: (attempt {attempt + 1}/{self.ast_utils.get_max_vllm_retries()})")
             try:
                 self.utils.debug(__class__, f"Input messages: {messages[-1]['content']}")
                 chat_completion = self.client.chat.completions.create(
                     messages=messages,
                     model=model,
-                    temperature=self.utils.get_temperature(),
+                    temperature=self.ast_utils.get_temperature(),
                 )
                 response = chat_completion.choices[0].message.content
                 # self.utils.info(__class__, f"LLM response: {response}")
@@ -230,10 +232,10 @@ class SourceCodeAnalyzer:
             except Exception as e:
                 if not self.utils.is_silent():
                     self.utils.error(__class__, f"LLM call failed: {str(e)}")
-                if attempt < self.utils().get_max_vllm_retries() - 1:
+                if attempt < self.ast_utils().get_max_vllm_retries() - 1:
                     if not self.utils.is_silent():
                         self.utils.info(__class__, f"Retrying in {self.utils.get.retry_delay} seconds...")
-                    time.sleep(self.utils.get.retry_delay())
+                    time.sleep(self.ast_utils.get_retry_delay())
                 else:
                     self.utils.error(__class__, "Max retries reached. Giving up.")
                     self.utils.debug(__class__, f"end get_completion_with_retry raise Exception: {e}")
@@ -318,13 +320,13 @@ Source Code:
             {'role': 'user', 'content': prompt},
         ]
 
-        if "starcoder2" in self.utils.get_ai_model().lower():
+        if "starcoder2" in self.ast_utils.get_ai_model().lower():
             # remove the system message
             messages = messages[1:]
 
         if not self.utils.is_silent():
             self.utils.info(__class__, "Analyzing code")
-        response = self.get_completion_with_retry(messages, model=self.utils.get_ai_model(), max_vllm_retries=self.utils.get_max_vllm_retries)
+        response = self.get_completion_with_retry(messages, model=self.ast_utils.get_ai_model(), max_vllm_retries=self.ast_utils.get_max_vllm_retries)
         self.utils.debug(__class__, f"LLM response: {response}")
 
         # text_blocks = self.utils.extract_text_blocks(response)
@@ -347,43 +349,38 @@ Source Code:
 
         dependency_graph = None
         try:
-            full_code = self.utils.get_source_code_from_file(source_path=input_source_path)
+            full_code = self.utils.get_ascii_file_contents(source_path=input_source_path)
             self.utils.debug(__class__, f"full_code len: {len(full_code)}")
 
             # source_tree = self.analyze_source_code(file_path=input_source_path)
             source_tree = self.analyze_source_code(source_code=full_code)
             self.utils.debug(__class__, f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}")
             if source_tree:
-                print(f"source_tree: {type(source_tree).__name__}")
-                print("\n--- Source Code Tree Structure ---")
+                self.utils.debug(__class__, f"source_tree: {type(source_tree).__name__}")
+                self.utils.info(__class__, "\n--- Source Code Tree Structure ---")
                 # self.print_tree(node=source_tree)
                 self.utils.info(__class__, self.tree_dumps(node=source_tree))
 
-            functions = self.utils.extract_functions(full_code)
-            self.utils.debug(__class__, f"Extracted functions:\n{pformat(functions.keys())}")
-            self.utils.debug(__class__, "Extracted function class:")
-            self.utils.debug(__class__, pformat( {k: v[0] for k, v in functions.items()} ))
-            functions_new = self.utils.extract_functions_new(full_code, source_tree)
-            self.utils.debug(__class__, f"Extracted functions (new):\n{pformat(functions_new.keys())}")
-            self.utils.debug(__class__, "Extracted function (new) class:")
-            self.utils.debug(__class__, pformat( {k: v[0] for k, v in functions_new.items()} ))
-            imports = self.utils.extract_imports(full_code)
-            self.utils.debug(__class__, f"Extracted imports:\n{pformat(imports.values())}")
-            self.utils.debug(__class__, "Extracted import class:")
-            self.utils.debug(__class__, pformat( {k: v[0] for k, v in imports.items()} ))
-            functions_and_imports = functions | imports
-
-            if source_tree:
-                # Future placeholder for OpenAI analysis
-                print("\n--- OpenAI Analysis Placeholder ---")
-                print("Note: OpenAI integration would go here for analyzing decision points and external references.")
+            # functions = self.utils.extract_functions(full_code)
+            # self.utils.debug(__class__, f"Extracted functions:\n{pformat(functions.keys())}")
+            # self.utils.debug(__class__, "Extracted function class:")
+            # self.utils.debug(__class__, pformat( {k: v[0] for k, v in functions.items()} ))
+            # functions_new = self.utils.extract_functions_new(full_code, source_tree)
+            # self.utils.debug(__class__, f"Extracted functions (new):\n{pformat(functions_new.keys())}")
+            # self.utils.debug(__class__, "Extracted function (new) class:")
+            # self.utils.debug(__class__, pformat( {k: v[0] for k, v in functions_new.items()} ))
+            # imports = self.utils.extract_imports(full_code)
+            # self.utils.debug(__class__, f"Extracted imports:\n{pformat(imports.values())}")
+            # self.utils.debug(__class__, "Extracted import class:")
+            # self.utils.debug(__class__, pformat( {k: v[0] for k, v in imports.items()} ))
+            # functions_and_imports = functions | imports
 
         except Exception as e:
-            self.utils.error(__class__, f"Failed to analyze code: {str(e)}", exc_info=True)
+            self.utils.error(__class__, f"Failed to build source tree: {str(e)}", exc_info=True)
             return False
 
         # try:
-        #     dependency_graph = self.utils.create_dependency_graph(functions_and_imports)
+        #     dependency_graph = self.ast_utils.create_dependency_graph(functions_and_imports)
         #     self.utils.debug(__class__, f"dependency_graph: {pformat(dependency_graph)}")
         # except Exception as e:
         #     self.utils.error(__class__, f"Failed to create dependency graph: {str(e)}", exc_info=True)
@@ -392,6 +389,10 @@ Source Code:
         # if dependency_graph is None:
         #     self.utils.error(__class__, "Failed to create dependency graph")
         #     return False
+
+        # TODO change to return if no source_tree was returned
+        if source_tree:
+            self.utils.info(__class__, "\n--- OpenAI Analysis ---")
 
         try:
             # loop over functions
@@ -443,7 +444,7 @@ Source Code:
 
 def main():
 
-    utils: SourceCodeAnalyzerUtils = SourceCodeAnalyzerUtils()
+    utils: Utilities = Utilities()
     utils.debug(__name__, "start __main__")
     # be_silent: bool = os.getenv("SILENT", "false").lower() == "True"
     # utils.set_silent(be_silent)
