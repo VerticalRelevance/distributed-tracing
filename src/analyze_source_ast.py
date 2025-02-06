@@ -338,7 +338,7 @@ def main():
     if utils.is_file(source_path):
         analyzer.process_file(source_path)
     else:
-        if Path(source_path).is_dir():
+        if utils.is_dir(source_path):
             analyzer.process_directory(source_path)
         else:
             utils.error(__name__, f"Source path '{source_path}' is neither a file nor a directory")
