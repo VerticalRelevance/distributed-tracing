@@ -24,16 +24,16 @@ class Utilities:
         Utilities
 
     Methods:
+        __init__(self)
         __new__(cls, *args, **kwargs)
+        debug
         elapsed_timer(self)
-        generate_assessment_name(self)
-        generate_version_name(self)
-        generate_random_name(self, prefix: str, random_size: int)
-        setup_double_logger(self, name: str, logger_1_level: int = logging.INFO, logger_2_level: int = logging.ERROR) -> tuple[logging.Logger, logging.Logger] # pylint: disable=line-too-long
-        setup_logger(self, name: str, log_level: int = logging.INFO) -> logging.Logger
-        json_dumps_with_datetime_serialization(self, obj, json_options=None)
+        error
+        get_user_confirmation(self, msg: str) -> bool
         handle_datetime_serialization(self, obj)
-        get_confirmation(self, msg: str) -> bool
+        info
+        is_silent
+        json_dumps_with_datetime_serialization(self, obj, json_options=None)
     """
     _instance = None
 
@@ -50,7 +50,7 @@ class Utilities:
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
-            Utilities: The instance of the Utilities class.
+            Utilities: The singleton instance of the Utilities class.
 
         """
         if not cls._instance:
