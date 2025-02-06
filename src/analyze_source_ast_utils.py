@@ -1,9 +1,5 @@
-import sys
-import ast
-import re
 import logging
 import os
-from pprint import pformat
 
 class SourceCodeAnalyzerUtils:
     # Instance attributes
