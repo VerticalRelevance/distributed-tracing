@@ -263,6 +263,9 @@ Source Code:
         try:
             full_code = self.utils.get_ascii_file_contents(source_path=input_source_path)
             self.utils.debug(__class__, f"full_code len: {len(full_code)}")
+            if len(full_code) == 0:
+                self.utils.warning(__class__, f"Skipping empty file '{input_source_path}'")
+                return
 
             source_tree = self.analyze_source_code(source_code=full_code)
             self.utils.debug(__class__, f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}")
