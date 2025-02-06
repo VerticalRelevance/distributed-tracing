@@ -106,6 +106,9 @@ class Utilities:
         if not self.silent:
             self.get_stdout_logger(name).info(msg, exc_info=exc_info)
 
+    def warning(self, name: str, msg: str, exc_info=False) -> None:
+        self.get_stdout_logger(name).warning(msg, exc_info=exc_info)
+
     def get_stdout_logger(self, name: str) -> logging.Logger:
         logger = logging.getLogger(f"{name}.stdout")
         # TODO get logger level from os envs
