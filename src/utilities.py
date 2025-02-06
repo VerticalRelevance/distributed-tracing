@@ -302,7 +302,7 @@ class Utilities:
 
     def is_silent(self) -> bool:
         if not self.silent:
-            self.silent = bool(os.getenv("SILENT", False))
+            self.silent = bool(os.getenv("SILENT", "False"))
 
         return self.silent
 
