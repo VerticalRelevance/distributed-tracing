@@ -194,7 +194,7 @@ class SourceCodeAnalyzer:
             except Exception as e:
                 if not self.utils.is_silent():
                     self.utils.error(__class__, f"LLM call failed: {str(e)}")
-                if attempt < self.ast_utils().get_max_vllm_retries() - 1:
+                if attempt < max_vllm_retries - 1:
                     if not self.utils.is_silent():
                         self.utils.info(__class__, f"Retrying in {retry_delay} seconds...")
                     time.sleep(retry_delay)
