@@ -1,8 +1,8 @@
-tracing_strategy:
+tracing_strategies:
+  - Conditional Branches
   - Exception Handling Blocks
   - Function Entry/Exit Points
   - Complex Algorithm Sections
   - Performance-Critical Code Paths
   - State Changes
   - External Resource Interactions
-  - Conditional Branches

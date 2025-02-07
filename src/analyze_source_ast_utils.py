@@ -1,5 +1,6 @@
-import logging
+# import logging
 import os
+
 
 class SourceCodeAnalyzerUtils:
     # Instance attributes
@@ -14,12 +15,6 @@ class SourceCodeAnalyzerUtils:
         self.retry_delay = None
         # self.repeat_convert_hierarchical_num = None
         self.temperature = None
-
-        logging.getLogger("boto3").setLevel(logging.CRITICAL)
-        logging.getLogger("botocore").setLevel(logging.CRITICAL)
-        logging.getLogger("urllib3").setLevel(logging.CRITICAL)
-        logging.getLogger("httpcore").setLevel(logging.CRITICAL)
-        logging.getLogger("httpx").setLevel(logging.CRITICAL)
 
     # Instance methods
 
@@ -60,7 +55,6 @@ class SourceCodeAnalyzerUtils:
     #         self.setup_stdout_logger(name, logger_stdout_level),
     #         self.setup_stderr_logger(name, logger_stderr_level)
     #     )
-
 
     # def create_dependency_graph(self, graph_items: dict) -> dict:
     #     self.debug(__class__, "start create_dependency_graph")
@@ -279,4 +273,3 @@ class SourceCodeAnalyzerUtils:
             self.temperature = float(os.getenv("TEMPERATURE", "0.0"))
         self.temperature = max(self.temperature, 0.0)
         return self.temperature
-

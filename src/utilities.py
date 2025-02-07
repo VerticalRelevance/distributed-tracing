@@ -13,10 +13,11 @@ from datetime import datetime
 from contextlib import contextmanager
 from timeit import default_timer
 import json
+import custom_logger_success
 
 
 class Utilities:
-    silent = False
+    # silent = False
 
     """
     Encapsulation of utility methods used by other modules.
@@ -33,8 +34,8 @@ class Utilities:
         get_user_confirmation(self, msg: str) -> bool
         handle_datetime_serialization(self, obj)
         info
-        is_silent
         json_dumps_with_datetime_serialization(self, obj, json_options=None)
+        warning
     """
     _instance = None
 
@@ -56,10 +57,15 @@ class Utilities:
         """
         if not cls._instance:
             cls._instance = super().__new__(cls)
+            # print("Utilities.__new__", file=sys.stderr)
         return cls._instance
 
     def __init__(self):
-        self.silent = None
+        logging.getLogger("boto3").setLevel(logging.CRITICAL)
+        logging.getLogger("botocore").setLevel(logging.CRITICAL)
+        logging.getLogger("urllib3").setLevel(logging.CRITICAL)
+        logging.getLogger("httpcore").setLevel(logging.CRITICAL)
+        logging.getLogger("httpx").setLevel(logging.CRITICAL)
 
     @contextmanager
     def elapsed_timer(self):
@@ -103,19 +109,27 @@ class Utilities:
         self.get_stderr_logger(name).error(msg, exc_info=exc_info)
 
     def info(self, name: str, msg: str, exc_info=False) -> None:
-        if not self.silent:
-            self.get_stdout_logger(name).info(msg, exc_info=exc_info)
+        self.get_stdout_logger(name).info(msg, exc_info=exc_info)
+
+    def success(self, name: str, msg: str, exc_info=False) -> None:
+        self.get_stdout_logger(name).success(msg, exc_info=exc_info)
 
     def warning(self, name: str, msg: str, exc_info=False) -> None:
         self.get_stdout_logger(name).warning(msg, exc_info=exc_info)
 
     def get_stdout_logger(self, name: str) -> logging.Logger:
         logger = logging.getLogger(f"{name}.stdout")
-        # TODO get logger level from os envs
-        logger_level = logging.INFO
+        # print(
+        #     f"Utilities get_stdout_logger name: {logger.name} level: {logger.level}",
+        #     file=sys.stderr,
+        # )
         if not logger.handlers:
+            logger_level = (
+                logging.INFO
+                if self.is_truthy(os.getenv("VERBOSE", "not true"))
+                else custom_logger_success.SUCCESS
+            )
             logger.setLevel(logger_level)
-
             console_handler = logging.StreamHandler(stream=sys.stdout)
             console_handler.setLevel(logger_level)
 
@@ -128,10 +142,13 @@ class Utilities:
 
     def get_stderr_logger(self, name: str) -> logging.Logger:
         logger = logging.getLogger(f"{name}.stderr")
-        # TODO get logger level from os envs
-        # TODO set default to ERROR
-        logger_level = logging.DEBUG
+        # print(
+        #     f"Utilities get_stderr_logger name: {logger.name} level: {logger.level}",
+        #     file=sys.stderr,
+        # )
         if not logger.handlers:
+            logger_level = getattr(logging, os.getenv("LOG_LEVEL", "ERROR").upper())
+            # print(f"logger_level from env: {logger_level}", file=sys.stderr)
             logger.setLevel(logger_level)
 
             console_handler = logging.StreamHandler(stream=sys.stderr)
@@ -237,7 +254,9 @@ class Utilities:
             {"name": "John", "age": 30, "timestamp": "2022-01-01T12:00:00"}
 
         """
-        return json.dumps(obj, default=self.handle_datetime_serialization, **json_options)
+        return json.dumps(
+            obj, default=self.handle_datetime_serialization, **json_options
+        )
 
     def handle_datetime_serialization(self, obj):
         """
@@ -300,9 +319,13 @@ class Utilities:
         else:
             return None  # Returning None to indicate invalid input
 
-    def is_silent(self) -> bool:
-        if not self.silent:
-            self.silent = bool(os.getenv("SILENT", "False"))
+    def is_truthy(self, value: str) -> bool:
+        # If no value exists, return True
+        if value is None:
+            return True
 
-        return self.silent
+        # Convert to lowercase for case-insensitive comparison
+        value = str(value).lower().strip()
 
+        # Return result based on common truthy values
+        return value in ["1", "true", "yes", "on", "y"]

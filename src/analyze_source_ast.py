@@ -2,10 +2,13 @@ import sys
 import time
 from pathlib import Path
 import ast
+import logging
 from pprint import pformat
 import openai
 from analyze_source_ast_utils import SourceCodeAnalyzerUtils
+from configuration import Configuration
 from utilities import Utilities
+import custom_logger_success
 
 
 class SourceCodeNode:
@@ -107,16 +110,19 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
 
 class SourceCodeAnalyzer:
     def __init__(self):
-        self.utils = Utilities()
-        self.ast_utils = SourceCodeAnalyzerUtils()
-        self.client = openai.OpenAI()
+        self._utils: Utilities = Utilities()
+        self._ast_utils: SourceCodeAnalyzerUtils = SourceCodeAnalyzerUtils()
+        self._openai_client: openai.OpenAI = openai.OpenAI()
+        self._config: Configuration = Configuration("python3-config.yaml")
+        self._utils.debug(__class__, f"_config: {self._config}")
+        # print(f"__class__: {__class__}", file=sys.stderr)
 
     def tree_dumps(self, node) -> str:
         """
         Recursively build string from the tree structure
         """
-        self.utils.debug(__name__, "start tree_dumps")
-        self.utils.debug(__name__, f"tree_dumps type(node): {type(node)}")
+        self._utils.debug(__name__, "start tree_dumps")
+        self._utils.debug(__name__, f"tree_dumps type(node): {type(node)}")
         tree_str_parts = []
         return self._tree_to_str(node, tree_str_parts)
 
@@ -124,8 +130,8 @@ class SourceCodeAnalyzer:
         """
         Recursively dump the tree structure with branch-like representation
         """
-        self.utils.debug(__name__, "start _tree_to_str")
-        self.utils.debug(__name__, f"_tree_to_str type(node): {type(node)}")
+        self._utils.debug(__name__, "start _tree_to_str")
+        self._utils.debug(__name__, f"_tree_to_str type(node): {type(node)}")
 
         # Prepare line number and type string
         location_info = (
@@ -162,10 +168,10 @@ class SourceCodeAnalyzer:
             parsed_ast = ast.parse(source_code)
             tree_builder.visit(parsed_ast)
         except SyntaxError as e:
-            self.utils.error(__class__, f"Error parsing source code: {e}")
+            self._utils.error(__class__, f"Error parsing source code: {e}")
             return None
 
-        self.utils.debug(
+        self._utils.debug(
             __class__, f"tree_builder.root class: {type(tree_builder.root).__name__}"
         )
         return tree_builder.root
@@ -173,40 +179,38 @@ class SourceCodeAnalyzer:
     def get_completion_with_retry(
         self, messages, model, max_vllm_retries: int, retry_delay: int
     ):
-        self.utils.debug(__class__, "start get_completion_with_retry")
+        self._utils.debug(__class__, "start get_completion_with_retry")
 
         total_completion_tokens = 0
         total_prompt_tokens = 0
         for attempt in range(max_vllm_retries):
-            if not self.utils.is_silent():
-                self.utils.info(
-                    __class__,
-                    f"Get completion attempt: (attempt {attempt + 1}/{max_vllm_retries})",
-                )
-            self.utils.debug(
+            self._utils.info(
+                __class__,
+                f"Get completion attempt: (attempt {attempt + 1}/{max_vllm_retries})",
+            )
+            self._utils.debug(
                 __class__,
                 f"Get completion attempt: (attempt {attempt + 1}/{max_vllm_retries})",
             )
             try:
-                self.utils.debug(
+                self._utils.debug(
                     __class__, f"Input messages: {messages[-1]['content']}"
                 )
-                chat_completion = self.client.chat.completions.create(
+                chat_completion = self._openai_client.chat.completions.create(
                     messages=messages,
                     model=model,
-                    temperature=self.ast_utils.get_temperature(),
+                    temperature=self._ast_utils.get_temperature(),
                 )
                 response = chat_completion.choices[0].message.content
-                if not self.utils.is_silent():
-                    self.utils.info(__class__, "LLM response received")
+                self._utils.info(__class__, "LLM response received")
 
                 # Update token counts
                 total_prompt_tokens += chat_completion.usage.prompt_tokens
                 total_completion_tokens += chat_completion.usage.completion_tokens
-                self.utils.debug(__class__, "tokens:")
-                self.utils.debug(__class__, pformat(chat_completion.usage))
-                self.utils.debug(__class__, "total tokens:")
-                self.utils.debug(
+                self._utils.debug(__class__, "tokens:")
+                self._utils.debug(__class__, pformat(chat_completion.usage))
+                self._utils.debug(__class__, "total tokens:")
+                self._utils.debug(
                     __class__,
                     pformat(
                         {
@@ -215,41 +219,37 @@ class SourceCodeAnalyzer:
                         }
                     ),
                 )
-                self.utils.debug(__class__, "end get_completion_with_retry")
+                self._utils.debug(__class__, "end get_completion_with_retry")
                 return response
-            except Exception as e:
-                if not self.utils.is_silent():
-                    self.utils.error(__class__, f"LLM call failed: {str(e)}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                self._utils.error(__class__, f"LLM call failed: {str(e)}")
                 if attempt < max_vllm_retries - 1:
-                    if not self.utils.is_silent():
-                        self.utils.info(
-                            __class__, f"Retrying in {retry_delay} seconds..."
-                        )
+                    self._utils.info(__class__, f"Retrying in {retry_delay} seconds...")
                     time.sleep(retry_delay)
                 else:
-                    self.utils.error(__class__, "Max retries reached. Giving up.")
-                    self.utils.debug(
+                    self._utils.error(__class__, "Max retries reached. Giving up.")
+                    self._utils.debug(
                         __class__, f"end get_completion_with_retry raise Exception: {e}"
                     )
                     raise
 
-    def analyze_function_for_decision_points(self, source_code):
-        trace_strategy = [
-            "Exception Handling Blocks",
-            "Function Entry/Exit Points",
-            "Complex Algorithm Sections",
-            "Performance-Critical Code Paths",
-            "State Changes",
-            "External Resource Interactions",
-            "Conditional Branches",
-        ]
+    def analyze_source_code_for_decision_points(self, source_code):
+        # trace_strategy = [
+        #     "Exception Handling Blocks",
+        #     "Function Entry/Exit Points",
+        #     "Complex Algorithm Sections",
+        #     "Performance-Critical Code Paths",
+        #     "State Changes",
+        #     "External Resource Interactions",
+        #     "Conditional Branches",
+        # ]
 
-        self.utils.debug(__class__, "start analyze_function_for_decision_points")
+        self._utils.debug(__class__, "start analyze_source_code_for_decision_points")
 
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements based on these priorities:
 
-{', '.join(trace_strategy)}
+{', '.join(self._config.get_value("tracing_strategies"))}
 
 Provide a detailed breakdown of:
 1. Specific code blocks/lines to trace. Include the function/method name and parent class when applicable.
@@ -270,108 +270,111 @@ Source Code:
             {"role": "user", "content": prompt},
         ]
 
-        if "starcoder2" in self.ast_utils.get_ai_model().lower():
+        if "starcoder2" in self._ast_utils.get_ai_model().lower():
             # remove the system message
             messages = messages[1:]
 
-        if not self.utils.is_silent():
-            self.utils.info(__class__, "Analyzing code")
+        self._utils.info(__class__, "Analyzing code")
         response = self.get_completion_with_retry(
             messages,
-            model=self.ast_utils.get_ai_model(),
-            max_vllm_retries=self.ast_utils.get_max_vllm_retries(),
-            retry_delay=self.ast_utils.get_retry_delay(),
+            model=self._ast_utils.get_ai_model(),
+            max_vllm_retries=self._ast_utils.get_max_vllm_retries(),
+            retry_delay=self._ast_utils.get_retry_delay(),
         )
-        self.utils.debug(__class__, f"LLM response: {response}")
+        self._utils.debug(__class__, f"LLM response: {response}")
+        self._utils.info(__class__, "Analysis complete")
+        self._utils.success(__class__, response)
 
-        self.utils.info(__class__, "Analysis complete")
-        self.utils.info(__class__, response)
-
-        self.utils.debug(__class__, "end analyze_function_for_decision_points")
+        self._utils.debug(__class__, "end analyze_source_code_for_decision_points")
 
     def process_file(self, input_source_path: str):
-        self.utils.debug(__class__, "start process_file")
-        self.utils.debug(__class__, f"input_source_path: {input_source_path}")
-        self.utils.info(__class__, "")
-        self.utils.info(__class__, f"Process file '{input_source_path}'")
+        self._utils.debug(__class__, "start process_file")
+        self._utils.debug(__class__, f"input_source_path: {input_source_path}")
+        self._utils.success(__class__, "")
+        self._utils.success(__class__, f"Source file '{input_source_path}'")
 
         try:
-            full_code = self.utils.get_ascii_file_contents(
+            full_code = self._utils.get_ascii_file_contents(
                 source_path=input_source_path
             )
-            self.utils.debug(__class__, f"full_code len: {len(full_code)}")
+            self._utils.debug(__class__, f"full_code len: {len(full_code)}")
             if len(full_code) == 0:
-                self.utils.warning(
+                self._utils.warning(
                     __class__, f"Skipping empty file '{input_source_path}'"
                 )
                 return
 
             source_tree = self.analyze_source_code(source_code=full_code)
-            self.utils.debug(
+            self._utils.debug(
                 __class__,
                 f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}",
             )
             if source_tree:
-                self.utils.debug(
+                self._utils.debug(
                     __class__, f"source_tree: {type(source_tree).__name__}"
                 )
-                self.utils.info(__class__, "\n--- Source Code Tree Structure ---")
-                self.utils.info(__class__, self.tree_dumps(node=source_tree))
+                self._utils.success(__class__, "")
+                self._utils.success(__class__, "# --- Source Code Tree Structure ---")
+                self._utils.success(__class__, "```")
+                self._utils.success(__class__, self.tree_dumps(node=source_tree))
+                self._utils.success(__class__, "```")
 
-        except Exception as e:
-            self.utils.error(
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            self._utils.error(
                 __class__, f"Failed to build source tree: {str(e)}", exc_info=True
             )
             return
 
-        # TODO change to return if no source_tree was returned
-        if source_tree:
-            self.utils.info(__class__, "\n--- OpenAI Analysis ---")
-
-        try:
-            # Analyze the code
-            self.analyze_function_for_decision_points(full_code)
-        except:
-            self.utils.error(__class__, f"Failed to analyze source code", exc_info=True)
-            self.utils.debug(__class__, "end process_file (error)")
+        if not source_tree:
             return
 
-        self.utils.debug(__class__, "end process_file")
+        self._utils.success(__class__, "")
+        self._utils.success(__class__, "# --- OpenAI Analysis ---")
+        try:
+            # Analyze the code
+            self.analyze_source_code_for_decision_points(full_code)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            self._utils.error(
+                __class__, f"Failed to analyze source code: {str(e)}", exc_info=True
+            )
+            self._utils.debug(__class__, "end process_file (error)")
+            return
+
+        self._utils.debug(__class__, "end process_file")
         return True
 
     def process_directory(self, source_path: str) -> None:
-        self.utils.debug(__class__, "start process_directory")
-        self.utils.debug(__class__, f"source_path: {source_path}")
-        if not self.utils.is_silent():
-            self.utils.info(__class__, f"Process directory '{source_path}'")
+        self._utils.debug(__class__, "start process_directory")
+        self._utils.debug(__class__, f"source_path: {source_path}")
+        self._utils.info(__class__, f"Process directory '{source_path}'")
 
         if not Path(source_path).exists():
-            self.utils.error(__class__, f"Source path '{source_path}' does not exist")
+            self._utils.error(__class__, f"Source path '{source_path}' does not exist")
             return
         if not Path(source_path).is_dir():
-            self.utils.error(
+            self._utils.error(
                 __class__, f"Source path '{source_path}' is not a directory"
             )
             return
 
         for root, dirs, files in Path(source_path).walk():
-            self.utils.debug(__class__, f"root: {root}")
-            self.utils.debug(__class__, f"dirs: {dirs}")
-            self.utils.debug(__class__, f"files: {files}")
+            self._utils.debug(__class__, f"root: {root}")
+            self._utils.debug(__class__, f"dirs: {dirs}")
+            self._utils.debug(__class__, f"files: {files}")
             for file in files:
-                if file.endswith(".py"):
+                if Path(file).suffix == ".py":
                     source_path = f"{root}/{file}"
                     self.process_file(source_path)
 
-        self.utils.debug(__class__, "end process_directory")
+        self._utils.debug(__class__, "end process_directory")
 
 
 def main():
+    logging.getLogger(__file__).setLevel(custom_logger_success.SUCCESS)
 
     utils: Utilities = Utilities()
     utils.debug(__name__, "start __main__")
-    if not utils.is_silent():
-        utils.info(__name__, "Starting...")
+    utils.info(__name__, "Starting...")
 
     # Check if file path is provided
     if len(sys.argv) < 2:
