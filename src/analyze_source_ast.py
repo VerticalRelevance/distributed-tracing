@@ -1,3 +1,10 @@
+# pylint: disable=line-too-long
+"""
+A Python module for analyzing source code structure and identifying optimal locations for adding trace statements.
+This module provides functionality to parse Python source files, build an AST-based tree representation,
+and leverage AI-powered analysis for trace point recommendations.
+"""
+# pylint: enable=line-too-long
 import sys
 import time
 from pathlib import Path
@@ -12,13 +19,43 @@ import custom_logger_success
 
 
 class SourceCodeNode:
+    # pylint: disable=line-too-long
+    """
+    A node in the source code tree representing a code element (module, class, function, or import).
+
+    Attributes:
+        name (str): The name of the code element
+        type (str): The type of the code element (root, module, class, function, import, import_from)
+        source_location (tuple, optional): Tuple of (line_number, column_offset, end_line_number)
+        children (dict): Dictionary of child nodes keyed by their names
+
+    """
+
+    # pylint: enable=line-too-long
     def __init__(self, name, node_type, source_location=None):
+        """
+        Initialize a new SourceCodeNode.
+
+        Args:
+            name (str): The name of the code element
+            node_type (str): The type of the code element
+            source_location (tuple, optional): Source location information as (line, col, end_line)
+        """
         self.name = name
         self.type = node_type
         self.source_location = source_location
         self.children = {}  # Use dict for easier management of unique children
 
     def add_child(self, child):
+        """
+        Add a child node to this node, ensuring uniqueness by name.
+
+        Args:
+            child (SourceCodeNode): The child node to add
+
+        Returns:
+            SourceCodeNode: The added child node or existing node if name already exists
+        """
         # Ensure unique children by name
         if child.name not in self.children:
             self.children[child.name] = child
@@ -26,13 +63,36 @@ class SourceCodeNode:
 
 
 class SourceCodeTreeBuilder(ast.NodeVisitor):
+    """
+    AST visitor that builds a tree representation of Python source code structure.
+    Tracks imports, classes, and functions to create a hierarchical view of the code.
+
+    Attributes:
+        root (SourceCodeNode): The root node of the tree
+        current_branch (list): Stack tracking the current position in the tree during traversal
+    """
+
     def __init__(self):
+        """
+        Initialize a new SourceCodeTreeBuilder with an empty root node.
+        """
         self.root = SourceCodeNode("Root", "root")
         self.current_branch = [self.root]
 
     def _add_module_to_tree(
         self, module_name, node_type="module", source_location=None
     ):
+        """
+        Add a module node to the tree, creating intermediate nodes as needed.
+
+        Args:
+            module_name (str): Dot-separated module path
+            node_type (str, optional): Type of node. Defaults to "module"
+            source_location (tuple, optional): Source location information
+
+        Returns:
+            SourceCodeNode: The leaf node that was added
+        """
         # Split module name into parts
         parts = module_name.split(".")
         current_node = self.current_branch[-1]
@@ -45,7 +105,13 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
 
         return current_node
 
-    def visit_Import(self, node):
+    def visit_Import(self, node):  # pylint: disable=invalid-name
+        """
+        Process an Import node in the AST.
+
+        Args:
+            node (ast.Import): The Import node to process
+        """
         for alias in node.names:
             self._add_module_to_tree(
                 alias.name,
@@ -54,7 +120,13 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
             )
         self.generic_visit(node)
 
-    def visit_ImportFrom(self, node):
+    def visit_ImportFrom(self, node):  # pylint: disable=invalid-name
+        """
+        Process an ImportFrom node in the AST.
+
+        Args:
+            node (ast.ImportFrom): The ImportFrom node to process
+        """
         module = node.module or ""
         for alias in node.names:
             full_name = f"{module}.{alias.name}" if module else alias.name
@@ -65,7 +137,13 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
             )
         self.generic_visit(node)
 
-    def visit_ClassDef(self, node):
+    def visit_ClassDef(self, node):  # pylint: disable=invalid-name
+        """
+        Process a ClassDef node in the AST.
+
+        Args:
+            node (ast.ClassDef): The ClassDef node to process
+        """
         # Create class node
         class_node = SourceCodeNode(
             node.name,
@@ -86,7 +164,13 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
         # Pop back to previous branch
         self.current_branch.pop()
 
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node):  # pylint: disable=invalid-name
+        """
+        Process a FunctionDef node in the AST.
+
+        Args:
+            node (ast.FunctionDef): The FunctionDef node to process
+        """
         # Create function node
         func_node = SourceCodeNode(
             node.name,
@@ -109,7 +193,21 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
 
 
 class SourceCodeAnalyzer:
+    """
+    A class for analyzing Python source code to identify optimal locations for trace statements.
+    Uses AST parsing and AI-powered analysis to provide recommendations for code instrumentation.
+
+    Attributes:
+        _utils (Utilities): Utility functions instance
+        _ast_utils (SourceCodeAnalyzerUtils): AST analysis utility functions
+        _openai_client (openai.OpenAI): OpenAI API client
+        _config (Configuration): Configuration settings
+    """
+
     def __init__(self):
+        """
+        Initialize the SourceCodeAnalyzer with required dependencies.
+        """
         self._utils: Utilities = Utilities()
         self._ast_utils: SourceCodeAnalyzerUtils = SourceCodeAnalyzerUtils()
         self._openai_client: openai.OpenAI = openai.OpenAI()
@@ -119,7 +217,13 @@ class SourceCodeAnalyzer:
 
     def tree_dumps(self, node) -> str:
         """
-        Recursively build string from the tree structure
+        Generate a string representation of the source code tree.
+
+        Args:
+            node (SourceCodeNode): The root node of the tree to dump
+
+        Returns:
+            str: A formatted string representation of the tree
         """
         self._utils.debug(__name__, "start tree_dumps")
         self._utils.debug(__name__, f"tree_dumps type(node): {type(node)}")
@@ -127,9 +231,20 @@ class SourceCodeAnalyzer:
         return self._tree_to_str(node, tree_str_parts)
 
     def _tree_to_str(self, node, tree_str_parts: list[str], prefix="", is_last=True):
+        # pylint: disable=line-too-long
         """
-        Recursively dump the tree structure with branch-like representation
+        Recursively convert a tree node and its children to a string  with branch-like representation.
+
+        Args:
+            node (SourceCodeNode): The current node to process
+            tree_str_parts (list[str]): List to accumulate string parts
+            prefix (str, optional): Prefix for the current line. Defaults to ""
+            is_last (bool, optional): Whether this is the last child. Defaults to True
+
+        Returns:
+            str: The complete string representation of the tree
         """
+        # pylint: enable=line-too-long
         self._utils.debug(__name__, "start _tree_to_str")
         self._utils.debug(__name__, f"_tree_to_str type(node): {type(node)}")
 
@@ -160,7 +275,13 @@ class SourceCodeAnalyzer:
 
     def analyze_source_code(self, source_code: str):
         """
-        Analyze the source code
+        Parse and analyze Python source code to build a tree representation.
+
+        Args:
+            source_code (str): The Python source code to analyze
+
+        Returns:
+            SourceCodeNode: The root node of the parsed source tree, or None if parsing fails
         """
         # Parse the source code
         tree_builder = SourceCodeTreeBuilder()
@@ -177,20 +298,35 @@ class SourceCodeAnalyzer:
         return tree_builder.root
 
     def get_completion_with_retry(
-        self, messages, model, max_vllm_retries: int, retry_delay: int
+        self, messages, model, max_llm_retries: int, retry_delay: int
     ):
+        """
+        Get an AI completion with automatic retry logic.
+
+        Args:
+            messages (list): The messages to send to the AI model
+            model (str): The AI model to use
+            max_llm_retries (int): Maximum number of retry attempts
+            retry_delay (int): Delay between retries in seconds
+
+        Returns:
+            str: The AI model's response
+
+        Raises:
+            Exception: If all retry attempts fail
+        """
         self._utils.debug(__class__, "start get_completion_with_retry")
 
         total_completion_tokens = 0
         total_prompt_tokens = 0
-        for attempt in range(max_vllm_retries):
+        for attempt in range(max_llm_retries):
             self._utils.info(
                 __class__,
-                f"Get completion attempt: (attempt {attempt + 1}/{max_vllm_retries})",
+                f"Get completion attempt: (attempt {attempt + 1}/{max_llm_retries})",
             )
             self._utils.debug(
                 __class__,
-                f"Get completion attempt: (attempt {attempt + 1}/{max_vllm_retries})",
+                f"Get completion attempt: (attempt {attempt + 1}/{max_llm_retries})",
             )
             try:
                 self._utils.debug(
@@ -223,7 +359,7 @@ class SourceCodeAnalyzer:
                 return response
             except Exception as e:  # pylint: disable=broad-exception-caught
                 self._utils.error(__class__, f"LLM call failed: {str(e)}")
-                if attempt < max_vllm_retries - 1:
+                if attempt < max_llm_retries - 1:
                     self._utils.info(__class__, f"Retrying in {retry_delay} seconds...")
                     time.sleep(retry_delay)
                 else:
@@ -234,16 +370,15 @@ class SourceCodeAnalyzer:
                     raise
 
     def analyze_source_code_for_decision_points(self, source_code):
-        # trace_strategy = [
-        #     "Exception Handling Blocks",
-        #     "Function Entry/Exit Points",
-        #     "Complex Algorithm Sections",
-        #     "Performance-Critical Code Paths",
-        #     "State Changes",
-        #     "External Resource Interactions",
-        #     "Conditional Branches",
-        # ]
+        """
+        Analyze source code to identify optimal locations for adding trace statements.
 
+        Args:
+            source_code (str): The source code to analyze
+
+        Returns:
+            None
+        """
         self._utils.debug(__class__, "start analyze_source_code_for_decision_points")
 
         prompt = f"""
@@ -278,7 +413,7 @@ Source Code:
         response = self.get_completion_with_retry(
             messages,
             model=self._ast_utils.get_ai_model(),
-            max_vllm_retries=self._ast_utils.get_max_vllm_retries(),
+            max_llm_retries=self._ast_utils.get_max_llm_retries(),
             retry_delay=self._ast_utils.get_retry_delay(),
         )
         self._utils.debug(__class__, f"LLM response: {response}")
@@ -288,10 +423,19 @@ Source Code:
         self._utils.debug(__class__, "end analyze_source_code_for_decision_points")
 
     def process_file(self, input_source_path: str):
+        """
+        Process a single Python source file.
+
+        Args:
+            input_source_path (str): Path to the Python source file
+
+        Returns:
+            bool: True if processing succeeded, None otherwise
+        """
         self._utils.debug(__class__, "start process_file")
         self._utils.debug(__class__, f"input_source_path: {input_source_path}")
         self._utils.success(__class__, "")
-        self._utils.success(__class__, f"Source file '{input_source_path}'")
+        self._utils.success(__class__, f"```Source file '{input_source_path}'```")
 
         try:
             full_code = self._utils.get_ascii_file_contents(
@@ -307,14 +451,14 @@ Source Code:
             source_tree = self.analyze_source_code(source_code=full_code)
             self._utils.debug(
                 __class__,
-                f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}",
+                f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}",  # pylint: disable=line-too-long
             )
             if source_tree:
                 self._utils.debug(
                     __class__, f"source_tree: {type(source_tree).__name__}"
                 )
                 self._utils.success(__class__, "")
-                self._utils.success(__class__, "# --- Source Code Tree Structure ---")
+                self._utils.success(__class__, "## Source Code Tree Structure")
                 self._utils.success(__class__, "```")
                 self._utils.success(__class__, self.tree_dumps(node=source_tree))
                 self._utils.success(__class__, "```")
@@ -329,7 +473,7 @@ Source Code:
             return
 
         self._utils.success(__class__, "")
-        self._utils.success(__class__, "# --- OpenAI Analysis ---")
+        self._utils.success(__class__, "## OpenAI Analysis")
         try:
             # Analyze the code
             self.analyze_source_code_for_decision_points(full_code)
@@ -344,6 +488,15 @@ Source Code:
         return True
 
     def process_directory(self, source_path: str) -> None:
+        """
+        Process all Python files in a directory and its subdirectories.
+
+        Args:
+            source_path (str): Path to the directory to process
+
+        Returns:
+            None
+        """
         self._utils.debug(__class__, "start process_directory")
         self._utils.debug(__class__, f"source_path: {source_path}")
         self._utils.info(__class__, f"Process directory '{source_path}'")
@@ -370,6 +523,18 @@ Source Code:
 
 
 def main():
+    # pylint: disable=line-too-long
+    """
+    Main entry point for the source code analyzer.
+    Processes either a single Python file or a directory of Python files based on command line arguments.
+
+    Usage:
+        python script.py source_directory_path|source_file_path
+
+    Returns:
+        None
+    """
+    # pylint: enable=line-too-long
     logging.getLogger(__file__).setLevel(custom_logger_success.SUCCESS)
 
     utils: Utilities = Utilities()

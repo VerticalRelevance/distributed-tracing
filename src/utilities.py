@@ -1,8 +1,20 @@
 """
 Encapsulation of utility methods used by other modules.
 
+This module provides a singleton Utilities class with various utility methods for logging,
+file operations, datetime serialization, and user interactions. The class is designed to
+provide a centralized set of helper methods that can be used across different parts of a project.
+
+Key Features:
+    - Singleton pattern implementation
+    - Logging methods with configurable log levels
+    - File and path existence checking
+    - JSON serialization with datetime support
+    - User confirmation method
+    - Environment variable parsing
+
 Classes:
-    Utilities
+    Utilities: A comprehensive utility class with various helper methods.
 """
 
 import sys
@@ -17,8 +29,6 @@ import custom_logger_success
 
 
 class Utilities:
-    # silent = False
-
     """
     Encapsulation of utility methods used by other modules.
 
@@ -37,23 +47,23 @@ class Utilities:
         json_dumps_with_datetime_serialization(self, obj, json_options=None)
         warning
     """
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Creates and returns a new instance of the Utilities class.
+        Creates and returns a singleton instance of the Utilities class.
 
-        This method is responsible for implementing the singleton pattern, ensuring that only one
-        instance of the Utilities class is created.
+        This method ensures that only one instance of the Utilities class is created
+        throughout the application, implementing the singleton design pattern.
 
         Parameters:
-            cls (type): The class object.
+            cls (type): The class being instantiated.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
             Utilities: The singleton instance of the Utilities class.
-
         """
         if not cls._instance:
             cls._instance = super().__new__(cls)
@@ -61,6 +71,12 @@ class Utilities:
         return cls._instance
 
     def __init__(self):
+        """
+        Initializes the Utilities instance by configuring log levels for various libraries.
+
+        Sets critical log levels for boto3, botocore, urllib3, httpcore, and httpx to
+        suppress verbose logging from these libraries.
+        """
         logging.getLogger("boto3").setLevel(logging.CRITICAL)
         logging.getLogger("botocore").setLevel(logging.CRITICAL)
         logging.getLogger("urllib3").setLevel(logging.CRITICAL)
@@ -70,27 +86,31 @@ class Utilities:
     @contextmanager
     def elapsed_timer(self):
         """
-        Measures the elapsed time of a code block using a context manager.
+        A context manager for measuring the elapsed time of a code block.
 
-        This method is a context manager that measures the elapsed time of a code block. It starts
-        a timer when the code block is entered and stops the timer when the code block is exited.
-        The elapsed time can be obtained by calling the returned function.
+        Starts a timer when entering the code block and provides a function to retrieve
+        the elapsed time when exiting the block.
 
         Usage:
             with elapsed_timer() as timer:
-                # Code block to measure elapsed time
-                ...
+                # Code block to measure
+                result = some_function()
 
             elapsed_time = timer()
-            print(f"Took {elapsed_time:.2f})
+            print(f"Execution took {elapsed_time:.2f} seconds")
 
-        Returns:
+        Yields:
             function: A function that returns the elapsed time in seconds when called.
-
         """
         start = default_timer()
 
         def elapsed_keeper():
+            """
+            Handles the start of the context manager code block.
+
+            Returns:
+                int: The start time of the context manager in seconds when called.
+            """
             return default_timer() - start
 
         yield elapsed_keeper
@@ -98,31 +118,85 @@ class Utilities:
 
         # pylint: disable=E0102
         def elapsed_keeper():
+            """
+            Handles the start of the context manager code block.
+
+            Returns:
+                int: The end time of the context manager in seconds when called.
+            """
             return end - start
 
         # pylint: enable=E0102
 
     def debug(self, name: str, msg: str, exc_info=False) -> None:
+        """
+        Logs a debug message to the standard error stream.
+
+        Parameters:
+            name (str): The name of the logger.
+            msg (str): The debug message to log.
+            exc_info (bool, optional): Whether to include exception information. Defaults to False.
+        """
         self.get_stderr_logger(name).debug(msg, exc_info=exc_info)
 
     def error(self, name: str, msg: str, exc_info=False) -> None:
+        """
+        Logs an error message to the standard error stream.
+
+        Parameters:
+            name (str): The name of the logger.
+            msg (str): The error message to log.
+            exc_info (bool, optional): Whether to include exception information. Defaults to False.
+        """
         self.get_stderr_logger(name).error(msg, exc_info=exc_info)
 
     def info(self, name: str, msg: str, exc_info=False) -> None:
+        """
+        Logs an informational message to the standard output stream.
+
+        Parameters:
+            name (str): The name of the logger.
+            msg (str): The informational message to log.
+            exc_info (bool, optional): Whether to include exception information. Defaults to False.
+        """
         self.get_stdout_logger(name).info(msg, exc_info=exc_info)
 
     def success(self, name: str, msg: str, exc_info=False) -> None:
+        """
+        Logs a success message to the standard output stream.
+
+        Parameters:
+            name (str): The name of the logger.
+            msg (str): The success message to log.
+            exc_info (bool, optional): Whether to include exception information. Defaults to False.
+        """
         self.get_stdout_logger(name).success(msg, exc_info=exc_info)
 
     def warning(self, name: str, msg: str, exc_info=False) -> None:
+        """
+        Logs a warning message to the standard output stream.
+
+        Parameters:
+            name (str): The name of the logger.
+            msg (str): The warning message to log.
+            exc_info (bool, optional): Whether to include exception information. Defaults to False.
+        """
         self.get_stdout_logger(name).warning(msg, exc_info=exc_info)
 
     def get_stdout_logger(self, name: str) -> logging.Logger:
+        """
+        Creates and configures a logger that outputs to the standard output stream.
+
+        The logger's level is determined by the VERBOSE environment variable.
+        If VERBOSE is set, the log level is set to INFO; otherwise, it uses a custom SUCCESS level.
+
+        Parameters:
+            name (str): The name of the logger.
+
+        Returns:
+            logging.Logger: A configured logger for standard output.
+        """
         logger = logging.getLogger(f"{name}.stdout")
-        # print(
-        #     f"Utilities get_stdout_logger name: {logger.name} level: {logger.level}",
-        #     file=sys.stderr,
-        # )
         if not logger.handlers:
             logger_level = (
                 logging.INFO
@@ -141,11 +215,19 @@ class Utilities:
         return logger
 
     def get_stderr_logger(self, name: str) -> logging.Logger:
+        """
+        Creates and configures a logger that outputs to the standard error stream.
+
+        The logger's level is determined by the LOG_LEVEL environment variable.
+        Defaults to ERROR level if no level is specified.
+
+        Parameters:
+            name (str): The name of the logger.
+
+        Returns:
+            logging.Logger: A configured logger for standard error.
+        """
         logger = logging.getLogger(f"{name}.stderr")
-        # print(
-        #     f"Utilities get_stderr_logger name: {logger.name} level: {logger.level}",
-        #     file=sys.stderr,
-        # )
         if not logger.handlers:
             logger_level = getattr(logging, os.getenv("LOG_LEVEL", "ERROR").upper())
             # print(f"logger_level from env: {logger_level}", file=sys.stderr)
@@ -166,7 +248,7 @@ class Utilities:
         Checks if the given path is a directory.
 
         Parameters:
-            path (str): The path to check.
+            check_path (str): The path to check.
 
         Returns:
             bool: True if the path is a directory, False otherwise.
@@ -178,7 +260,7 @@ class Utilities:
         Checks if the given path is a file.
 
         Parameters:
-            path (str): The path to check.
+            check_path (str): The path to check.
 
         Returns:
             bool: True if the path is a file, False otherwise.
@@ -190,7 +272,7 @@ class Utilities:
         Checks if the given path exists.
 
         Parameters:
-            path (str): The path to check.
+            check_path (str): The path to check.
 
         Returns:
             bool: True if the path exists, False otherwise.
@@ -198,9 +280,18 @@ class Utilities:
         return Path.exists(check_path)
 
     def directory_exists(self, check_path) -> bool:
-        # TODO test: path exists, is directory
-        # TODO test: path exists, is not directory
-        # TODO test: path not exists
+        """
+        Checks if a directory exists at the specified path.
+
+        Parameters:
+            check_path (str): The path to check.
+
+        Returns:
+            bool: True if the path exists and is a directory.
+
+        Raises:
+            ValueError: If the path exists but is not a directory.
+        """
         if self.path_exists(check_path):
             if not self.is_dir(check_path):
                 raise ValueError(f"Path '{check_path}' is not a directory.")
@@ -211,10 +302,13 @@ class Utilities:
         Checks if a file exists at the specified path.
 
         Parameters:
-            path (str): The path to the file.
+            check_path (str): The path to the file.
 
         Returns:
-            bool: True if the file exists, False otherwise.
+            bool: True if the path exists and is a file.
+
+        Raises:
+            ValueError: If the path exists but is not a file.
         """
         if self.path_exists(check_path):
             if not self.is_file(check_path):
@@ -222,6 +316,15 @@ class Utilities:
         return Path.exists(check_path)
 
     def get_ascii_file_contents(self, source_path: str) -> str:
+        """
+        Reads and returns the contents of a file using UTF-8 encoding.
+
+        Parameters:
+            source_path (str): The path to the file to read.
+
+        Returns:
+            str: The contents of the file as a string.
+        """
         self.debug(__class__, "start get_source_code")
         with open(source_path, "r", encoding="utf-8") as file:
             source_code = file.read()
@@ -320,6 +423,26 @@ class Utilities:
             return None  # Returning None to indicate invalid input
 
     def is_truthy(self, value: str) -> bool:
+        """
+        Determines if a value is considered "truthy".
+
+        Checks if the value is equivalent to common truthy representations like "1", "true", "yes".
+
+        Parameters:
+            value (str): The value to check for truthiness.
+
+        Returns:
+            bool: True if the value is considered truthy, False otherwise.
+
+        Examples:
+            >>> utils = Utilities()
+            >>> utils.is_truthy("1")
+            True
+            >>> utils.is_truthy("true")
+            True
+            >>> utils.is_truthy("false")
+            False
+        """
         # If no value exists, return True
         if value is None:
             return True

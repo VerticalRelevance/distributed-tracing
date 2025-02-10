@@ -1,10 +1,47 @@
-import sys
+"""
+Configuration Management Module
+
+This module provides a singleton Configuration class for loading, managing,
+and accessing configuration settings from YAML files with robust error handling
+and validation.
+
+Key Features:
+    - Singleton pattern implementation
+    - Safe YAML configuration file loading
+    - Configuration value retrieval and modification
+    - Comprehensive error handling for file and parsing issues
+
+Classes:
+    Configuration: A configuration management class with methods for loading
+    and accessing configuration values.
+"""
+
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 import yaml
 
 
 class Configuration:
+    """
+    A singleton configuration management class for loading and accessing configuration settings.
+
+    This class provides a robust mechanism for loading configuration files, with comprehensive
+    error handling, validation, and safe access to configuration values. It follows the
+    singleton pattern to ensure only one configuration instance exists.
+
+    Attributes:
+        _instance (Configuration): The single instance of the Configuration class.
+        _config_content (Dict[str, Any]): Loaded configuration content.
+
+    Methods:
+        __new__: Ensures only one instance of the class is created.
+        __init__: Initializes the configuration by loading the specified YAML file.
+        safe_load_config: Safely loads a YAML configuration file with extensive error checking.
+        validate_config: Placeholder method for configuration validation.
+        get_value: Retrieves a configuration value with an optional default.
+        set_value: Sets a configuration value.
+    """
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
@@ -35,6 +72,7 @@ class Configuration:
         # print("end Configuration.__init__", file=sys.stderr)
 
     def safe_load_config(self, file_path: str) -> None:
+        # pylint: disable=line-too-long
         """
         Safely load a configuration YAML file with comprehensive error handling.
 
@@ -49,6 +87,7 @@ class Configuration:
             PermissionError: If there are insufficient permissions to read the file
             yaml.YAMLError: For YAML parsing errors
         """
+        # pylint: enable=line-too-long
         try:
             # Convert to Path object for better path handling
             path: Path = Path(file_path)
@@ -112,8 +151,10 @@ class Configuration:
             raise UnicodeDecodeError(
                 f"The file {file_path} is not valid UTF-8 encoded text"
             ) from ude
-        except Exception as e:
-            raise Exception(f"Unexpected error reading {file_path}: {str(e)}") from e
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            raise Exception(  # pylint: disable=broad-exception-raised
+                f"Unexpected error reading {file_path}: {str(e)}"
+            ) from e
 
     def validate_config(self) -> bool:
         """
