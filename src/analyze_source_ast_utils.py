@@ -13,6 +13,7 @@ Classes:
 """
 
 import os
+from configuration import Configuration
 
 
 class SourceCodeAnalyzerUtils:
@@ -23,23 +24,24 @@ class SourceCodeAnalyzerUtils:
     from environment variables, with default values and validation.
 
     Attributes:
-        ai_model (str): The AI model to be used for analysis.
-        max_llm_retries (int): Maximum number of retries for LLM operations.
-        retry_delay (int): Delay between retry attempts.
-        temperature (float): Temperature setting for AI model randomness.
+        _ai_model (str): The AI model to be used for analysis.
+        _max_llm_retries (int): Maximum number of retries for LLM operations.
+        _retry_delay (int): Delay between retry attempts.
+        _temperature (float): Temperature setting for AI model randomness.
     """
 
-    def __init__(self):
+    def __init__(self, configuration: Configuration):
         """
         Initializes the SourceCodeAnalyzerUtils with default None values.
 
         The actual values will be lazily loaded when the respective getter
         methods are called for the first time.
         """
-        self.ai_model = None
-        self.max_llm_retries = None
-        self.retry_delay = None
-        self.temperature = None
+        self._ai_model = None
+        self._max_llm_retries = None
+        self._retry_delay = None
+        self._temperature = None
+        self._config: Configuration = configuration
 
     def get_ai_model(self) -> str:
         """
@@ -56,9 +58,11 @@ class SourceCodeAnalyzerUtils:
             >>> model = utils.get_ai_model()
             # Returns 'gpt-4o-mini' if AI_MODEL is not set in environment
         """
-        if not self.ai_model:
-            self.ai_model = os.getenv("AI_MODEL", "gpt-4o-mini")
-        return self.ai_model
+        if not self._ai_model:
+            self._ai_model = os.getenv(
+                "AI_MODEL", self._config.get_value("ai_model", "gpt-4o-mini")
+            )
+        return self._ai_model
 
     def get_max_llm_retries(self) -> int:
         """
@@ -75,10 +79,14 @@ class SourceCodeAnalyzerUtils:
             >>> max_retries = utils.get_max_llm_retries()
             # Returns 10 if MAX_LLM_RETRIES is not set, or uses the env value
         """
-        if not self.max_llm_retries:
-            self.max_llm_retries = int(os.getenv("MAX_LLM_RETRIES", "10"))
-        self.max_llm_retries = max(self.max_llm_retries, 1)
-        return self.max_llm_retries
+        if not self._max_llm_retries:
+            self._max_llm_retries = int(
+                os.getenv(
+                    "MAX_LLM_RETRIES", self._config.get_value("max_llm_retries", "10")
+                )
+            )
+        self._max_llm_retries = max(self._max_llm_retries, 1)
+        return self._max_llm_retries
 
     def get_retry_delay(self) -> int:
         """
@@ -95,10 +103,12 @@ class SourceCodeAnalyzerUtils:
             >>> delay = utils.get_retry_delay()
             # Returns 0 if RETRY_DELAY is not set, or uses the env value
         """
-        if not self.retry_delay:
-            self.retry_delay = int(os.getenv("RETRY_DELAY", "0"))
-        self.retry_delay = max(self.retry_delay, 0)
-        return self.retry_delay
+        if not self._retry_delay:
+            self._retry_delay = int(
+                os.getenv("RETRY_DELAY", self._config.get_value("retry_delay", "0"))
+            )
+        self._retry_delay = max(self._retry_delay, 0)
+        return self._retry_delay
 
     def get_temperature(self) -> float:
         """
@@ -115,7 +125,9 @@ class SourceCodeAnalyzerUtils:
             >>> temperature = utils.get_temperature()
             # Returns 0.0 if TEMPERATURE is not set, or uses the env value
         """
-        if not self.temperature:
-            self.temperature = float(os.getenv("TEMPERATURE", "0.0"))
-        self.temperature = max(self.temperature, 0.0)
-        return self.temperature
+        if not self._temperature:
+            self._temperature = float(
+                os.getenv("TEMPERATURE", self._config.get_value("temperature", "0.0"))
+            )
+        self._temperature = max(self._temperature, 0.0)
+        return self._temperature

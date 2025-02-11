@@ -66,10 +66,42 @@ class Configuration:
         return cls._instance
 
     def __init__(self, config_file_path: str) -> None:
-        # print("begin Configuration.__init__", file=sys.stderr)
         self._config_content = None
         self.safe_load_config(config_file_path)
-        # print("end Configuration.__init__", file=sys.stderr)
+
+    def __str__(self):
+        print("Configuration __str__")
+        # settings = {}
+        # for k, v in self._config_content.items():
+        #     if isinstance(v, dict):
+        #         settings[k] = v.__repr__()
+        #     elif isinstance(v, list):
+        #         settings[k] = v.__repr__()
+        #     else:
+        #         settings[k] = v
+        # return "\n".join(settings)
+
+        def dict_to_string(d, prefix: str = ""):
+            if isinstance(d, dict):
+                return (
+                    "{"
+                    + f"\n{prefix}".join(
+                        f"{k}: {dict_to_string(v, prefix=prefix+"    ")}"
+                        for k, v in sorted(d.items())
+                    )
+                    + "}"
+                )
+            if isinstance(d, list):
+                return (
+                    "[\n"
+                    + f"\n{prefix}".join(
+                        dict_to_string(x, prefix=prefix + "    ") for x in d
+                    )
+                    + "\n]"
+                )
+            return str(d)
+
+        return dict_to_string(self._config_content)
 
     def safe_load_config(self, file_path: str) -> None:
         # pylint: disable=line-too-long
@@ -134,7 +166,7 @@ class Configuration:
                         raise yaml.YAMLError(
                             f"YAML syntax error in {file_path}: {str(e)}"
                         )
-                    elif isinstance(e, yaml.parser.ParserError):
+                    if isinstance(e, yaml.parser.ParserError):
                         raise yaml.YAMLError(
                             f"YAML parsing error in {file_path}: {str(e)}"
                         )
@@ -161,7 +193,7 @@ class Configuration:
         Validate the loaded configuration against a predefined schema.
         """
         # validate the loaded configuration against a predefined schema
-        # TODO add configuration validation
+        # TODO future: add configuration validation
         return True
 
     def get_value(self, key: str, default_value: Any = None) -> Any:

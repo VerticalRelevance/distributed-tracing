@@ -243,6 +243,21 @@ class Utilities:
 
         return logger
 
+    def is_stderr_logger_level(self, name: str, level: str) -> bool:
+        """
+        Check if the stderr logger for a given name has a specific logging level.
+
+        Args:
+            name (str): The name of the logger to check
+            level (str): The logging level to compare against (e.g., DEBUG, INFO, WARNING, ERROR)
+
+        Returns:
+            bool: True if the logger's effective level matches the specified level, False otherwise
+        """
+        if self.get_stderr_logger(name).getEffectiveLevel(name) == level:
+            return True
+        return False
+
     def is_dir(self, check_path: str) -> bool:
         """
         Checks if the given path is a directory.
