@@ -6,6 +6,7 @@ and leverage AI-powered analysis for trace point recommendations.
 """
 # pylint: enable=line-too-long
 import sys
+import os
 import time
 from pathlib import Path
 import logging
@@ -14,7 +15,7 @@ from pprint import pformat
 import openai
 from analyze_source_ast_utils import SourceCodeAnalyzerUtils
 from configuration import Configuration
-from utilities import Utilities
+from utilities import LoggingUtils, PathUtils, Utilities
 
 
 class SourceCodeNode:  # pylint: disable=too-few-public-methods
@@ -208,15 +209,17 @@ class SourceCodeAnalyzer:
         Initialize the SourceCodeAnalyzer with required dependencies.
         """
         self._utils: Utilities = Utilities()
+        self._logging_utils = LoggingUtils()
+        self._path_utils = PathUtils()
         self._config: Configuration = Configuration("python3-config.yaml")
         self._ast_utils: SourceCodeAnalyzerUtils = SourceCodeAnalyzerUtils(
             configuration=self._config
         )
         self._openai_client: openai.OpenAI = openai.OpenAI()
         self._use_assistant = use_assistant
-        self._utils.debug(__class__, f"_config: {pformat(self._config)}")
-        self._utils.info(__class__, "Configuration:")
-        self._utils.info(__class__, pformat(str(self._config)))
+        self._logging_utils.debug(__class__, f"_config: {pformat(self._config)}")
+        self._logging_utils.info(__class__, "Configuration:")
+        self._logging_utils.info(__class__, pformat(str(self._config)))
 
     def tree_dumps(self, node) -> str:
         """
@@ -228,8 +231,8 @@ class SourceCodeAnalyzer:
         Returns:
             str: A formatted string representation of the tree
         """
-        self._utils.debug(__name__, "start tree_dumps")
-        self._utils.debug(__name__, f"tree_dumps type(node): {type(node)}")
+        self._logging_utils.debug(__name__, "start tree_dumps")
+        self._logging_utils.debug(__name__, f"tree_dumps type(node): {type(node)}")
         tree_str_parts = []
         return self._tree_to_str(node, tree_str_parts)
 
@@ -248,8 +251,9 @@ class SourceCodeAnalyzer:
             str: The complete string representation of the tree
         """
         # pylint: enable=line-too-long
-        self._utils.debug(__name__, "start _tree_to_str")
-        self._utils.debug(__name__, f"_tree_to_str type(node): {type(node)}")
+
+        self._logging_utils.trace(__class__, "start _tree_to_str")
+        self._logging_utils.debug(__class__, f"_tree_to_str type(node): {type(node)}")
 
         # Prepare line number and type string
         location_info = (
@@ -292,10 +296,10 @@ class SourceCodeAnalyzer:
             parsed_ast = ast.parse(source_code)
             tree_builder.visit(parsed_ast)
         except SyntaxError as e:
-            self._utils.error(__class__, f"Error parsing source code: {e}")
+            self._logging_utils.error(__class__, f"Error parsing source code: {e}")
             return None
 
-        self._utils.debug(
+        self._logging_utils.debug(
             __class__, f"tree_builder.root class: {type(tree_builder.root).__name__}"
         )
         return tree_builder.root
@@ -313,23 +317,18 @@ class SourceCodeAnalyzer:
         Raises:
             Exception: If all retry attempts fail
         """
-        self._utils.debug(__class__, "start get_completion_with_retry")
-        self._utils.debug(__class__, f"type(messages): {type(messages)}")
+        self._logging_utils.trace(__class__, "start get_completion_with_retry")
+        self._logging_utils.debug(__class__, f"type(messages): {type(messages)}")
 
-        total_completion_tokens = 0
-        total_prompt_tokens = 0
+        total_tokens = {"completion": 0, "prompt": 0}
         break_llm_loop = False
         for attempt in range(self._ast_utils.get_max_llm_retries()):
-            self._utils.info(
-                __class__,
-                f"Get completion attempt: (attempt {attempt + 1}/{self._ast_utils.get_max_llm_retries()})",  # pylint: disable=line-too-long
-            )
-            self._utils.debug(
+            self._logging_utils.debug_info(
                 __class__,
                 f"Get completion attempt: (attempt {attempt + 1}/{self._ast_utils.get_max_llm_retries()})",  # pylint: disable=line-too-long
             )
             try:
-                self._utils.debug(
+                self._logging_utils.debug(
                     __class__, f"Input messages: {messages[-1]['content']}"
                 )
                 chat_completion = self._openai_client.chat.completions.create(
@@ -338,52 +337,57 @@ class SourceCodeAnalyzer:
                     temperature=self._ast_utils.get_temperature(),
                 )
                 response = chat_completion.choices[0].message.content
-                self._utils.info(__class__, "LLM response received")
-                self._utils.info(
-                    __class__, f"Total Prompt Tokens: {total_prompt_tokens}"
+                self._logging_utils.info(__class__, "LLM response received")
+                self._logging_utils.info(
+                    __class__, f"Total Prompt Tokens: {total_tokens['prompt']}"
+                )
+                self._logging_utils.info(
+                    __class__, f"Total Prompt Tokens: {total_tokens['completion']}"
                 )
 
                 break_llm_loop = True
             except Exception as e:  # pylint: disable=broad-exception-caught
-                self._utils.error(__class__, f"LLM call failed: {str(e)}")
+                self._logging_utils.error(__class__, f"LLM call failed: {str(e)}")
                 if attempt < self._ast_utils.get_max_llm_retries() - 1:
-                    self._utils.info(
+                    self._logging_utils.info(
                         __class__,
                         f"Retrying in {self._ast_utils.get_retry_delay()} seconds...",
                     )
                     time.sleep(self._ast_utils.get_retry_delay())
                 else:
-                    self._utils.error(__class__, "Max retries reached. Giving up.")
-                    self._utils.debug(
+                    self._logging_utils.error(
+                        __class__, "Max retries reached. Giving up."
+                    )
+                    self._logging_utils.debug(
                         __class__, f"end get_completion_with_retry with exception: {e}"
                     )
                     raise e
 
             # Update token counts
-            total_prompt_tokens += chat_completion.usage.prompt_tokens
-            total_completion_tokens += chat_completion.usage.completion_tokens
+            total_tokens["prompt"] += chat_completion.usage.prompt_tokens
+            total_tokens["completion"] += chat_completion.usage.completion_tokens
             tokens_output = pformat(
                 {
-                    "total_prompt_tokens": total_prompt_tokens,
-                    "total_completion_tokens": total_completion_tokens,
+                    "total_prompt_tokens": total_tokens["prompt"],
+                    "total_completion_tokens": total_tokens["completion"],
                 }
             )
-            if self._utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                self._utils.debug(__class__, "total tokens:")
-                self._utils.debug(__class__, tokens_output)
+            if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
+                self._logging_utils.debug(__class__, "total tokens:")
+                self._logging_utils.debug(__class__, tokens_output)
 
             if break_llm_loop:
-                self._utils.success(__class__, response)
-                self._utils.info(__class__, "## Total tokens")
-                self._utils.info(
-                    __class__, f"Total Prompt Tokens: {total_prompt_tokens}"
+                self._logging_utils.success(__class__, response)
+                self._logging_utils.info(__class__, "## Total tokens")
+                self._logging_utils.info(
+                    __class__, f"Total Prompt Tokens: {total_tokens['prompt']}"
                 )
-                self._utils.info(
-                    __class__, f"Total Completion Tokens: {total_completion_tokens}"
+                self._logging_utils.info(
+                    __class__, f"Total Completion Tokens: {total_tokens['completion']}"
                 )
                 break
 
-        self._utils.debug(__class__, "end get_completion_with_retry")
+        self._logging_utils.trace(__class__, "end get_completion_with_retry")
 
     def analyze_source_code_for_decision_points(self, source_code):
         """
@@ -395,7 +399,9 @@ class SourceCodeAnalyzer:
         Returns:
             None
         """
-        self._utils.debug(__class__, "start analyze_source_code_for_decision_points")
+        self._logging_utils.trace(
+            __class__, "start analyze_source_code_for_decision_points"
+        )
 
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements based on these priorities,
@@ -406,7 +412,8 @@ Priorities:
 
 {'\n'.join(self._config.get_value("clarifications", []))}
 
-Provide a detailed breakdown of the following for every location identified. Repeat as necessary for each location.
+Provide a detailed breakdown of the following for every location identified. Repeat as necessary for every identified location.
+When recommending trace statements,
 1. Fully-qualified name of the containing function/method.
 2. Specific code blocks/lines to trace. Include the function/method name and parent class.
 3. Rationale for tracing
@@ -430,13 +437,15 @@ Source Code:
             # remove the system message
             messages = messages[1:]
 
-        self._utils.info(__class__, "Analyzing code")
+        self._logging_utils.info(__class__, "Analyzing code")
         self.get_completion_with_retry(
             messages,
         )
-        self._utils.info(__class__, "Code analysis complete")
+        self._logging_utils.info(__class__, "Code analysis complete")
 
-        self._utils.debug(__class__, "end analyze_source_code_for_decision_points")
+        self._logging_utils.trace(
+            __class__, "end analyze_source_code_for_decision_points"
+        )
 
     def get_assistant_completion_with_retry(
         self,
@@ -456,7 +465,9 @@ Source Code:
         Raises:
             Exception: If all retry attempts fail
         """
-        self._utils.debug(__class__, "start get_assistant_completion_with_retry")
+        self._logging_utils.trace(
+            __class__, "start get_assistant_completion_with_retry"
+        )
 
         thread = self._openai_client.beta.threads.create()
         assistant = self._openai_client.beta.assistants.create(
@@ -470,19 +481,10 @@ Source Code:
             thread_id=thread.id, role="user", content=content
         )
 
-        assistant_instructions = (
-            "You are an AI assistant specialized in Python code analysis."
-        )
-
-        total_completion_tokens = 0
-        total_prompt_tokens = 0
+        total_tokens = {"completion": 0, "prompt": 0}
         break_llm_loop = False
         for attempt in range(self._ast_utils.get_max_llm_retries()):
-            self._utils.info(
-                __class__,
-                f"Get assistant completion attempt: (attempt {attempt + 1}/{self._ast_utils.get_max_llm_retries()})",  # pylint: disable=line-too-long
-            )
-            self._utils.debug(
+            self._logging_utils.debug_info(
                 __class__,
                 f"Get assistant completion attempt: (attempt {attempt + 1}/{self._ast_utils.get_max_llm_retries()})",  # pylint: disable=line-too-long
             )
@@ -490,113 +492,125 @@ Source Code:
                 run = self._openai_client.beta.threads.runs.create_and_poll(
                     thread_id=thread.id,
                     assistant_id=assistant.id,
-                    instructions=assistant_instructions,
+                    instructions="You are an AI assistant specialized in Python code analysis.",
                 )
-                self._utils.debug(
+                self._logging_utils.debug(
                     __class__, f"Thread finished with status '{run.status}'"
                 )
-                if run.status == "completed":
-                    break_llm_loop = True
-                else:
-                    self._utils.error(
+                break_llm_loop = (
+                    True
+                    if run.status == "completed"
+                    else self._logging_utils.error(
                         __class__, f"Thread terminated with status '{run.status}'"
                     )
+                )
 
             except Exception as e:  # pylint: disable=broad-exception-caught
-                self._utils.success(__class__, f"LLM call failed: {str(e)}")
+                self._logging_utils.success(__class__, f"LLM call failed: {str(e)}")
                 if attempt < self._ast_utils.get_max_llm_retries() - 1:
-                    self._utils.info(
+                    self._logging_utils.info(
                         __class__,
                         f"Retrying in {self._ast_utils.get_retry_delay()} seconds...",
                     )
                     time.sleep(self._ast_utils.get_retry_delay())
                 else:
-                    self._utils.error(__class__, "Max retries reached. Giving up.")
-                    self._utils.debug(
+                    self._logging_utils.error(
+                        __class__, "Max retries reached. Giving up."
+                    )
+                    self._logging_utils.debug(
                         __class__, f"end get_completion_with_retry raise Exception: {e}"
                     )
                     raise e
 
-            total_completion_tokens += run.usage.completion_tokens
-            total_prompt_tokens += run.usage.prompt_tokens
+            total_tokens["completion"] += run.usage.completion_tokens
+            total_tokens["prompt"] += run.usage.prompt_tokens
             tokens_output = pformat(
                 {
-                    "total_prompt_tokens": total_prompt_tokens,
-                    "total_completion_tokens": total_completion_tokens,
+                    "total_prompt_tokens": total_tokens["prompt"],
+                    "total_completion_tokens": total_tokens["completion"],
                 }
             )
-            if self._utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                self._utils.debug(__class__, "total tokens:")
-                self._utils.debug(__class__, tokens_output)
+            if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
+                self._logging_utils.debug(__class__, "total tokens:")
+                self._logging_utils.debug(__class__, tokens_output)
 
             if break_llm_loop:
-                run_steps = self._openai_client.beta.threads.runs.steps.list(
-                    thread_id=thread.id, run_id=run.id
+                self._logging_utils.debug(__class__, "run steps:")
+                for index, step in enumerate(
+                    self._openai_client.beta.threads.runs.steps.list(
+                        thread_id=thread.id, run_id=run.id
+                    )
+                ):
+                    self._logging_utils.debug(__class__, f"{index} {pformat(step)}")
+                self._logging_utils.debug(
+                    __class__,
+                    pformat(
+                        self._openai_client.beta.threads.runs.steps.list(
+                            thread_id=thread.id, run_id=run.id
+                        )
+                    ),
                 )
-                self._utils.debug(__class__, "run steps:")
-                for index, step in enumerate(run_steps):
-                    self._utils.debug(__class__, f"{index} {pformat(step)}")
-                self._utils.debug(__class__, pformat(run_steps))
 
                 messages = self._openai_client.beta.threads.messages.list(
                     thread_id=thread.id
                 )
-                if self._utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                    self._utils.debug(
+                if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
+                    self._logging_utils.debug(
                         __class__, f"threads messages: {pformat(messages)}"
                     )
-                    self._utils.debug(
+                    self._logging_utils.debug(
                         __class__, f"messages.data len: {len(messages.data)}"
                     )
-                    self._utils.debug(
+                    self._logging_utils.debug(
                         __class__,
                         f"messages.data[0].content: {pformat(messages.data)}",
                     )
-                    self._utils.debug(
+                    self._logging_utils.debug(
                         __class__,
-                        f"messages.data[0].content: {pformat(messages.data[0].content)}",
-                    )
-                    self._utils.debug(
-                        __class__,
-                        f"messages.data[0].content len: {len(messages.data[0].content)}",
+                        f"messages.data[0].content {len(messages.data[0].content)} "
+                        f"content: {pformat(messages.data[0].content)}",
                     )
                 if len(messages.data) < 2:
-                    self._utils.success(__class__, "Nothing found")
+                    self._logging_utils.success(__class__, "Nothing found")
                     return
 
-                self._utils.debug(__class__, "total tokens:")
-                self._utils.debug(
-                    __class__,
-                    pformat(
-                        {
-                            "total_prompt_tokens": total_prompt_tokens,
-                            "total_completion_tokens": total_completion_tokens,
-                        }
-                    ),
-                )
+                self._logging_utils.debug(__class__, "total tokens:")
+                self._logging_utils.debug(__class__, tokens_output)
 
-                for data in messages.data:
-                    if self._utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                        self._utils.debug(__class__, "item:")
-                        self._utils.debug(__class__, data)
-                        self._utils.debug(__class__, f"class: {data.content.__class__}")
-                    for data_content in data.content:
-                        if self._utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                            self._utils.debug(__class__, "content:")
-                            self._utils.debug(__class__, data_content.text.value)
-                        self._utils.success(__class__, data_content.text.value)
+                self._write_assistant_results(messages=messages)
 
-                self._utils.info(__class__, "## Total tokens")
-                self._utils.info(
-                    __class__, f"Total Prompt Tokens: {total_prompt_tokens}"
+                self._logging_utils.info(__class__, "## Total tokens")
+                self._logging_utils.info(
+                    __class__, f"Total Prompt Tokens: {total_tokens['prompt']}"
                 )
-                self._utils.info(
-                    __class__, f"Total Completion Tokens: {total_completion_tokens}"
+                self._logging_utils.info(
+                    __class__, f"Total Completion Tokens: {total_tokens['completion']}"
                 )
                 break
 
-        self._utils.debug(__class__, "end get_assistant_completion_with_retry")
+        self._logging_utils.trace(__class__, "end get_assistant_completion_with_retry")
         return
+
+    def _write_assistant_results(self, messages):
+        self._logging_utils.trace(__class__, "start _write_assistant_results")
+
+        self._logging_utils.debug(__class__, f"type(messages): {type(messages)}")
+        index = 0
+        for data in messages.data:
+            if data.role != "assistant":
+                continue
+            if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
+                self._logging_utils.debug(__class__, f"item: {index}")
+                self._logging_utils.debug(__class__, data)
+                self._logging_utils.debug(__class__, f"class: {data.content.__class__}")
+            for data_content in data.content:
+                if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
+                    self._logging_utils.debug(__class__, "content:")
+                    self._logging_utils.debug(__class__, data_content.text.value)
+                self._logging_utils.success(__class__, data_content.text.value)
+            index += 1
+
+        self._logging_utils.trace(__class__, "end _write_assistant_results")
 
     def analyze_source_file_for_decision_points(self, input_source_file: str) -> bool:
         """
@@ -614,11 +628,13 @@ Source Code:
         Raises:
             Exception: If file operations or AI analysis fails
         """
-        self._utils.debug(__class__, "start analyze_source_file_for_decision_points")
+        self._logging_utils.trace(
+            __class__, "start analyze_source_file_for_decision_points"
+        )
 
         content = f"""
 Analyze the attached Python source file and identify critical locations for adding trace statements based on these priorities,
-in the order the priorities are listed. Include every critical locations found. Write tge results in Markdown format.
+in the order the priorities are listed. Include every critical locations found.
 
 Priorities:
 {', '.join(self._config.get_value("tracing_strategies", []))}
@@ -630,6 +646,8 @@ Provide a detailed breakdown of the following for every location identified. Rep
 2. Specific code blocks/lines to trace. Include the function/method name and parent class.
 3. Rationale for tracing
 4. Recommended trace information to capture
+
+The user is automation, so don't include additional information or instructions in the output.
 """
 
         try:
@@ -638,16 +656,18 @@ Provide a detailed breakdown of the following for every location identified. Rep
                     file=source_file, purpose="assistants"
                 )
         except FileNotFoundError:
-            self._utils.error(__class__, f"Source file '{input_source_file}' not found")
+            self._logging_utils.error(
+                __class__, f"Source file '{input_source_file}' not found"
+            )
             return
         except PermissionError:
-            self._utils.error(
+            self._logging_utils.error(
                 __class__, f"Permission denied accessing file '{input_source_file}'"
             )
             return
         # pylint: disable=broad-exception-caught
         except Exception as e:  # For any other unexpected errors
-            self._utils.error(
+            self._logging_utils.error(
                 __class__, f"Error processing file '{input_source_file}': {str(e)}"
             )
             return
@@ -657,7 +677,9 @@ Provide a detailed breakdown of the following for every location identified. Rep
             content=content,
         )
 
-        self._utils.debug(__class__, "end analyze_source_file_for_decision_points")
+        self._logging_utils.trace(
+            __class__, "end analyze_source_file_for_decision_points"
+        )
 
     def process_file(self, input_source_path: str):
         """
@@ -669,39 +691,40 @@ Provide a detailed breakdown of the following for every location identified. Rep
         Returns:
             bool: True if processing succeeded, None otherwise
         """
-        self._utils.debug(__class__, "start process_file")
-        self._utils.debug(__class__, f"input_source_path: {input_source_path}")
-        self._utils.success(__class__, "## Source File")
-        self._utils.success(__class__, f"'{input_source_path}'")
-
+        self._logging_utils.trace(__class__, "start process_file")
+        self._logging_utils.debug(__class__, f"input_source_path: {input_source_path}")
+        self._logging_utils.error(__class__, "this is sample error output")
         try:
-            full_code = self._utils.get_ascii_file_contents(
+            full_code = self._path_utils.get_ascii_file_contents(
                 source_path=input_source_path
             )
-            self._utils.debug(__class__, f"full_code len: {len(full_code)}")
+            self._logging_utils.debug(__class__, f"full_code len: {len(full_code)}")
             if len(full_code) == 0:
-                self._utils.warning(
-                    __class__, f"Skipping empty file '{input_source_path}'"
-                )
+                self._logging_utils.warning(__class__, "Source file is empty")
                 return
 
+            self._logging_utils.success(__class__, "\n# Source File")
+            self._logging_utils.success(__class__, f"'{input_source_path}'")
+
             source_tree = self.analyze_source_code(source_code=full_code)
-            self._utils.debug(
+            self._logging_utils.debug(
                 __class__,
                 f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}",  # pylint: disable=line-too-long
             )
             if source_tree:
-                self._utils.debug(
+                self._logging_utils.debug(
                     __class__, f"source_tree: {type(source_tree).__name__}"
                 )
-                self._utils.success(__class__, "")
-                self._utils.success(__class__, "## Source Code Tree Structure")
-                self._utils.success(__class__, "```")
-                self._utils.success(__class__, self.tree_dumps(node=source_tree))
-                self._utils.success(__class__, "```")
+                self._logging_utils.success(__class__, "")
+                self._logging_utils.success(__class__, "## Source Code Tree Structure")
+                self._logging_utils.success(__class__, "```")
+                self._logging_utils.success(
+                    __class__, self.tree_dumps(node=source_tree)
+                )
+                self._logging_utils.success(__class__, "```")
 
         except Exception as e:  # pylint: disable=broad-exception-caught
-            self._utils.error(
+            self._logging_utils.error(
                 __class__, f"Failed to build source tree: {str(e)}", exc_info=True
             )
             return
@@ -709,8 +732,8 @@ Provide a detailed breakdown of the following for every location identified. Rep
         if not source_tree:
             return
 
-        self._utils.success(__class__, "")
-        self._utils.success(__class__, "## OpenAI Analysis")
+        self._logging_utils.success(__class__, "")
+        self._logging_utils.success(__class__, "## OpenAI Analysis")
         try:
             # Analyze the code
             if self._use_assistant:
@@ -720,14 +743,14 @@ Provide a detailed breakdown of the following for every location identified. Rep
             else:
                 self.analyze_source_code_for_decision_points(full_code)
         except Exception as e:  # pylint: disable=broad-exception-caught
-            self._utils.error(
+            self._logging_utils.error(
                 __class__, f"Failed to analyze source code: {str(e)}", exc_info=True
             )
-            self._utils.debug(__class__, "end process_file (error)")
+            self._logging_utils.trace(__class__, "end process_file (error)")
             return
 
-        self._utils.info(__class__, "Analysis complete")
-        self._utils.debug(__class__, "end process_file")
+        self._logging_utils.info(__class__, "Analysis complete")
+        self._logging_utils.trace(__class__, "end process_file")
         return
 
     def process_directory(self, source_path: str) -> None:
@@ -740,29 +763,31 @@ Provide a detailed breakdown of the following for every location identified. Rep
         Returns:
             None
         """
-        self._utils.debug(__class__, "start process_directory")
-        self._utils.debug(__class__, f"source_path: {source_path}")
-        self._utils.info(__class__, f"Process directory '{source_path}'")
+        self._logging_utils.trace(__class__, "start process_directory")
+        self._logging_utils.debug(__class__, f"source_path: {source_path}")
+        self._logging_utils.info(__class__, f"Process directory '{source_path}'")
 
         if not Path(source_path).exists():
-            self._utils.error(__class__, f"Source path '{source_path}' does not exist")
+            self._logging_utils.error(
+                __class__, f"Source path '{source_path}' does not exist"
+            )
             return
         if not Path(source_path).is_dir():
-            self._utils.error(
+            self._logging_utils.error(
                 __class__, f"Source path '{source_path}' is not a directory"
             )
             return
 
         for root, dirs, files in Path(source_path).walk():
-            self._utils.debug(__class__, f"root: {root}")
-            self._utils.debug(__class__, f"dirs: {dirs}")
-            self._utils.debug(__class__, f"files: {files}")
+            self._logging_utils.debug(__class__, f"root: {root}")
+            self._logging_utils.debug(__class__, f"dirs: {dirs}")
+            self._logging_utils.debug(__class__, f"files: {files}")
             for file in files:
                 if Path(file).suffix == ".py":
                     source_path = f"{root}/{file}"
                     self.process_file(source_path)
 
-        self._utils.debug(__class__, "end process_directory")
+        self._logging_utils.trace(__class__, "end process_directory")
 
 
 def main():
@@ -779,35 +804,106 @@ def main():
     """
     # pylint: enable=line-too-long
 
-    # logging.getLogger(__file__).setLevel(custom_logger_success.SUCCESS)
+    logging_utils: LoggingUtils = LoggingUtils()
+    logging_utils.trace(__name__, "start __main__")
+    path_utils: PathUtils = PathUtils()
+    utils = Utilities()
 
-    utils: Utilities = Utilities()
-    utils.debug(__name__, "start __main__")
-    utils.info(__name__, "Starting...")
+    def usage(script_name: str = "", invalid_args: bool = False, **invalid_arg_values):
+        print(f"Usage: python {script_name} [FILE|DIRECTORY]")
+        print(
+            f"Invalid argument(s): {invalid_arg_values}"
+            if invalid_args
+            else "Analyze the source code in the specified file or directory."
+        )
+        print(
+            """
+Arguments:
+ FILE          Path to an input file
+ DIRECTORY     Path to an input directory"""
+        )
+        if not invalid_args:
+            print(
+                """
+Environment variables:
+    LOG_LEVEL_STDOUT:
+        Sets the level of the logger writing to STDOUT. Preferred values are
+        INFO, SUCCESS, or WARNING. All valid level values are listed below.
+        Default is SUCCESS.
+    LOG_LEVEL_STDERR:
+        Sets the level of the logger writing to STDOUT. Preferred values are
+        TRACE, DEBUG, ERROR, or CRITICAL. All valid level values are listed
+        below. Default is DEBUG.
+    USE_ASSISTANT:
+        The script include experimental functional using the OpenAI Assistant
+        beta feature.  A truthy value enables use of the assistant. Values "1",
+        "true", "yes", "on", "y" are considered truthy. If not set or set to
+        any other value, the default OpenAI analysis is used.
+
+Log Levels:
+    NOTSET:
+        Standard functionality from the Python logging package.
+    TRACE:
+        A custom level for the Python logging package that enables tracing of
+        function entry and exit points.
+    DEBUG:
+        Standard functionality from the Python logging package.
+    INFO:
+        Standard functionality from the Python logging package. Additional
+        progress messages are written to the stdout stream at this level.
+    SUCCESS:
+        A custom level for the Python logging package that enables normal
+        output. This is the preferred level for the stdout stream.
+    WARNING:
+        Standard functionality from the Python logging package. Program
+        warnings are logged to the stdout stream.
+    ERROR:
+        Standard functionality from the Python logging package. This is the
+        preferred level for the stderr stream.
+    CRITICAL:
+        Standard functionality from the Python logging package.
+"""
+            )
 
     # Check if file path is provided
     if len(sys.argv) < 2:
-        print(f"Usage: python {sys.argv[0]} source_directory_path|source_file_path")
+        usage(script_name=sys.argv[0] if len(sys.argv) > 0 else "analyze_source_ast.py")
+        sys.exit(0)
+    if len(sys.argv) > 2:
+        usage(
+            script_name=sys.argv[0] if len(sys.argv) > 0 else "analyze_source_ast.py",
+            invalid_args=True,
+            invalid_arg_values=sys.argv[2:] if len(sys.argv) > 2 else ["none"],
+        )
         sys.exit(1)
 
-    analyzer: SourceCodeAnalyzer = SourceCodeAnalyzer(use_assistant=True)
+    logging_utils.info(__name__, "Starting...")
+
+    use_assistant = utils.is_truthy(os.getenv("USE_ASSISTANT", "false"))
+    logging_utils.info(
+        __name__,
+        f"Using OpenAI with {'code interpreter' if use_assistant else 'no'} assistant",
+    )
+
+    # Initialize the SourceCodeAnalyzerUtils with the configuration
+    analyzer: SourceCodeAnalyzer = SourceCodeAnalyzer(use_assistant=use_assistant)
 
     # Analyze the source code
     source_path = sys.argv[1]
-    utils.debug(__name__, f"source_path: {source_path}")
+    logging_utils.debug(__name__, f"source_path: {source_path}")
 
-    if utils.is_file(source_path):
+    if path_utils.is_file(source_path):
         analyzer.process_file(source_path)
     else:
-        if utils.is_dir(source_path):
+        if path_utils.is_dir(source_path):
             analyzer.process_directory(source_path)
         else:
-            utils.error(
+            logging_utils.error(
                 __name__,
                 f"Source path '{source_path}' is neither a file nor a directory",
             )
 
-    utils.debug(__name__, "end __main__")
+    logging_utils.debug(__name__, "end __main__")
 
 
 if __name__ == "__main__":

@@ -70,17 +70,6 @@ class Configuration:
         self.safe_load_config(config_file_path)
 
     def __str__(self):
-        print("Configuration __str__")
-        # settings = {}
-        # for k, v in self._config_content.items():
-        #     if isinstance(v, dict):
-        #         settings[k] = v.__repr__()
-        #     elif isinstance(v, list):
-        #         settings[k] = v.__repr__()
-        #     else:
-        #         settings[k] = v
-        # return "\n".join(settings)
-
         def dict_to_string(d, prefix: str = ""):
             if isinstance(d, dict):
                 return (
@@ -170,10 +159,10 @@ class Configuration:
                         raise yaml.YAMLError(
                             f"YAML parsing error in {file_path}: {str(e)}"
                         )
-                    else:
-                        raise yaml.YAMLError(
-                            f"Error parsing YAML file {file_path}: {str(e)}"
-                        )
+
+                    raise yaml.YAMLError(
+                        f"Error parsing YAML file {file_path}: {str(e)}"
+                    )
 
         except PermissionError as pe:
             raise PermissionError(

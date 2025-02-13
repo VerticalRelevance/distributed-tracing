@@ -1,22 +1,23 @@
+# go back to two loggers, one for stdout and one for stderr
 """
-Encapsulation of utility methods used by other modules.
+A collection of utility classes providing various helper methods for application functionality.
 
-This module provides a singleton Utilities class with various utility methods for logging,
-file operations, datetime serialization, and user interactions. The class is designed to
-provide a centralized set of helper methods that can be used across different parts of a project.
+This module contains several utility classes that implement the singleton pattern and provide
+methods for logging, file operations, context management, and general utilities.
 
 Key Features:
-    - Singleton pattern implementation
-    - Logging methods with configurable log levels
-    - File and path existence checking
+    - Logging utilities with configurable output streams and log levels
+    - File and directory management operations
+    - Context managers for timing operations
     - JSON serialization with datetime support
-    - User confirmation method
-    - Environment variable parsing
+    - Environment variable handling
 
 Classes:
-    Utilities: A comprehensive utility class with various helper methods.
+    CtxMgrUtils: Context manager utilities for timing operations
+    LoggingUtils: Comprehensive logging functionality with stdout/stderr support
+    DirUtils: File and directory management operations
+    Utilities: General utility methods for serialization and environment handling
 """
-
 import sys
 import os
 import logging
@@ -28,33 +29,21 @@ import json
 import custom_logger_success
 
 
-class Utilities:
+class CtxMgrUtils:
     """
-    Encapsulation of utility methods used by other modules.
+    A singleton class providing context manager utilities for timing operations.
 
-    Classes:
-        Utilities
-
-    Methods:
-        __init__(self)
-        __new__(cls, *args, **kwargs)
-        debug
-        elapsed_timer(self)
-        error
-        get_user_confirmation(self, msg: str) -> bool
-        handle_datetime_serialization(self, obj)
-        info
-        json_dumps_with_datetime_serialization(self, obj, json_options=None)
-        warning
+    This class implements the singleton pattern to ensure only one instance exists
+    throughout the application lifecycle.
     """
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Creates and returns a singleton instance of the Utilities class.
+        Creates and returns a singleton instance of the class.
 
-        This method ensures that only one instance of the Utilities class is created
+        This method ensures that only one instance of the class is created
         throughout the application, implementing the singleton design pattern.
 
         Parameters:
@@ -63,44 +52,28 @@ class Utilities:
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
-            Utilities: The singleton instance of the Utilities class.
+            CtxMgrUtils: The singleton instance of the class.
         """
         if not cls._instance:
             cls._instance = super().__new__(cls)
-            # print("Utilities.__new__", file=sys.stderr)
         return cls._instance
-
-    def __init__(self):
-        """
-        Initializes the Utilities instance by configuring log levels for various libraries.
-
-        Sets critical log levels for boto3, botocore, urllib3, httpcore, and httpx to
-        suppress verbose logging from these libraries.
-        """
-        logging.getLogger("boto3").setLevel(logging.CRITICAL)
-        logging.getLogger("botocore").setLevel(logging.CRITICAL)
-        logging.getLogger("urllib3").setLevel(logging.CRITICAL)
-        logging.getLogger("httpcore").setLevel(logging.CRITICAL)
-        logging.getLogger("httpx").setLevel(logging.CRITICAL)
 
     @contextmanager
     def elapsed_timer(self):
         """
-        A context manager for measuring the elapsed time of a code block.
+        A context manager that measures the elapsed time of a code block.
 
-        Starts a timer when entering the code block and provides a function to retrieve
-        the elapsed time when exiting the block.
-
-        Usage:
-            with elapsed_timer() as timer:
-                # Code block to measure
-                result = some_function()
-
-            elapsed_time = timer()
-            print(f"Execution took {elapsed_time:.2f} seconds")
+        Provides a function to retrieve the elapsed time when exiting the block.
+        The timer starts when entering the context and stops when exiting.
 
         Yields:
-            function: A function that returns the elapsed time in seconds when called.
+            function: A callable that returns the elapsed time in seconds.
+
+        Example:
+            with utils.elapsed_timer() as timer:
+                # Code to measure
+                time.sleep(1)
+            print(f"Operation took {timer():.2f} seconds")
         """
         start = default_timer()
 
@@ -128,9 +101,53 @@ class Utilities:
 
         # pylint: enable=E0102
 
+
+class LoggingUtils:
+    """
+    A singleton class providing comprehensive logging functionality.
+
+    Configures and manages separate loggers for stdout and stderr streams with
+    configurable log levels. Automatically suppresses verbose logging from common
+    libraries like boto3, botocore, urllib3, httpcore, and httpx.
+    """
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Creates and returns a singleton instance of the class.
+
+        This method ensures that only one instance of the class is created
+        throughout the application, implementing the singleton design pattern.
+
+        Parameters:
+            cls (type): The class being instantiated.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            LoggingUtils: The singleton instance of the class.
+        """
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        """
+        Initializes the class instance by configuring log levels for various libraries.
+
+        Sets critical log levels for boto3, botocore, urllib3, httpcore, and httpx to
+        suppress verbose logging from these libraries.
+        """
+        logging.getLogger("boto3").setLevel(logging.CRITICAL)
+        logging.getLogger("botocore").setLevel(logging.CRITICAL)
+        logging.getLogger("urllib3").setLevel(logging.CRITICAL)
+        logging.getLogger("httpcore").setLevel(logging.CRITICAL)
+        logging.getLogger("httpx").setLevel(logging.CRITICAL)
+
     def debug(self, name: str, msg: str, exc_info=False) -> None:
         """
-        Logs a debug message to the standard error stream.
+        Logs a debug message to the stderr stream.
 
         Parameters:
             name (str): The name of the logger.
@@ -139,9 +156,21 @@ class Utilities:
         """
         self.get_stderr_logger(name).debug(msg, exc_info=exc_info)
 
+    def debug_info(self, name: str, msg: str, exc_info=False) -> None:
+        """
+        Sends a message to the debug and info loggers.
+
+        Parameters:
+            name (str): The name of the logger.
+            msg (str): The debug message to log.
+            exc_info (bool, optional): Whether to include exception information. Defaults to False.
+        """
+        self.get_stderr_logger(name).debug(msg, exc_info=exc_info)
+        self.get_stdout_logger(name).info(msg, exc_info=exc_info)
+
     def error(self, name: str, msg: str, exc_info=False) -> None:
         """
-        Logs an error message to the standard error stream.
+        Logs an error message to the stderr stream.
 
         Parameters:
             name (str): The name of the logger.
@@ -152,18 +181,18 @@ class Utilities:
 
     def info(self, name: str, msg: str, exc_info=False) -> None:
         """
-        Logs an informational message to the standard output stream.
+        Logs an informational message to the stdout stream.
 
         Parameters:
             name (str): The name of the logger.
             msg (str): The informational message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
-        self.get_stdout_logger(name).info(msg, exc_info=exc_info)
+        self.get_stdout_logger(name).info(f"{msg}  ", exc_info=exc_info)
 
     def success(self, name: str, msg: str, exc_info=False) -> None:
         """
-        Logs a success message to the standard output stream.
+        Logs a success message to the stdout stream.
 
         Parameters:
             name (str): The name of the logger.
@@ -172,9 +201,20 @@ class Utilities:
         """
         self.get_stdout_logger(name).success(msg, exc_info=exc_info)
 
+    def trace(self, name: str, msg: str, exc_info=False) -> None:
+        """
+        Logs a trace message to the stderr stream.
+
+        Parameters:
+            name (str): The name of the logger.
+            msg (str): The debug message to log.
+            exc_info (bool, optional): Whether to include exception information. Defaults to False.
+        """
+        self.get_stderr_logger(name).trace(msg, exc_info=exc_info)
+
     def warning(self, name: str, msg: str, exc_info=False) -> None:
         """
-        Logs a warning message to the standard output stream.
+        Logs a warning message to the stdout stream.
 
         Parameters:
             name (str): The name of the logger.
@@ -185,10 +225,10 @@ class Utilities:
 
     def get_stdout_logger(self, name: str) -> logging.Logger:
         """
-        Creates and configures a logger that outputs to the standard output stream.
+        Creates and retrieves a logger that outputs to the stdout stream.
 
-        The logger's level is determined by the VERBOSE environment variable.
-        If VERBOSE is set, the log level is set to INFO; otherwise, it uses a custom SUCCESS level.
+        The logger's level is determined by the LOG_LEVEL_STDOUT environment variable,
+        defaulting to the SUCCESS level if not specified.
 
         Parameters:
             name (str): The name of the logger.
@@ -198,11 +238,9 @@ class Utilities:
         """
         logger = logging.getLogger(f"{name}.stdout")
         if not logger.handlers:
-            logger_level = (
-                logging.INFO
-                if self.is_truthy(os.getenv("VERBOSE", "not true"))
-                else custom_logger_success.SUCCESS
-            )
+            logger_level = os.getenv(
+                "LOG_LEVEL_STDOUT", logging.getLevelName(logging.DEBUG)
+            ).upper()
             logger.setLevel(logger_level)
             console_handler = logging.StreamHandler(stream=sys.stdout)
             console_handler.setLevel(logger_level)
@@ -216,21 +254,22 @@ class Utilities:
 
     def get_stderr_logger(self, name: str) -> logging.Logger:
         """
-        Creates and configures a logger that outputs to the standard error stream.
+        Creates or retrieves a logger for stderr stream.
 
-        The logger's level is determined by the LOG_LEVEL environment variable.
-        Defaults to ERROR level if no level is specified.
+        Configures a logger with level based on LOG_LEVEL_STDERR environment variable,
+        defaulting to the DEBUG level if not specified.
 
-        Parameters:
-            name (str): The name of the logger.
+        Args:
+            name (str): Logger name/identifier
 
         Returns:
-            logging.Logger: A configured logger for standard error.
+            logging.Logger: Configured logger for stderr
         """
         logger = logging.getLogger(f"{name}.stderr")
         if not logger.handlers:
-            logger_level = getattr(logging, os.getenv("LOG_LEVEL", "ERROR").upper())
-            # print(f"logger_level from env: {logger_level}", file=sys.stderr)
+            logger_level = os.getenv(
+                "LOG_LEVEL_STDERR", logging.getLevelName(logging.DEBUG)
+            ).upper()
             logger.setLevel(logger_level)
 
             console_handler = logging.StreamHandler(stream=sys.stderr)
@@ -245,18 +284,49 @@ class Utilities:
 
     def is_stderr_logger_level(self, name: str, level: str) -> bool:
         """
-        Check if the stderr logger for a given name has a specific logging level.
+        Checks if the stderr logger is set to a specific logging level.
 
         Args:
-            name (str): The name of the logger to check
-            level (str): The logging level to compare against (e.g., DEBUG, INFO, WARNING, ERROR)
+            name (str): Logger name/identifier
+            level (str): Logging level to check against (e.g., DEBUG, INFO, ERROR)
 
         Returns:
-            bool: True if the logger's effective level matches the specified level, False otherwise
+            bool: True if logger's effective level matches specified level
         """
-        if self.get_stderr_logger(name).getEffectiveLevel(name) == level:
+        if self.get_stderr_logger(name).getEffectiveLevel() == level:
             return True
         return False
+
+
+class PathUtils:
+    """
+    A singleton class providing comprehensive logging functionality.
+
+    Configures and manages separate loggers for stdout and stderr streams with
+    configurable log levels. Automatically suppresses verbose logging from common
+    libraries like boto3, botocore, urllib3, httpcore, and httpx.
+    """
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Creates and returns a singleton instance of the PathUtils class.
+
+        This method ensures that only one instance of the Utilities class is created
+        throughout the application, implementing the singleton design pattern.
+
+        Parameters:
+            cls (type): The class being instantiated.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            PathUtils: The singleton instance of the Utilities class.
+        """
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def is_dir(self, check_path: str) -> bool:
         """
@@ -340,12 +410,42 @@ class Utilities:
         Returns:
             str: The contents of the file as a string.
         """
-        self.debug(__class__, "start get_source_code")
+        LoggingUtils().debug(__class__, "start get_source_code")
         with open(source_path, "r", encoding="utf-8") as file:
             source_code = file.read()
 
-        self.debug(__class__, "end get_source_code")
+        LoggingUtils().debug(__class__, "end get_source_code")
         return source_code
+
+
+class Utilities:
+    """
+    A singleton class providing file and directory management utilities.
+
+    Offers methods for checking existence and types of filesystem paths,
+    and reading file contents.
+    """
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Creates and returns a singleton instance of the Utilities class.
+
+        This method ensures that only one instance of the Utilities class is created
+        throughout the application, implementing the singleton design pattern.
+
+        Parameters:
+            cls (type): The class being instantiated.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            Utilities: The singleton instance of the Utilities class.
+        """
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def json_dumps_with_datetime_serialization(self, obj, json_options=None):
         """
@@ -403,39 +503,6 @@ class Utilities:
         if isinstance(obj, datetime):
             return obj.isoformat()
         raise TypeError(f"Type {type(obj)} not serializable")
-
-    def get_user_confirmation(self, msg: str) -> bool:
-        """
-        Gets user confirmation for a given message.
-
-        This method prompts the user with a message and expects a yes or no response. The user's
-        response is case-insensitive and can be either "yes" or "no". If the response is "yes" or
-        "y", the method returns True. If the response is "no" or "n", the method returns False.
-        If the response is neither "yes" nor "no", the method returns None to indicate an invalid
-        input.
-
-        Parameters:
-            msg (str): The message to display to the user.
-
-        Returns:
-            bool: True if the user confirms with "yes" or "y", False if the user confirms with
-            "no" or "n", None if the user provides an invalid input.
-
-        Example:
-            >>> utils = Utilities()
-            >>> confirmation = utils.get_confirmation("delete the file")
-            Are you sure you want to delete the file (yes/no): yes
-            >>> print(confirmation)
-            True
-
-        """
-        response = input(f"Are you sure you want to {msg} (yes/no): ").strip().lower()
-        if response in ("yes", "y"):
-            return True
-        elif response in ("no", "n"):
-            return False
-        else:
-            return None  # Returning None to indicate invalid input
 
     def is_truthy(self, value: str) -> bool:
         """
