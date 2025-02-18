@@ -56,7 +56,7 @@ class CustomLoggerTrace(logging.Logger):
 
         Example:
             >>> logger = logging.getLogger(__name__)
-            >>> logger.trace("start some_method")
+            >>> logger.trace("start something")
         """
         if self.isEnabledFor(TRACE):
             self._log(TRACE, message, args, **kwargs)

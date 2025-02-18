@@ -12,10 +12,9 @@ from pathlib import Path
 import logging
 import ast
 from pprint import pformat
-import openai
-from analyze_source_ast_utils import SourceCodeAnalyzerUtils
-from configuration import Configuration
-from utilities import LoggingUtils, PathUtils, Utilities
+from .configuration import Configuration
+from .utilities import LoggingUtils, ModelUtils, PathUtils, Utilities
+from .models.model import ModelError
 
 
 class SourceCodeNode:  # pylint: disable=too-few-public-methods
@@ -204,7 +203,7 @@ class SourceCodeAnalyzer:
         _config (Configuration): Configuration settings
     """
 
-    def __init__(self, use_assistant: False):
+    def __init__(self):
         """
         Initialize the SourceCodeAnalyzer with required dependencies.
         """
@@ -212,14 +211,23 @@ class SourceCodeAnalyzer:
         self._logging_utils = LoggingUtils()
         self._path_utils = PathUtils()
         self._config: Configuration = Configuration("python3-config.yaml")
-        self._ast_utils: SourceCodeAnalyzerUtils = SourceCodeAnalyzerUtils(
-            configuration=self._config
-        )
-        self._openai_client: openai.OpenAI = openai.OpenAI()
-        self._use_assistant = use_assistant
+        self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
+        self._model = self._model_utils.get_model_instance()
+
+        self._logging_utils.debug(__class__, f"Model: {self._model.get_model_id()}")
         self._logging_utils.debug(__class__, f"_config: {pformat(self._config)}")
         self._logging_utils.info(__class__, "Configuration:")
         self._logging_utils.info(__class__, pformat(str(self._config)))
+
+    def load_model(self):
+        """
+        Load the AI model based on the configuration.
+        """
+
+        self._logging_utils.debug(
+            __class__, f"AI model: {self._model.get_model_name()}"
+        )
+        return self._model_utils.get_model_instance()
 
     def tree_dumps(self, node) -> str:
         """
@@ -304,7 +312,7 @@ class SourceCodeAnalyzer:
         )
         return tree_builder.root
 
-    def get_completion_with_retry(self, messages):
+    def get_completion_with_retry(self, prompt: str):
         """
         Get an AI completion with automatic retry logic.
 
@@ -318,25 +326,18 @@ class SourceCodeAnalyzer:
             Exception: If all retry attempts fail
         """
         self._logging_utils.trace(__class__, "start get_completion_with_retry")
-        self._logging_utils.debug(__class__, f"type(messages): {type(messages)}")
 
         total_tokens = {"completion": 0, "prompt": 0}
         break_llm_loop = False
-        for attempt in range(self._ast_utils.get_max_llm_retries()):
+        for attempt in range(self._model_utils.get_max_llm_retries()):
             self._logging_utils.debug_info(
                 __class__,
-                f"Get completion attempt: (attempt {attempt + 1}/{self._ast_utils.get_max_llm_retries()})",  # pylint: disable=line-too-long
+                f"Get completion attempt: (attempt {attempt + 1}/{self._model_utils.get_max_llm_retries()})",  # pylint: disable=line-too-long
             )
             try:
-                self._logging_utils.debug(
-                    __class__, f"Input messages: {messages[-1]['content']}"
-                )
-                chat_completion = self._openai_client.chat.completions.create(
-                    messages=messages,
-                    model=self._ast_utils.get_ai_model(),
-                    temperature=self._ast_utils.get_temperature(),
-                )
-                response = chat_completion.choices[0].message.content
+                inputs = {"prompt": prompt}
+                response = self._model.generate_text(kwargs=inputs)
+                self._logging_utils.success(__class__, response)
                 self._logging_utils.info(__class__, "LLM response received")
                 self._logging_utils.debug(
                     __class__, f"LLM Prompt Tokens: {total_tokens['prompt']}"
@@ -346,14 +347,18 @@ class SourceCodeAnalyzer:
                 )
 
                 break_llm_loop = True
+            except ModelError as me:
+                print(f"Cannot generate text from model''. Reason: {me}")
+                sys.exit(1)
+
             except Exception as e:  # pylint: disable=broad-exception-caught
                 self._logging_utils.error(__class__, f"LLM call failed: {str(e)}")
-                if attempt < self._ast_utils.get_max_llm_retries() - 1:
+                if attempt < self._model.get_max_llm_retries() - 1:
                     self._logging_utils.info(
                         __class__,
-                        f"Retrying in {self._ast_utils.get_retry_delay()} seconds...",
+                        f"Retrying in {self._model_utils.get_retry_delay()} seconds...",
                     )
-                    time.sleep(self._ast_utils.get_retry_delay())
+                    time.sleep(self._model_utils.get_retry_delay())
                 else:
                     self._logging_utils.error(
                         __class__, "Max retries reached. Giving up."
@@ -364,8 +369,9 @@ class SourceCodeAnalyzer:
                     raise e
 
             # Update token counts
-            total_tokens["prompt"] += chat_completion.usage.prompt_tokens
-            total_tokens["completion"] += chat_completion.usage.completion_tokens
+            # TODO fix where prompt and completion tokens can be obtained
+            # total_tokens["prompt"] += chat_completion.usage.prompt_tokens
+            # total_tokens["completion"] += chat_completion.usage.completion_tokens
             tokens_output = pformat(
                 {
                     "total_prompt_tokens": total_tokens["prompt"],
@@ -425,260 +431,14 @@ Source Code:
 ```
 """
 
-        messages = [
-            {
-                "role": "system",
-                "content": "You are an AI assistant specialized in Python code analysis.",
-            },
-            {"role": "user", "content": prompt},
-        ]
-
-        if "starcoder2" in self._ast_utils.get_ai_model().lower():
-            # remove the system message
-            messages = messages[1:]
-
         self._logging_utils.info(__class__, "Analyzing code")
         self.get_completion_with_retry(
-            messages,
+            prompt=prompt,
         )
         self._logging_utils.info(__class__, "Code analysis complete")
 
         self._logging_utils.trace(
             __class__, "end analyze_source_code_for_decision_points"
-        )
-
-    def get_assistant_completion_with_retry(
-        self,
-        client_file,
-        content: str,
-    ) -> bool:
-        """
-        Get an AI assistant completion with automatic retry logic using OpenAI's Assistant API.
-
-        Args:
-            client_file: The uploaded file object from OpenAI's API
-            content (str): The content/prompt to send to the assistant
-
-        Returns:
-            None: The assistant's responses are logged directly rather than returned
-
-        Raises:
-            Exception: If all retry attempts fail
-        """
-        self._logging_utils.trace(
-            __class__, "start get_assistant_completion_with_retry"
-        )
-
-        thread = self._openai_client.beta.threads.create()
-        assistant = self._openai_client.beta.assistants.create(
-            name="Code Tracing Expert",
-            model=self._ast_utils.get_ai_model(),
-            tools=[{"type": "code_interpreter"}],
-            tool_resources={"code_interpreter": {"file_ids": [client_file.id]}},
-        )
-
-        _ = self._openai_client.beta.threads.messages.create(
-            thread_id=thread.id, role="user", content=content
-        )
-
-        total_tokens = {"completion": 0, "prompt": 0}
-        break_llm_loop = False
-        for attempt in range(self._ast_utils.get_max_llm_retries()):
-            self._logging_utils.debug_info(
-                __class__,
-                f"Get assistant completion attempt: (attempt {attempt + 1}/{self._ast_utils.get_max_llm_retries()})",  # pylint: disable=line-too-long
-            )
-            try:
-                run = self._openai_client.beta.threads.runs.create_and_poll(
-                    thread_id=thread.id,
-                    assistant_id=assistant.id,
-                    instructions="You are an AI assistant specialized in Python code analysis.",
-                )
-                self._logging_utils.debug(
-                    __class__, f"Thread finished with status '{run.status}'"
-                )
-                break_llm_loop = (
-                    True
-                    if run.status == "completed"
-                    else self._logging_utils.error(
-                        __class__, f"Thread terminated with status '{run.status}'"
-                    )
-                )
-
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                self._logging_utils.success(__class__, f"LLM call failed: {str(e)}")
-                if attempt < self._ast_utils.get_max_llm_retries() - 1:
-                    self._logging_utils.info(
-                        __class__,
-                        f"Retrying in {self._ast_utils.get_retry_delay()} seconds...",
-                    )
-                    time.sleep(self._ast_utils.get_retry_delay())
-                else:
-                    self._logging_utils.error(
-                        __class__, "Max retries reached. Giving up."
-                    )
-                    self._logging_utils.debug(
-                        __class__, f"end get_completion_with_retry raise Exception: {e}"
-                    )
-                    raise e
-
-            total_tokens["completion"] += run.usage.completion_tokens
-            total_tokens["prompt"] += run.usage.prompt_tokens
-            tokens_output = pformat(
-                {
-                    "total_prompt_tokens": total_tokens["prompt"],
-                    "total_completion_tokens": total_tokens["completion"],
-                }
-            )
-            if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                self._logging_utils.debug(__class__, "total tokens:")
-                self._logging_utils.debug(__class__, tokens_output)
-
-            if break_llm_loop:
-                self._logging_utils.debug(__class__, "run steps:")
-                for index, step in enumerate(
-                    self._openai_client.beta.threads.runs.steps.list(
-                        thread_id=thread.id, run_id=run.id
-                    )
-                ):
-                    self._logging_utils.debug(__class__, f"{index} {pformat(step)}")
-                self._logging_utils.debug(
-                    __class__,
-                    pformat(
-                        self._openai_client.beta.threads.runs.steps.list(
-                            thread_id=thread.id, run_id=run.id
-                        )
-                    ),
-                )
-
-                messages = self._openai_client.beta.threads.messages.list(
-                    thread_id=thread.id
-                )
-                if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                    self._logging_utils.debug(
-                        __class__, f"threads messages: {pformat(messages)}"
-                    )
-                    self._logging_utils.debug(
-                        __class__, f"messages.data len: {len(messages.data)}"
-                    )
-                    self._logging_utils.debug(
-                        __class__,
-                        f"messages.data[0].content: {pformat(messages.data)}",
-                    )
-                    self._logging_utils.debug(
-                        __class__,
-                        f"messages.data[0].content {len(messages.data[0].content)} "
-                        f"content: {pformat(messages.data[0].content)}",
-                    )
-                if len(messages.data) < 2:
-                    self._logging_utils.success(__class__, "Nothing found")
-                    return
-
-                self._logging_utils.debug(__class__, "total tokens:")
-                self._logging_utils.debug(__class__, tokens_output)
-
-                self._write_assistant_results(messages=messages)
-
-                self._logging_utils.info(__class__, "## Total tokens")
-                self._logging_utils.info(
-                    __class__, f"Total Prompt Tokens: {total_tokens['prompt']}"
-                )
-                self._logging_utils.info(
-                    __class__, f"Total Completion Tokens: {total_tokens['completion']}"
-                )
-                break
-
-        self._logging_utils.trace(__class__, "end get_assistant_completion_with_retry")
-        return
-
-    def _write_assistant_results(self, messages):
-        self._logging_utils.trace(__class__, "start _write_assistant_results")
-
-        self._logging_utils.debug(__class__, f"type(messages): {type(messages)}")
-        index = 0
-        for data in messages.data:
-            if data.role != "assistant":
-                continue
-            if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                self._logging_utils.debug(__class__, f"item: {index}")
-                self._logging_utils.debug(__class__, data)
-                self._logging_utils.debug(__class__, f"class: {data.content.__class__}")
-            for data_content in data.content:
-                if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                    self._logging_utils.debug(__class__, "content:")
-                    self._logging_utils.debug(__class__, data_content.text.value)
-                self._logging_utils.success(__class__, data_content.text.value)
-            index += 1
-
-        self._logging_utils.trace(__class__, "end _write_assistant_results")
-
-    def analyze_source_file_for_decision_points(self, input_source_file: str) -> bool:
-        """
-        Analyze a Python source file to identify critical locations for adding trace statements.
-
-        This method uses the OpenAI Assistant API to analyze the file content and identify optimal
-        locations for adding trace statements based on configured priorities and strategies.
-
-        Args:
-            input_source_file (str): Path to the Python source file to analyze
-
-        Returns:
-            None: Results are logged directly rather than returned
-
-        Raises:
-            Exception: If file operations or AI analysis fails
-        """
-        self._logging_utils.trace(
-            __class__, "start analyze_source_file_for_decision_points"
-        )
-
-        content = f"""
-Analyze the attached Python source file and identify critical locations for adding trace statements based on these priorities,
-in the order the priorities are listed. Include every critical locations found.
-
-Priorities:
-{', '.join(self._config.get_value("tracing_strategies", []))}
-
-{'\n'.join(self._config.get_value("clarifications", []))}
-
-Provide a detailed breakdown of the following for every location identified. Repeat as necessary for each location.
-1. Fully-qualified name of the containing function/method.
-2. Specific code blocks/lines to trace. Include the function/method name and parent class.
-3. Rationale for tracing
-4. Recommended trace information to capture
-
-The user is automation, so don't include additional information or instructions in the output.
-"""
-
-        try:
-            with open(input_source_file, "rb") as source_file:
-                client_file = self._openai_client.files.create(
-                    file=source_file, purpose="assistants"
-                )
-        except FileNotFoundError:
-            self._logging_utils.error(
-                __class__, f"Source file '{input_source_file}' not found"
-            )
-            return
-        except PermissionError:
-            self._logging_utils.error(
-                __class__, f"Permission denied accessing file '{input_source_file}'"
-            )
-            return
-        # pylint: disable=broad-exception-caught
-        except Exception as e:  # For any other unexpected errors
-            self._logging_utils.error(
-                __class__, f"Error processing file '{input_source_file}': {str(e)}"
-            )
-            return
-
-        self.get_assistant_completion_with_retry(
-            client_file=client_file,
-            content=content,
-        )
-
-        self._logging_utils.trace(
-            __class__, "end analyze_source_file_for_decision_points"
         )
 
     def process_file(self, input_source_path: str):
@@ -736,12 +496,7 @@ The user is automation, so don't include additional information or instructions 
         self._logging_utils.success(__class__, "## OpenAI Analysis")
         try:
             # Analyze the code
-            if self._use_assistant:
-                self.analyze_source_file_for_decision_points(
-                    input_source_file=input_source_path
-                )
-            else:
-                self.analyze_source_code_for_decision_points(full_code)
+            self.analyze_source_code_for_decision_points(full_code)
         except Exception as e:  # pylint: disable=broad-exception-caught
             self._logging_utils.error(
                 __class__, f"Failed to analyze source code: {str(e)}", exc_info=True
@@ -805,7 +560,7 @@ def main():
     # pylint: enable=line-too-long
 
     logging_utils: LoggingUtils = LoggingUtils()
-    logging_utils.trace(__name__, "start __main__")
+    # logging_utils.trace(__name__, "start __main__")
     path_utils: PathUtils = PathUtils()
     utils = Utilities()
 
@@ -886,7 +641,7 @@ Log Levels:
     )
 
     # Initialize the SourceCodeAnalyzerUtils with the configuration
-    analyzer: SourceCodeAnalyzer = SourceCodeAnalyzer(use_assistant=use_assistant)
+    analyzer: SourceCodeAnalyzer = SourceCodeAnalyzer()
 
     # Analyze the source code
     source_path = sys.argv[1]

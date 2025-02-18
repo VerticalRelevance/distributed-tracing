@@ -21,11 +21,9 @@ import logging
 
 # Define custom level
 SUCCESS = 25
-TRACE = 5
 
 # Add the custom level
 logging.addLevelName(SUCCESS, "SUCCESS")
-logging.addLevelName(TRACE, "TRACE")
 
 
 # Create a custom logger with the new method
@@ -64,41 +62,5 @@ class CustomLoggerSuccess(logging.Logger):
             self._log(SUCCESS, message, args, **kwargs)
 
 
-class CustomLoggerTrace(logging.Logger):
-    """
-    A custom Logger class that extends the standard logging.Logger
-    with a trace() method for logging trace-level messages.
-
-    The CustomLoggerTrace class allows logging messages at a new 'TRACE'
-    log level, providing more nuanced logging between NOTSET and TRACE levels.
-
-    Attributes:
-        Inherits all attributes from the standard logging.Logger class.
-
-    Methods:
-        success: Logs a message at the SUCCESS log level.
-    """
-
-    def trace(self, message, *args, **kwargs):
-        """
-        Log a message with severity 'TRACE' on this logger.
-
-        This method allows logging messages at a custom TRACE level, which is
-        more specific than NOTSET and less than DEBUG.
-
-        Args:
-            message (str): The log message to be recorded.
-            *args: Variable positional arguments to be passed to the logging method.
-            **kwargs: Variable keyword arguments to be passed to the logging method.
-
-        Example:
-            >>> logger = logging.getLogger(__name__)
-            >>> logger.trace("start some_method")
-        """
-        if self.isEnabledFor(TRACE):
-            self._log(TRACE, message, args, **kwargs)
-
-
 # Attach the method to the Logger class
 logging.Logger.success = CustomLoggerSuccess.success
-logging.Logger.trace = CustomLoggerTrace.trace

@@ -6,3 +6,6 @@ tracing_strategies:
   - Performance-Critical Code Paths
   - State Changes
   - External Resource Interactions
+ai_model:
+  class:
+    name: MetaLlama3_2_3b_instruct_v1_0

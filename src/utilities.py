@@ -1,4 +1,3 @@
-# go back to two loggers, one for stdout and one for stderr
 """
 A collection of utility classes providing various helper methods for application functionality.
 
@@ -18,15 +17,18 @@ Classes:
     DirUtils: File and directory management operations
     Utilities: General utility methods for serialization and environment handling
 """
+
 import sys
 import os
 import logging
+import importlib
 from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
 from timeit import default_timer
 import json
-import custom_logger_success
+from .configuration import Configuration
+from .models.model import ModelObject
 
 
 class CtxMgrUtils:
@@ -89,7 +91,7 @@ class CtxMgrUtils:
         yield elapsed_keeper
         end = default_timer()
 
-        # pylint: disable=E0102
+        # pylint: disable=function-redefined
         def elapsed_keeper():
             """
             Handles the start of the context manager code block.
@@ -99,7 +101,7 @@ class CtxMgrUtils:
             """
             return end - start
 
-        # pylint: enable=E0102
+        # pylint: enable=function-redefined
 
 
 class LoggingUtils:
@@ -238,9 +240,8 @@ class LoggingUtils:
         """
         logger = logging.getLogger(f"{name}.stdout")
         if not logger.handlers:
-            logger_level = os.getenv(
-                "LOG_LEVEL_STDOUT", logging.getLevelName(logging.DEBUG)
-            ).upper()
+            logger_level = os.getenv("LOG_LEVEL_STDOUT", "SUCCESS").upper()
+            self.debug(__class__, f"setting stdout logger level to {logger_level}")
             logger.setLevel(logger_level)
             console_handler = logging.StreamHandler(stream=sys.stdout)
             console_handler.setLevel(logger_level)
@@ -447,6 +448,17 @@ class Utilities:
             cls._instance = super().__new__(cls)
         return cls._instance
 
+    def load_class(self, module_name, class_name) -> object:
+        try:
+            module = importlib.import_module(module_name)
+            return getattr(module, class_name)
+        except ImportError as ie:
+            raise ImportError(f"Module {module_name} not found") from ie
+        except AttributeError as ae:
+            raise AttributeError(
+                f"Class {class_name} not found in module {module_name}"
+            ) from ae
+
     def json_dumps_with_datetime_serialization(self, obj, json_options=None):
         """
         Serializes an object to a JSON formatted string with datetime serialization.
@@ -534,3 +546,117 @@ class Utilities:
 
         # Return result based on common truthy values
         return value in ["1", "true", "yes", "on", "y"]
+
+
+class ModelUtils:
+    """
+    A utility class for managing pluggable model classes.
+
+    This class provides methods to retrieve AI model configuration parameters
+    from environment variables, with default values and validation.
+
+    Attributes:
+        _ai_model (str): The AI model to be used for analysis.
+        _max_llm_retries (int): Maximum number of retries for LLM operations.
+        _retry_delay (int): Delay between retry attempts.
+        _temperature (float): Temperature setting for AI model randomness.
+    """
+
+    def __init__(self, configuration: Configuration):
+        """
+        Initializes the SourceCodeAnalyzerUtils with default None values.
+
+        The actual values will be lazily loaded when the respective getter
+        methods are called for the first time.
+        """
+        self._max_llm_retries = None
+        self._retry_delay = None
+        self._temperature = None
+        self._config: Configuration = configuration
+
+    def get_desired_model_class_name(self):
+        return os.getenv(
+            "AI_MODEL_CLASS_NAME",
+            self._config.get_value("ai_model").get("class").get("name"),
+        )
+
+    def get_model_instance(self) -> ModelObject:
+        """
+        Returns the model instance.
+
+        Returns:
+            ModelObject: The model instance.
+        """
+        utils = Utilities()
+        model_class = utils.load_class(
+            "src.models", self.get_desired_model_class_name()
+        )
+        return model_class()
+
+    def get_max_llm_retries(self) -> int:
+        """
+        Retrieves the maximum number of retries for LLM operations.
+
+        Returns the number of retries from the 'MAX_LLM_RETRIES' environment variable.
+        If not set, defaults to 10. Ensures a minimum of 1 retry.
+
+        Returns:
+            int: The maximum number of retry attempts, guaranteed to be at least 1.
+
+        Example:
+            >>> utils = SourceCodeAnalyzerUtils()
+            >>> max_retries = utils.get_max_llm_retries()
+            # Returns 10 if MAX_LLM_RETRIES is not set, or uses the env value
+        """
+        if not self._max_llm_retries:
+            self._max_llm_retries = int(
+                os.getenv(
+                    "MAX_LLM_RETRIES", self._config.get_value("max_llm_retries", "10")
+                )
+            )
+        self._max_llm_retries = max(self._max_llm_retries, 1)
+        return self._max_llm_retries
+
+    def get_retry_delay(self) -> int:
+        """
+        Retrieves the delay between retry attempts.
+
+        Returns the retry delay from the 'RETRY_DELAY' environment variable.
+        If not set, defaults to 0. Ensures a non-negative delay.
+
+        Returns:
+            int: The delay between retry attempts in seconds, guaranteed to be non-negative.
+
+        Example:
+            >>> utils = SourceCodeAnalyzerUtils()
+            >>> delay = utils.get_retry_delay()
+            # Returns 0 if RETRY_DELAY is not set, or uses the env value
+        """
+        if not self._retry_delay:
+            self._retry_delay = int(
+                os.getenv("RETRY_DELAY", self._config.get_value("retry_delay", "0"))
+            )
+        self._retry_delay = max(self._retry_delay, 0)
+        return self._retry_delay
+
+    def get_temperature(self) -> float:
+        """
+        Retrieves the temperature setting for the AI model.
+
+        Returns the temperature from the 'TEMPERATURE' environment variable.
+        If not set, defaults to 0.0. Ensures a non-negative temperature value.
+
+        Returns:
+            float: The temperature setting for the AI model, guaranteed to be non-negative.
+
+        Example:
+            >>> utils = SourceCodeAnalyzerUtils()
+            >>> temperature = utils.get_temperature()
+            # Returns 0.0 if TEMPERATURE is not set, or uses the env value
+        """
+        if not self._temperature:
+            self._temperature = float(
+                os.getenv("TEMPERATURE", self._config.get_value("temperature", "0.0"))
+            )
+        self._temperature = max(self._temperature, 0.0)
+        return self._temperature

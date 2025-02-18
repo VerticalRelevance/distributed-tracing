@@ -49,7 +49,7 @@ class Configuration:
         Creates and returns a new instance of the Configuration class.
 
         This method is responsible for implementing the singleton pattern, ensuring that only one
-        instance of the Utilities class is created.
+        instance of the Configuration class is created.
 
         Parameters:
             cls (type): The class object.
@@ -66,7 +66,7 @@ class Configuration:
         return cls._instance
 
     def __init__(self, config_file_path: str) -> None:
-        self._config_content = None
+        self._config_content: Configuration = None
         self.safe_load_config(config_file_path)
 
     def __str__(self):
