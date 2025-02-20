@@ -210,7 +210,8 @@ class SourceCodeAnalyzer:
         self._utils: Utilities = Utilities()
         self._logging_utils = LoggingUtils()
         self._path_utils = PathUtils()
-        self._config: Configuration = Configuration("python3-config.yaml")
+        # FUTURE make config file name dynamic
+        self._config: Configuration = Configuration("config.yaml")
         self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
         self._model: ModelObject = self._model_utils.get_model_instance()
 

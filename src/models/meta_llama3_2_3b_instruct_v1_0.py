@@ -1,5 +1,4 @@
 import json
-from math import exp
 from botocore.exceptions import ClientError
 from configuration import Configuration
 from model import ModelObject, ModelError

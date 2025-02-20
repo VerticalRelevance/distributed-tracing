@@ -182,7 +182,7 @@ class Configuration:
         Validate the loaded configuration against a predefined schema.
         """
         # validate the loaded configuration against a predefined schema
-        # TODO future: add configuration validation
+        # FUTURE add configuration validation
         return True
 
     def get_value(self, key: str, default_value: Any = None) -> Any:
