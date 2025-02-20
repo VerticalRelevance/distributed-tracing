@@ -448,8 +448,8 @@ Priorities:
 
 {'\n'.join(self._config.get_value("clarifications", []))}
 
-Provide a detailed breakdown of the following for every location identified. Repeat as necessary for every identified location.
-When recommending trace statements include the following details:
+Provide a detailed breakdown of the following for every location identified, with a new Markdown header 3 for each location.
+When recommending trace statements include the following details, each in a numbered list:
 1. Fully-qualified name of the containing function/method.
 2. Specific code blocks/lines to trace. Include the function/method name and parent class.
 3. Rationale for tracing
