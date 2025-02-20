@@ -2,6 +2,7 @@ aws:
   region: us-west-2
 
 tracing_strategies:
+  - Message Bus with Amazon SQS
   - Conditional Branches
   - Exception Handling Blocks
   - Function Entry/Exit Points
