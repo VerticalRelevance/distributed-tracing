@@ -27,9 +27,9 @@ class ModelObject:
     def get_model_custom_value(
         self, key: str, expected_type: type, expected_min=None, expected_max=None
     ) -> str:
-        print(
+        self._logging_utils.debug(
+            __class__,
             f"custom value: {self._config.get_value("ai_model", {}).get("custom", {}).get(key, "")}",
-            file=sys.stderr,
         )
         value = self._config.get_value("ai_model", {}).get("custom", {}).get(key, "")
         if not isinstance(value, expected_type):
@@ -37,16 +37,19 @@ class ModelObject:
                 f"Expected custom value type {expected_type.__name__}, got {type(value).__name__}"
             )
 
-        print(f"expected_type.__name__: {expected_type.__name__}", file=sys.stderr)
+        self._logging_utils.debug(
+            __class__,
+            f"expected_type.__name__: {expected_type.__name__}",
+        )
         match expected_type.__name__:
             case "str":
                 return str(value)
             case "int":
                 try:
                     int_value = int(value)
-                    print(
+                    self._logging_utils.debug(
+                        __class__,
                         f"expected type is int, value: {int_value}, expected_min: {expected_min}, expected_max: {expected_max}",
-                        file=sys.stderr,
                     )
                 except ValueError as ve:
                     raise ModelError(
@@ -54,18 +57,18 @@ class ModelObject:
                     ) from ve
 
                 if expected_min is not None:
-                    print(
+                    self._logging_utils.debug(
+                        __class__,
                         f"expected_min: {expected_min} int_value < expected_min: {int_value < expected_min}",
-                        file=sys.stderr,
                     )
                     if int_value < expected_min:
                         raise ValueError(
                             f"Value '{int_value}' for {key} is invalid. Value must be greater than or equal to {expected_min}."
                         )
                 if expected_max is not None:
-                    print(
+                    self._logging_utils.debug(
+                        __class__,
                         f"expected_max: {expected_max}",
-                        file=sys.stderr,
                     )
                     if int_value > expected_max:
                         raise ValueError(
@@ -124,20 +127,10 @@ class ModelObject:
         )
 
     def get_completion_tokens(self) -> int:
-        print(f"value to return: {self._completion_tokens}")
         return self._completion_tokens
 
     def increment_completion_tokens(self, value: int) -> None:
-        print(
-            f"completion tokens before implement: {self._completion_tokens}",
-            file=sys.stderr,
-        )
-        print(f"value to add: {value}", file=sys.stderr)
         self._completion_tokens += value
-        print(
-            f"completion tokens after implement: {self._completion_tokens}",
-            file=sys.stderr,
-        )
 
     def set_completion_tokens(self, value: int) -> None:
         self._completion_tokens = value

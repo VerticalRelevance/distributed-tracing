@@ -357,9 +357,9 @@ class SourceCodeAnalyzer:
                 )
                 break_llm_loop = True
             except ModelError as me:
-                print(
+                self._logging_utils.error(
+                    __class__,
                     f"Cannot generate text from model '{self._model.get_model_name()}'. Reason: {me}",
-                    file=sys.stderr,
                 )
                 sys.exit(1)
             except Exception as e:  # pylint: disable=broad-exception-caught
