@@ -27,8 +27,10 @@ from datetime import datetime
 from contextlib import contextmanager
 from timeit import default_timer
 import json
-from .configuration import Configuration
-from .models.model import ModelObject
+from pprint import pformat
+from configuration import Configuration
+from custom_logger_success import CustomLoggerSuccess  # pylint: disable=unused-import
+from custom_logger_trace import CustomLoggerTrace  # pylint: disable=unused-import
 
 
 class CtxMgrUtils:
@@ -147,7 +149,9 @@ class LoggingUtils:
         logging.getLogger("httpcore").setLevel(logging.CRITICAL)
         logging.getLogger("httpx").setLevel(logging.CRITICAL)
 
-    def debug(self, name: str, msg: str, exc_info=False) -> None:
+    def debug(
+        self, name: str, msg: str, exc_info: bool = False, enable_pformat: bool = False
+    ) -> None:
         """
         Logs a debug message to the stderr stream.
 
@@ -156,7 +160,9 @@ class LoggingUtils:
             msg (str): The debug message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
-        self.get_stderr_logger(name).debug(msg, exc_info=exc_info)
+        self.get_stderr_logger(name).debug(
+            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+        )
 
     def debug_info(self, name: str, msg: str, exc_info=False) -> None:
         """
@@ -411,11 +417,11 @@ class PathUtils:
         Returns:
             str: The contents of the file as a string.
         """
-        LoggingUtils().debug(__class__, "start get_source_code")
+        LoggingUtils().trace(__class__, "start get_source_code")
         with open(source_path, "r", encoding="utf-8") as file:
             source_code = file.read()
 
-        LoggingUtils().debug(__class__, "end get_source_code")
+        LoggingUtils().trace(__class__, "end get_source_code")
         return source_code
 
 
@@ -448,9 +454,15 @@ class Utilities:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def load_class(self, module_name, class_name) -> object:
+    def load_class(
+        self, module_name: str, class_name: str, package_name: str
+    ) -> object:
         try:
-            module = importlib.import_module(module_name)
+            print(
+                f"module_name: {module_name}, class_name: {class_name}, package_name: {package_name}",
+                file=sys.stderr,
+            )
+            module = importlib.import_module(module_name, package_name)
             return getattr(module, class_name)
         except ImportError as ie:
             raise ImportError(f"Module {module_name} not found") from ie
@@ -569,9 +581,6 @@ class ModelUtils:
         The actual values will be lazily loaded when the respective getter
         methods are called for the first time.
         """
-        self._max_llm_retries = None
-        self._retry_delay = None
-        self._temperature = None
         self._config: Configuration = configuration
 
     def get_desired_model_class_name(self):
@@ -580,7 +589,13 @@ class ModelUtils:
             self._config.get_value("ai_model").get("class").get("name"),
         )
 
-    def get_model_instance(self) -> ModelObject:
+    def get_desired_model_module_name(self) -> str:
+        return os.getenv(
+            "AI_MODEL_MODULE_NAME",
+            self._config.get_value("ai_model").get("module").get("name"),
+        )
+
+    def get_model_instance(self) -> any:
         """
         Returns the model instance.
 
@@ -589,74 +604,27 @@ class ModelUtils:
         """
         utils = Utilities()
         model_class = utils.load_class(
-            "src.models", self.get_desired_model_class_name()
+            "models." + self.get_desired_model_module_name(),
+            self.get_desired_model_class_name(),
+            "models",
         )
-        return model_class()
+        return model_class(self._config)
 
-    def get_max_llm_retries(self) -> int:
+    def get_region_name(self) -> str:
         """
-        Retrieves the maximum number of retries for LLM operations.
+        Retrieves the AWS region name.
 
-        Returns the number of retries from the 'MAX_LLM_RETRIES' environment variable.
-        If not set, defaults to 10. Ensures a minimum of 1 retry.
+        Returns the region name from the 'AWS_REGION' environment variable.
+        If not set, defaults to 'us-east-1'.
 
         Returns:
-            int: The maximum number of retry attempts, guaranteed to be at least 1.
+            str: The AWS region name.
 
         Example:
             >>> utils = SourceCodeAnalyzerUtils()
-            >>> max_retries = utils.get_max_llm_retries()
-            # Returns 10 if MAX_LLM_RETRIES is not set, or uses the env value
+            >>> region = utils.get_region_name()
+            # Returns 'us-west-2' if AWS_REGION is not set, or uses the env value
         """
-        if not self._max_llm_retries:
-            self._max_llm_retries = int(
-                os.getenv(
-                    "MAX_LLM_RETRIES", self._config.get_value("max_llm_retries", "10")
-                )
-            )
-        self._max_llm_retries = max(self._max_llm_retries, 1)
-        return self._max_llm_retries
-
-    def get_retry_delay(self) -> int:
-        """
-        Retrieves the delay between retry attempts.
-
-        Returns the retry delay from the 'RETRY_DELAY' environment variable.
-        If not set, defaults to 0. Ensures a non-negative delay.
-
-        Returns:
-            int: The delay between retry attempts in seconds, guaranteed to be non-negative.
-
-        Example:
-            >>> utils = SourceCodeAnalyzerUtils()
-            >>> delay = utils.get_retry_delay()
-            # Returns 0 if RETRY_DELAY is not set, or uses the env value
-        """
-        if not self._retry_delay:
-            self._retry_delay = int(
-                os.getenv("RETRY_DELAY", self._config.get_value("retry_delay", "0"))
-            )
-        self._retry_delay = max(self._retry_delay, 0)
-        return self._retry_delay
-
-    def get_temperature(self) -> float:
-        """
-        Retrieves the temperature setting for the AI model.
-
-        Returns the temperature from the 'TEMPERATURE' environment variable.
-        If not set, defaults to 0.0. Ensures a non-negative temperature value.
-
-        Returns:
-            float: The temperature setting for the AI model, guaranteed to be non-negative.
-
-        Example:
-            >>> utils = SourceCodeAnalyzerUtils()
-            >>> temperature = utils.get_temperature()
-            # Returns 0.0 if TEMPERATURE is not set, or uses the env value
-        """
-        if not self._temperature:
-            self._temperature = float(
-                os.getenv("TEMPERATURE", self._config.get_value("temperature", "0.0"))
-            )
-        self._temperature = max(self._temperature, 0.0)
-        return self._temperature
+        return os.getenv(
+            "AWS_REGION", self._config.get_value("aws").get("region", "us-west-2")
+        )
