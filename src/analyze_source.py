@@ -5,6 +5,7 @@ This module provides functionality to parse Python source files, build an AST-ba
 and leverage AI-powered analysis for trace point recommendations.
 """
 # pylint: enable=line-too-long
+from struct import pack
 import sys
 import os
 import time
@@ -13,8 +14,9 @@ import logging
 import ast
 from pprint import pformat
 from configuration import Configuration
-from utilities import LoggingUtils, ModelUtils, PathUtils, Utilities
+from utilities import LoggingUtils, ModelUtils, PathUtils, Utilities, FormatterUtils
 from model import ModelError, ModelObject
+from formatter import FormatterObject, FormatterFactory
 
 
 class SourceCodeNode:  # pylint: disable=too-few-public-methods
@@ -214,6 +216,16 @@ class SourceCodeAnalyzer:
         self._config: Configuration = Configuration("config.yaml")
         self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
         self._model: ModelObject = self._model_utils.get_model_instance()
+        self._formatter: FormatterObject = FormatterFactory(
+            configuration=self._config
+        ).get_formatter(
+            module_name=FormatterUtils(
+                configuration=self._config
+            ).get_desired_formatter_module_name(),
+            class_name=FormatterUtils(
+                configuration=self._config
+            ).get_desired_formatter_class_name(),
+        )
 
         self._logging_utils.debug(__class__, f"Model: {self._model.get_model_id()}")
         self._logging_utils.debug(__class__, f"_config: {pformat(self._config)}")
@@ -346,7 +358,12 @@ class SourceCodeAnalyzer:
             )
             try:
                 response = self._model.generate_text(prompt=prompt)
-                self._logging_utils.success(__class__, response)
+                # self._logging_utils.success(__class__, response)
+                formatter_inputs = {}
+                formatter_inputs["model_vendor"] = self._model.get_model_vendor()
+                formatter_inputs["model_name"] = self._model.get_model_name()
+                self._formatter.format_text(text_to_format=response, **formatter_inputs)
+
                 self._logging_utils.info(__class__, "LLM response received")
                 self._logging_utils.debug(
                     __class__, f"LLM Prompt Tokens: {self._model.get_prompt_tokens()}"
@@ -440,20 +457,28 @@ class SourceCodeAnalyzer:
         )
 
         prompt = f"""
-Analyze the following Python source code and identify critical locations for adding trace statements based on these priorities,
-in the order the priorities are listed. Include every critical locations found.
+Analyze the following Python source code and identify critical locations for adding trace statements.
+Include every critical locations found. Categorize critical locations based on the following priorities.
 
 Priorities:
 {', '.join(self._config.get_value("tracing_strategies", []))}
 
 {'\n'.join(self._config.get_value("clarifications", []))}
 
-Provide a detailed breakdown of the following for every location identified, with a new Markdown header 3 for each location.
-When recommending trace statements include the following details, each in a numbered list:
+For every critical location found, include the following details:
 1. Fully-qualified name of the containing function/method.
 2. Specific code blocks/lines to trace. Include the function/method name and parent class.
 3. Rationale for tracing
 4. Recommended trace information to capture
+
+Format the output as a JSON array with the following keys:
+- "overall_analysis_summary": A summary of the source code analysis
+- for each priority found, list the following:
+    - for each critical location found for this priority, include the following keys:
+        - "function_name": Fully-qualified name of the function/method
+        - "code_block": Specific code block/line to trace
+        - "rationale": Rationale for tracing
+        - "trace_info": Recommended trace information to capture
 
 Source Code:
 ```python
@@ -526,11 +551,11 @@ Source Code:
         if not source_tree:
             return
 
-        self._logging_utils.success(__class__, "")
-        self._logging_utils.success(
-            __class__,
-            f"## {self._model.get_model_vendor()} {self._model.get_model_name()} Analysis",
-        )
+        # self._logging_utils.success(__class__, "")
+        # self._logging_utils.success(
+        #     __class__,
+        #     f"## {self._model.get_model_vendor()} {self._model.get_model_name()} Analysis",
+        # )
         try:
             # Analyze the code
             self.analyze_source_code_for_decision_points(full_code)

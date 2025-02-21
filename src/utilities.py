@@ -22,6 +22,7 @@ import sys
 import os
 import logging
 import importlib
+import re
 from pathlib import Path
 from datetime import datetime
 from contextlib import contextmanager
@@ -164,7 +165,9 @@ class LoggingUtils:
             pformat(msg) if enable_pformat else msg, exc_info=exc_info
         )
 
-    def debug_info(self, name: str, msg: str, exc_info=False) -> None:
+    def debug_info(
+        self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
+    ) -> None:
         """
         Sends a message to the debug and info loggers.
 
@@ -173,10 +176,16 @@ class LoggingUtils:
             msg (str): The debug message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
-        self.get_stderr_logger(name).debug(msg, exc_info=exc_info)
-        self.get_stdout_logger(name).info(msg, exc_info=exc_info)
+        self.get_stderr_logger(name).debug(
+            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+        )
+        self.get_stdout_logger(name).info(
+            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+        )
 
-    def error(self, name: str, msg: str, exc_info=False) -> None:
+    def error(
+        self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
+    ) -> None:
         """
         Logs an error message to the stderr stream.
 
@@ -185,9 +194,13 @@ class LoggingUtils:
             msg (str): The error message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
-        self.get_stderr_logger(name).error(msg, exc_info=exc_info)
+        self.get_stderr_logger(name).error(
+            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+        )
 
-    def info(self, name: str, msg: str, exc_info=False) -> None:
+    def info(
+        self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
+    ) -> None:
         """
         Logs an informational message to the stdout stream.
 
@@ -196,9 +209,13 @@ class LoggingUtils:
             msg (str): The informational message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
-        self.get_stdout_logger(name).info(f"{msg}  ", exc_info=exc_info)
+        self.get_stdout_logger(name).info(
+            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+        )
 
-    def success(self, name: str, msg: str, exc_info=False) -> None:
+    def success(
+        self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
+    ) -> None:
         """
         Logs a success message to the stdout stream.
 
@@ -207,9 +224,13 @@ class LoggingUtils:
             msg (str): The success message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
-        self.get_stdout_logger(name).success(msg, exc_info=exc_info)
+        self.get_stdout_logger(name).success(
+            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+        )
 
-    def trace(self, name: str, msg: str, exc_info=False) -> None:
+    def trace(
+        self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
+    ) -> None:
         """
         Logs a trace message to the stderr stream.
 
@@ -218,9 +239,13 @@ class LoggingUtils:
             msg (str): The debug message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
-        self.get_stderr_logger(name).trace(msg, exc_info=exc_info)
+        self.get_stderr_logger(name).trace(
+            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+        )
 
-    def warning(self, name: str, msg: str, exc_info=False) -> None:
+    def warning(
+        self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
+    ) -> None:
         """
         Logs a warning message to the stdout stream.
 
@@ -229,7 +254,9 @@ class LoggingUtils:
             msg (str): The warning message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
-        self.get_stdout_logger(name).warning(msg, exc_info=exc_info)
+        self.get_stdout_logger(name).warning(
+            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+        )
 
     def get_stdout_logger(self, name: str) -> logging.Logger:
         """
@@ -471,63 +498,6 @@ class Utilities:
                 f"Class {class_name} not found in module {module_name}"
             ) from ae
 
-    def json_dumps_with_datetime_serialization(self, obj, json_options=None):
-        """
-        Serializes an object to a JSON formatted string with datetime serialization.
-
-        This method takes an object and serializes it to a JSON formatted string using the
-        'json.dumps' function. It uses the 'default' parameter of 'json.dumps' to specify a custom
-        serialization function, which is 'self.handle_datetime_serialization'. This custom
-        serialization function is responsible for serializing datetime objects to their ISO
-        formatted string representation.
-
-        Parameters:
-            obj: The object to be serialized.
-            json_options (optional): Additional options to be passed to the 'json.dumps' function.
-
-        Returns:
-            str: The JSON formatted string representation of the object.
-
-        Example:
-            >>> utils = Utilities()
-            >>> data = {'name': 'John', 'age': 30, 'timestamp': datetime.now()}
-            >>> json_string = utils.json_dumps_with_datetime_serialization(data)
-            >>> print(json_string)
-            {"name": "John", "age": 30, "timestamp": "2022-01-01T12:00:00"}
-
-        """
-        return json.dumps(
-            obj, default=self.handle_datetime_serialization, **json_options
-        )
-
-    def handle_datetime_serialization(self, obj):
-        """
-        Serializes a datetime object to its ISO formatted string representation.
-
-        This method takes a datetime object as input and returns its ISO formatted string
-        representation using the 'isoformat()' method of the datetime object. If the input object
-        is not a datetime object, a TypeError is raised.
-
-        Parameters:
-            obj (datetime): The datetime object to be serialized.
-
-        Returns:
-            str: The ISO formatted string representation of the datetime object.
-
-        Raises:
-            TypeError: If the input object is not a datetime object.
-
-        Example:
-            >>> utils = Utilities()
-            >>> dt = datetime(2022, 1, 1, 12, 0, 0)
-            >>> iso_string = utils.handle_datetime_serialization(dt)
-            >>> print(iso_string)
-            '2022-01-01T12:00:00'
-        """
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        raise TypeError(f"Type {type(obj)} not serializable")
-
     def is_truthy(self, value: str) -> bool:
         """
         Determines if a value is considered "truthy".
@@ -610,6 +580,21 @@ class ModelUtils:
         )
         return model_class(self._config)
 
+    def get_formatter_instance(self) -> any:
+        """
+        Returns the formatter instance.
+
+        Returns:
+            ModelObject: The model instance.
+        """
+        utils = Utilities()
+        model_class = utils.load_class(
+            "models." + self.get_desired_model_module_name(),
+            self.get_desired_model_class_name(),
+            "models",
+        )
+        return model_class(self._config)
+
     def get_region_name(self) -> str:
         """
         Retrieves the AWS region name.
@@ -627,4 +612,142 @@ class ModelUtils:
         """
         return os.getenv(
             "AWS_REGION", self._config.get_value("aws").get("region", "us-west-2")
+        )
+
+
+class JsonUtils:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Creates and returns a singleton instance of the JsonUtils class.
+
+        This method ensures that only one instance of the class is created
+        throughout the application, implementing the singleton design pattern.
+
+        Parameters:
+            cls (type): The class being instantiated.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            CtxMgrUtils: The singleton instance of the JsonUtils class.
+        """
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        """
+        Initializes the JsonUtils class.
+        """
+        self._logging_utils = LoggingUtils()
+
+    def json_loads(self, json_string: str):
+        """
+        Deserializes a JSON formatted string to a Python object.
+
+        This method takes a JSON formatted string as input and deserializes it to a Python dictionary
+        """
+        return json.loads(json_string)
+
+    def json_dumps_with_datetime_serialization(self, obj, json_options=None):
+        """
+        Serializes an object to a JSON formatted string with datetime serialization.
+
+        This method takes an object and serializes it to a JSON formatted string using the
+        'json.dumps' function. It uses the 'default' parameter of 'json.dumps' to specify a custom
+        serialization function, which is 'self.handle_datetime_serialization'. This custom
+        serialization function is responsible for serializing datetime objects to their ISO
+        formatted string representation.
+
+        Parameters:
+            obj: The object to be serialized.
+            json_options (optional): Additional options to be passed to the 'json.dumps' function.
+
+        Returns:
+            str: The JSON formatted string representation of the object.
+
+        Example:
+            >>> json_utils = JsonUtils()
+            >>> data = {'name': 'John', 'age': 30, 'timestamp': datetime.now()}
+            >>> json_string = json_utils.json_dumps_with_datetime_serialization(data)
+            >>> print(json_string)
+            {"name": "John", "age": 30, "timestamp": "2022-01-01T12:00:00"}
+
+        """
+        return json.dumps(
+            obj, default=self.handle_datetime_serialization, **json_options
+        )
+
+    def handle_datetime_serialization(self, obj):
+        """
+        Serializes a datetime object to its ISO formatted string representation.
+
+        This method takes a datetime object as input and returns its ISO formatted string
+        representation using the 'isoformat()' method of the datetime object. If the input object
+        is not a datetime object, a TypeError is raised.
+
+        Parameters:
+            obj (datetime): The datetime object to be serialized.
+
+        Returns:
+            str: The ISO formatted string representation of the datetime object.
+
+        Raises:
+            TypeError: If the input object is not a datetime object.
+
+        Example:
+            >>> utils = Utilities()
+            >>> dt = datetime(2022, 1, 1, 12, 0, 0)
+            >>> iso_string = utils.handle_datetime_serialization(dt)
+            >>> print(iso_string)
+            '2022-01-01T12:00:00'
+        """
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError(f"Type {type(obj)} not serializable")
+
+    def extract_code_blocks(self, response: str) -> list:
+        """Extract all json blocks from the given input."""
+        self._logging_utils.debug(__class__, "start extract_code_blocks")
+        self._logging_utils.debug(__class__, "end extract_code_blocks")
+        return re.findall(r"```json\s*(.*?)\s*```", response, re.DOTALL)
+
+
+class FormatterUtils:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Creates and returns a singleton instance of the FormatterUtils class.
+
+        This method ensures that only one instance of the class is created
+        throughout the application, implementing the singleton design pattern.
+
+        Parameters:
+            cls (type): The class being instantiated.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            formatterUtils: The singleton instance of the FormatterUtils class.
+        """
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, configuration: Configuration):
+        self._config = configuration
+
+    def get_desired_formatter_class_name(self):
+        return os.getenv(
+            "FORMATTER_CLASS_NAME",
+            self._config.get_value("formatter").get("class").get("name"),
+        )
+
+    def get_desired_formatter_module_name(self) -> str:
+        return os.getenv(
+            "FORMATTER_MODULE_NAME",
+            self._config.get_value("formatter").get("module").get("name"),
         )

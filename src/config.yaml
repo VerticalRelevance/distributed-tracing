@@ -11,6 +11,14 @@ tracing_strategies:
   - State Changes
   - External Resource Interactions
 
+clarifications:
+  - In the output, surround any Python code with three backticks on each side, and the string "python" to the right of the first backticks.
+formatter:
+  class:
+    name: JsonToMarkdownFormatter
+  module:
+    name: json_to_markdown_formatter
+
 ai_model:
   max_llm_retries: 2
   retry_delay: 4
