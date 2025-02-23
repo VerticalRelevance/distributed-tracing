@@ -20,7 +20,7 @@ class FormatterObject(ABC):
         self._config = configuration
 
     @abstractmethod
-    def format_text(self, text_to_format: str, **kwargs):
+    def format_text(self, text_to_format: str, variables: Dict[str, str] = None):
         pass
 
 

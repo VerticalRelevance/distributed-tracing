@@ -1,16 +1,14 @@
-from pydantic import ConfigDict
-from formatter import FormatterObject
-from utilities import LoggingUtils, JsonUtils, Utilities
+from formatters.formatter import FormatterObject
 from configuration import Configuration
 
 
-class JsonToMarkdownFormatter(FormatterObject):
+class CodedJsonToMarkdownFormatter(FormatterObject):
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Creates and returns a new instance of the JsonToMarkdownFormatter class.
+        Creates and returns a new instance of the CodedJsonToMarkdownFormatter class.
 
         This method is responsible for implementing the singleton pattern, ensuring that only one
         instance of the Configuration class is created.
@@ -21,7 +19,7 @@ class JsonToMarkdownFormatter(FormatterObject):
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
-            FormatterFactory: The singleton instance of the JsonToMarkdownFormatter class.
+            FormatterObject: The singleton instance of the CodedJsonToMarkdownFormatter class.
 
         """
         if not cls._instance:
@@ -30,7 +28,7 @@ class JsonToMarkdownFormatter(FormatterObject):
 
     def __init__(self, configuration: Configuration):
         """
-        Initializes a new instance of the JsonToMarkdownFormatter class.
+        Initializes a new instance of the CodedJsonToMarkdownFormatter class.
 
         This method is called automatically when a new instance of the class is created.
         It initializes the instance with any necessary attributes or configurations.
@@ -38,9 +36,10 @@ class JsonToMarkdownFormatter(FormatterObject):
         """
         super().__init__(configuration=configuration)
 
+    # TODO rework kwargs
     def format_text(self, text_to_format: str, **kwargs):
         """
-        Formats the given text using the JsonToMarkdownFormatter.
+        Formats the given text using the CodedJsonToMarkdownFormatter.
 
         Args:
             text_to_format (str): The text to be formatted.
@@ -67,9 +66,7 @@ class JsonToMarkdownFormatter(FormatterObject):
         self._logging_utils.debug(__class__, f"Dict to format:")
         self._logging_utils.debug(__class__, dict_to_format, enable_pformat=True)
         self._logging_utils.debug(__class__, "Dict keys:")
-        self._logging_utils.debug(
-            __class__, dict_to_format[0].keys(), enable_pformat=True
-        )
+        self._logging_utils.debug(__class__, dict_to_format.keys(), enable_pformat=True)
 
         output_strings = []
         output_strings.append("")
@@ -77,22 +74,24 @@ class JsonToMarkdownFormatter(FormatterObject):
             f"## {kwargs['model_vendor']} {kwargs['model_name']} Analysis",
         )
         output_strings.append(dict_to_format.get("overall_analysis_summary"))
-        for strategy in self._config.get_value("tracing_strategies"):
+        for priority in self._config.get_value("tracing_priorities"):
             output_strings.append("")
-            output_strings.append(f"### {strategy}")
+            output_strings.append(f"### {priority}")
             output_strings.append("")
-            locations: list = dict_to_format.get(strategy, [])
+            locations: list = dict_to_format.get(priority, [])
             if len(locations) == 0:
-                output_strings.append("No critical findings for this strategy.")
+                output_strings.append("No critical findings for this priority.")
                 continue
             for location in locations:
-                output_strings.append(f"**Location**: {location.get('function_name')}")
-                output_strings.append(f"  - **Code: {location.get('code_block')}")
+                output_strings.append(f"#### Location {location.get('function_name')}")
                 output_strings.append(
-                    f"  - **Rationale for tracing**: {location.get('rationale')}"
+                    f"- **Specific code blocks/lines to trace:**\n```python\n{location.get('code_block')}\n```"
                 )
                 output_strings.append(
-                    f"  - **Recommended trace information to capture**{location.get('trace_info')}"
+                    f"- **Rationale for tracing:** {location.get('rationale')}"
+                )
+                output_strings.append(
+                    f"- **Recommended trace information to capture**\n{location.get('trace_info')}"
                 )
 
         for s in output_strings:

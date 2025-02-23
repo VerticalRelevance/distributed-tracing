@@ -1,7 +1,7 @@
 import json
 from botocore.exceptions import ClientError
 from configuration import Configuration
-from model import ModelObject, ModelError
+from models.model import ModelObject, ModelError
 
 
 class AnthropicClaude3Sonnet20240229V1(ModelObject):

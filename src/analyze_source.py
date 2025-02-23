@@ -15,8 +15,8 @@ import ast
 from pprint import pformat
 from configuration import Configuration
 from utilities import LoggingUtils, ModelUtils, PathUtils, Utilities, FormatterUtils
-from model import ModelError, ModelObject
-from formatter import FormatterObject, FormatterFactory
+from models.model import ModelError, ModelObject
+from formatters.formatter import FormatterObject, FormatterFactory
 
 
 class SourceCodeNode:  # pylint: disable=too-few-public-methods
@@ -461,20 +461,22 @@ Analyze the following Python source code and identify critical locations for add
 Include every critical locations found. Categorize critical locations based on the following priorities.
 
 Priorities:
-{', '.join(self._config.get_value("tracing_strategies", []))}
+{', '.join(self._config.get_value("tracing_priorities", []))}
 
 {'\n'.join(self._config.get_value("clarifications", []))}
 
 For every critical location found, include the following details:
-1. Fully-qualified name of the containing function/method.
-2. Specific code blocks/lines to trace. Include the function/method name and parent class.
-3. Rationale for tracing
-4. Recommended trace information to capture
+1. Name of the location function/method.
+2. Fully-qualified name of the containing function/method.
+3. Specific code blocks/lines to trace. Include the function/method name and parent class.
+4. Rationale for tracing
+5. Recommended trace information to capture
 
 Format the output as a JSON array with the following keys:
 - "overall_analysis_summary": A summary of the source code analysis
-- for each priority found, list the following:
+- for each priority, list the following:
     - for each critical location found for this priority, include the following keys:
+        - "location_name": Name of the location function/method
         - "function_name": Fully-qualified name of the function/method
         - "code_block": Specific code block/line to trace
         - "rationale": Rationale for tracing

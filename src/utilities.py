@@ -574,26 +574,26 @@ class ModelUtils:
         """
         utils = Utilities()
         model_class = utils.load_class(
-            "models." + self.get_desired_model_module_name(),
+            "." + self.get_desired_model_module_name(),
             self.get_desired_model_class_name(),
             "models",
         )
         return model_class(self._config)
 
-    def get_formatter_instance(self) -> any:
-        """
-        Returns the formatter instance.
+    # def get_formatter_instance(self) -> any:
+    #     """
+    #     Returns the formatter instance.
 
-        Returns:
-            ModelObject: The model instance.
-        """
-        utils = Utilities()
-        model_class = utils.load_class(
-            "models." + self.get_desired_model_module_name(),
-            self.get_desired_model_class_name(),
-            "models",
-        )
-        return model_class(self._config)
+    #     Returns:
+    #         ModelObject: The model instance.
+    #     """
+    #     utils = Utilities()
+    #     model_class = utils.load_class(
+    #         "models." + self.get_desired_model_module_name(),
+    #         self.get_desired_model_class_name(),
+    #         "models",
+    #     )
+    #     return model_class(self._config)
 
     def get_region_name(self) -> str:
         """
@@ -713,6 +713,16 @@ class JsonUtils:
         self._logging_utils.debug(__class__, "start extract_code_blocks")
         self._logging_utils.debug(__class__, "end extract_code_blocks")
         return re.findall(r"```json\s*(.*?)\s*```", response, re.DOTALL)
+
+    # TODO clean this up
+    def extract_json(self, response: str) -> str:
+        """Extract the first json block from the given input."""
+        self._logging_utils.debug(__class__, "start extract_json")
+        self._logging_utils.debug(__class__, "end extract_json")
+        code_blocks = self.extract_code_blocks(response)
+        if code_blocks:
+            return code_blocks[0]
+        return None
 
 
 class FormatterUtils:

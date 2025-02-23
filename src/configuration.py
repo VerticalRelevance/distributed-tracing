@@ -183,6 +183,11 @@ class Configuration:
         """
         # validate the loaded configuration against a predefined schema
         # FUTURE add configuration validation
+        # required = {'document', 'formatting', 'styles'}
+        # if not all(key in self.config for key in required):
+        #     missing = required - set(self.config.keys())
+        #     raise ValueError(f"Missing required config sections: {missing}")
+
         return True
 
     def get_value(self, key: str, default_value: Any = None) -> Any:
