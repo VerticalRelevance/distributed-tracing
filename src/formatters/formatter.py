@@ -1,6 +1,15 @@
 from abc import ABC, abstractmethod
 from utilities import LoggingUtils, JsonUtils, Utilities
 from configuration import Configuration
+from typing import Dict
+
+
+class FormatterError(Exception):
+    """Generic error for formatting operations"""
+
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
 
 
 class FormatterObject(ABC):
@@ -20,7 +29,7 @@ class FormatterObject(ABC):
         self._config = configuration
 
     @abstractmethod
-    def format_text(self, text_to_format: str, variables: Dict[str, str] = None):
+    def format_json(self, data: Dict[str, str], variables: Dict[str, str] = None):
         pass
 
 

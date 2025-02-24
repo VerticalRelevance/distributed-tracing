@@ -2,15 +2,16 @@ from collections import deque
 from string import Template
 from typing import Any, Dict, List
 from configuration import Configuration
-from formatter import FormatterObject
+from formatters.formatter import FormatterObject
+import yaml
 
 
-class TemplatedIterativeMarkdownFormatter(FormatterObject):
+class TemplatedIterativeJsonToMarkdownFormatter(FormatterObject):
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Creates and returns a new instance of the TemplatedIterativeMarkdownFormatter class.
+        Creates and returns a new instance of the TemplatedIterativeJsonToMarkdownFormatter class.
 
         This method is responsible for implementing the singleton pattern, ensuring that only one
         instance of the Configuration class is created.
@@ -21,23 +22,23 @@ class TemplatedIterativeMarkdownFormatter(FormatterObject):
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
-            FormatterFactory: The singleton instance of the TemplatedIterativeMarkdownFormatter class.
+            FormatterFactory: The singleton instance of the TemplatedIterativeJsonToMarkdownFormatter class.
 
         if not cls._instance:
         """
         cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, configuration: Configuration):
+    def __init__(self, configuration: Configuration, formatting_config: Dict = None):
         """
-        Initializes a new instance of the TemplatedIterativeMarkdownFormatter class.
+        Initializes a new instance of the TemplatedIterativeJsonToMarkdownFormatter class.
 
         This method is called automatically when a new instance of the class is created.
         It initializes the instance with any necessary attributes or configurations.
 
         """
         super().__init__(configuration=configuration)
-        self._formatting_config = self._config.get_value("")
+        self._formatting_config = formatting_config
 
     def _interpolate_variables(self, text: str, variables: Dict[str, str]) -> str:
         """Replace template variables in text with provided values"""
@@ -81,7 +82,7 @@ class TemplatedIterativeMarkdownFormatter(FormatterObject):
                 items = list(current_data.items())
                 for key, value in reversed(items):
                     if isinstance(value, (dict, list)):
-                        key_style = self.config["styles"].get("keys", {})
+                        key_style = self._formatting_config["styles"].get("keys", {})
                         formatted_key = self._apply_style(key, key_style)
                         result.append(f"{indent}{bullet} {formatted_key}:\n")
                         stack.append((value, indent_level + 1, False, None))
@@ -96,7 +97,7 @@ class TemplatedIterativeMarkdownFormatter(FormatterObject):
             else:
                 # Handle primitive values
                 if is_key:
-                    key_style = self.config["styles"].get("keys", {})
+                    key_style = self._formatting_config["styles"].get("keys", {})
                     formatted_key = self._apply_style(key_name, key_style)
                     formatted_value = self._format_value(current_data)
                     if isinstance(current_data, str) and variables:
@@ -221,7 +222,7 @@ class TemplatedIterativeMarkdownFormatter(FormatterObject):
 
     def _format_value(self, value: Any) -> str:
         """Format value based on its type and configuration"""
-        value_style = self.config["styles"].get("values", {})
+        value_style = self._formatting_config["styles"].get("values", {})
 
         if isinstance(value, bool):
             style = value_style.get("boolean", {})
@@ -255,22 +256,12 @@ class TemplatedIterativeMarkdownFormatter(FormatterObject):
 
         return text
 
-    def format_text(self, text_to_format: str, variables: Dict[str, str] = None) -> str:
-        self._logging_utils.debug(__class__, f"Formatting text: ")
-        self._logging_utils.debug(__class__, text_to_format)
+    def format_json(
+        self, data: Dict[str, str], variables: Dict[str, str] = None
+    ) -> str:
+        self._logging_utils.debug(__class__, f"Formatting json: ")
+        self._logging_utils.debug(__class__, data, enable_pformat=True)
 
-        extracted_json = self._json_utils.extract_json(text_to_format)
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks type: {type(extracted_json)}"
-        )
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks len: {len(extracted_json)}"
-        )
-        self._logging_utils.debug(__class__, f"Extracted json:")
-        self._logging_utils.debug(__class__, extracted_json[0], enable_pformat=True)
-
-        data = self._json_utils.json_loads(json_string=extracted_json[0])
-        data = data[0] if isinstance(data, list) else data
         self._logging_utils.debug(__class__, f"Dict type: {type(data)}")
         self._logging_utils.debug(__class__, f"Dict to format:")
         self._logging_utils.debug(__class__, data, enable_pformat=True)
@@ -280,7 +271,7 @@ class TemplatedIterativeMarkdownFormatter(FormatterObject):
         variables = variables or {}
         markdown_parts = []
 
-        for section in self.config["sections"]:
+        for section in self._formatting_config["sections"]:
             section_content = self._format_section(section, data, variables)
             if section_content:
                 markdown_parts.append(section_content)

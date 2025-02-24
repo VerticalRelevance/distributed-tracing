@@ -8,6 +8,10 @@ from utilities import LoggingUtils, ModelUtils
 class ModelError(Exception):
     """Generic error for storage operations, hiding AWS implementation details"""
 
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+
 
 class ModelObject:
     def __init__(self, configuration: Configuration) -> None:

@@ -1,4 +1,5 @@
 from collections import deque
+from typing import Dict
 from formatters.formatter import FormatterObject
 from configuration import Configuration
 
@@ -37,23 +38,10 @@ class IterativeMarkdownFormatter(FormatterObject):
         super().__init__(configuration=configuration)
         self._formatting_config = self._config.get_value("")
 
-    # TODO rework kwargs
-    def format_text(self, text_to_format: str, **kwargs):
-        self._logging_utils.debug(__class__, f"Formatting text: ")
-        self._logging_utils.debug(__class__, text_to_format)
+    def format_json(self, data: Dict[str, str], variables: Dict[str, str] = None):
+        self._logging_utils.debug(__class__, f"Formatting json: ")
+        self._logging_utils.debug(__class__, data)
 
-        extracted_json = self._json_utils.extract_json(text_to_format)
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks type: {type(extracted_json)}"
-        )
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks len: {len(extracted_json)}"
-        )
-        self._logging_utils.debug(__class__, f"Extracted json:")
-        self._logging_utils.debug(__class__, extracted_json[0], enable_pformat=True)
-
-        data = self._json_utils.json_loads(json_string=extracted_json[0])
-        data = data[0] if isinstance(data, list) else data
         self._logging_utils.debug(__class__, f"Dict type: {type(data)}")
         self._logging_utils.debug(__class__, f"Dict to format:")
         self._logging_utils.debug(__class__, data, enable_pformat=True)

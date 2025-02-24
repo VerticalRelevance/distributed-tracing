@@ -1,3 +1,4 @@
+from typing import Dict
 from formatters.formatter import FormatterObject
 from configuration import Configuration
 
@@ -36,8 +37,7 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         """
         super().__init__(configuration=configuration)
 
-    # TODO rework kwargs
-    def format_text(self, text_to_format: str, **kwargs):
+    def format_json(self, data: Dict[str, str], variables: Dict[str, str]) -> str:
         """
         Formats the given text using the CodedJsonToMarkdownFormatter.
 
@@ -47,38 +47,24 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         Returns:
             None
         """
-        self._logging_utils.debug(__class__, f"Formatting text: ")
-        self._logging_utils.debug(__class__, text_to_format)
-        extracted_json = self._json_utils.extract_code_blocks(text_to_format)
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks type: {type(extracted_json)}"
-        )
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks len: {len(extracted_json)}"
-        )
-        self._logging_utils.debug(__class__, f"Extracted json:")
-        self._logging_utils.debug(__class__, extracted_json[0], enable_pformat=True)
-        dict_to_format = self._json_utils.json_loads(json_string=extracted_json[0])
-        dict_to_format = (
-            dict_to_format[0] if isinstance(dict_to_format, list) else dict_to_format
-        )
-        self._logging_utils.debug(__class__, f"Dict type: {type(dict_to_format)}")
-        self._logging_utils.debug(__class__, f"Dict to format:")
-        self._logging_utils.debug(__class__, dict_to_format, enable_pformat=True)
-        self._logging_utils.debug(__class__, "Dict keys:")
-        self._logging_utils.debug(__class__, dict_to_format.keys(), enable_pformat=True)
 
         output_strings = []
         output_strings.append("")
         output_strings.append(
-            f"## {kwargs['model_vendor']} {kwargs['model_name']} Analysis",
+            f"## {variables['model_vendor']} {variables['model_name']} Analysis",
         )
-        output_strings.append(dict_to_format.get("overall_analysis_summary"))
+        output_strings.append(data.get("overall_analysis_summary"))
+
+        priorities: dict = data.get("priorities", {})
+        self._logging_utils.debug(__class__, f"type(priorities): {type(priorities)}")
+        self._logging_utils.debug(
+            __name__, f"priorities keys: {priorities.keys()}", enable_pformat=True
+        )
         for priority in self._config.get_value("tracing_priorities"):
             output_strings.append("")
             output_strings.append(f"### {priority}")
             output_strings.append("")
-            locations: list = dict_to_format.get(priority, [])
+            locations: list = priorities.get(priority, [])
             if len(locations) == 0:
                 output_strings.append("No critical findings for this priority.")
                 continue
@@ -94,5 +80,4 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
                     f"- **Recommended trace information to capture**\n{location.get('trace_info')}"
                 )
 
-        for s in output_strings:
-            self._logging_utils.success(__class__, s)
+        return "\n".join(output_strings)

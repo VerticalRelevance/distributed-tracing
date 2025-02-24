@@ -718,11 +718,17 @@ class JsonUtils:
     def extract_json(self, response: str) -> str:
         """Extract the first json block from the given input."""
         self._logging_utils.debug(__class__, "start extract_json")
-        self._logging_utils.debug(__class__, "end extract_json")
         code_blocks = self.extract_code_blocks(response)
         if code_blocks:
+            self._logging_utils.debug(
+                __class__,
+                f"extract_json code_blocks: {code_blocks}",
+                enable_pformat=True,
+            )
+            self._logging_utils.debug(__class__, "end extract_json")
             return code_blocks[0]
-        return None
+        self._logging_utils.debug(__class__, "end extract_json empty")
+        return "{}"
 
 
 class FormatterUtils:

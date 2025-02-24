@@ -5,7 +5,6 @@ This module provides functionality to parse Python source files, build an AST-ba
 and leverage AI-powered analysis for trace point recommendations.
 """
 # pylint: enable=line-too-long
-from struct import pack
 import sys
 import os
 import time
@@ -14,9 +13,21 @@ import logging
 import ast
 from pprint import pformat
 from configuration import Configuration
-from utilities import LoggingUtils, ModelUtils, PathUtils, Utilities, FormatterUtils
+from utilities import (
+    JsonUtils,
+    LoggingUtils,
+    ModelUtils,
+    PathUtils,
+    Utilities,
+    FormatterUtils,
+)
 from models.model import ModelError, ModelObject
-from formatters.formatter import FormatterObject, FormatterFactory
+from formatters.formatter import (
+    FormatterError,
+    FormatterObject,
+    FormatterFactory,
+    FormatterError,
+)
 
 
 class SourceCodeNode:  # pylint: disable=too-few-public-methods
@@ -212,6 +223,7 @@ class SourceCodeAnalyzer:
         self._utils: Utilities = Utilities()
         self._logging_utils = LoggingUtils()
         self._path_utils = PathUtils()
+        self._json_utils = JsonUtils()
         # FUTURE make config file name dynamic
         self._config: Configuration = Configuration("config.yaml")
         self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
@@ -359,10 +371,6 @@ class SourceCodeAnalyzer:
             try:
                 response = self._model.generate_text(prompt=prompt)
                 # self._logging_utils.success(__class__, response)
-                formatter_inputs = {}
-                formatter_inputs["model_vendor"] = self._model.get_model_vendor()
-                formatter_inputs["model_name"] = self._model.get_model_name()
-                self._formatter.format_text(text_to_format=response, **formatter_inputs)
 
                 self._logging_utils.info(__class__, "LLM response received")
                 self._logging_utils.debug(
@@ -426,7 +434,6 @@ class SourceCodeAnalyzer:
                 self._logging_utils.debug(
                     __class__, f"total tokens after loop: {total_tokens}"
                 )
-                self._logging_utils.success(__class__, response)
                 self._logging_utils.success(__class__, "\n## Summary")
                 self._logging_utils.success(
                     __class__, f"* Total Prompt Tokens: {total_tokens['prompt']}"
@@ -442,7 +449,9 @@ class SourceCodeAnalyzer:
 
         self._logging_utils.trace(__class__, "end get_completion_with_retry")
 
-    def analyze_source_code_for_decision_points(self, source_code):
+        return response
+
+    def analyze_source_code_for_decision_points(self, source_code) -> str:
         """
         Analyze source code to identify optimal locations for adding trace statements.
 
@@ -474,7 +483,7 @@ For every critical location found, include the following details:
 
 Format the output as a JSON array with the following keys:
 - "overall_analysis_summary": A summary of the source code analysis
-- for each priority, list the following:
+- "priorities": for each priority, list the following:
     - for each critical location found for this priority, include the following keys:
         - "location_name": Name of the location function/method
         - "function_name": Fully-qualified name of the function/method
@@ -489,7 +498,7 @@ Source Code:
 """
 
         self._logging_utils.info(__class__, "Analyzing code")
-        self.get_completion_with_retry(
+        response = self.get_completion_with_retry(
             prompt=prompt,
         )
         self._logging_utils.info(__class__, "Code analysis complete")
@@ -497,6 +506,47 @@ Source Code:
         self._logging_utils.trace(
             __class__, "end analyze_source_code_for_decision_points"
         )
+        return response
+
+    def generate_formatted_output(self, response: str):
+        """
+        Generate formatted output based on the provided response.
+
+        Args:
+            response (str): The response from the model
+
+        Returns:
+            None
+        """
+        self._logging_utils.trace(__class__, "start generate_formatted_output")
+        self._logging_utils.debug(__class__, "response:")
+        self._logging_utils.debug(__class__, response)
+
+        # extracted_json = self._json_utils.extract_json(response)
+        # TODO fix
+        extracted_json = self._json_utils.extract_code_blocks(response)
+        self._logging_utils.debug(
+            __class__, f"Extracted code blocks type: {type(extracted_json)}"
+        )
+        self._logging_utils.debug(
+            __class__, f"Extracted code blocks len: {len(extracted_json)}"
+        )
+        self._logging_utils.debug(__class__, f"Extracted json:")
+        self._logging_utils.debug(__class__, extracted_json[0], enable_pformat=True)
+
+        data = self._json_utils.json_loads(json_string=extracted_json[0])
+        data = data[0] if isinstance(data, list) else data
+        self._logging_utils.debug(__class__, "data:")
+        self._logging_utils.debug(__class__, data)
+
+        formatter_inputs = {}
+        formatter_inputs["model_vendor"] = self._model.get_model_vendor()
+        formatter_inputs["model_name"] = self._model.get_model_name()
+
+        response = self._formatter.format_json(data=data, variables=formatter_inputs)
+
+        self._logging_utils.debug(__class__, "end generate_formatted_output")
+        return response
 
     def process_file(self, input_source_path: str):
         """
@@ -560,7 +610,7 @@ Source Code:
         # )
         try:
             # Analyze the code
-            self.analyze_source_code_for_decision_points(full_code)
+            response = self.analyze_source_code_for_decision_points(full_code)
         except Exception as e:  # pylint: disable=broad-exception-caught
             self._logging_utils.error(
                 __class__, f"Failed to analyze source code: {str(e)}", exc_info=True
@@ -568,7 +618,19 @@ Source Code:
             self._logging_utils.trace(__class__, "end process_file (error)")
             return
 
+        try:
+            # Format the output
+            response = self.generate_formatted_output(response=response)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            self._logging_utils.error(
+                __class__, f"Failed to format output: {str(e)}", exc_info=True
+            )
+            self._logging_utils.trace(__class__, "end process_file (error)")
+            raise FormatterError("Failed to format output") from e  # type: ignore
+
+        self._logging_utils.success(__class__, response)
         self._logging_utils.info(__class__, "Analysis complete")
+
         self._logging_utils.trace(__class__, "end process_file")
         return
 
