@@ -169,3 +169,11 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Visual Studio Code folder settings
+.vscode/settings.json
+
+*.err
+*.out
+
+.$*.drawio.bkp

@@ -1,176 +1,803 @@
-# from tabnanny import verbose
-# import warnings
-import sys
-import json
-import pprint
-from dotenv import load_dotenv, find_dotenv
-
-from langchain import hub
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains.retrieval import create_retrieval_chain
-from langchain_community.document_loaders import TextLoader
-from langchain_community.vectorstores import FAISS
-from langchain_openai import ChatOpenAI
-from langchain_openai import OpenAIEmbeddings
-
-
-def load_language_search_config(language: str) -> dict:
-    file_path = "".join(language.split()) + "-search-config.json"
-    with open(file_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    return data
-
-
-def load_document_from_file(input_file: str) -> list:
-    # loader = CSVLoader(file_path=csv_file)
-    loader = TextLoader(file_path=input_file)
-    file_documents = loader.load()
-    return file_documents
-
-
-def format_search_instructions(search_config: dict):
-    formatted_search_instructions = []
-    for item in search_config:
-        # Locate lines containing one of the following values: def, async def, return, yield, await.
-        # Give each line a level value of 1 and a category of 'Function Entry/Exit points'
-        statements = ",".join(item.get("statements"))
-        rank = item.get("rank")
-        category = item.get("category")
-        line1 = f"Locate lines containing one of the following values: {statements}."
-        line2 = (
-            f"Give each line a level value of {rank} and a category of '{category}'."
-        )
-        formatted_search_instructions.append(line1)
-        formatted_search_instructions.append(line2)
-
-    return formatted_search_instructions
-
-
-_ = load_dotenv(find_dotenv())  # read local .env file
-
-# warnings.filterwarnings('ignore')
-
-# account for deprecation of LLM model
-# Get the current date
-# current_date = datetime.datetime.now().date()
-
-# Define the date after which the model should be set to "gpt-3.5-turbo"
-# target_date = datetime.date(2024, 6, 12)
-
-# Set the model variable based on the current date
-# if current_date > target_date:
-#     llm_model = "gpt-3.5-turbo"
-# else:
-#     llm_model = "gpt-3.5-turbo-0301"
-
-llm_model = "gpt-4o-mini"
-source_language = "python 3"  # TODO get this value as a configuration item
-
-search_config = load_language_search_config(language=source_language)
-# pprint.pprint(search_config, stream=sys.stderr)
-
-search_instructions = format_search_instructions(search_config=search_config)
-# print()
-# print("search instructions:")
-# pprint.pprint(search_instructions)
-
-llm = ChatOpenAI(model=llm_model)
-
-# operators = get_language_decision_operators(llm=llm)
-# print()
-# print("operators list:")
-# pprint.pprint(operators)
-
-
-# Load the source file
-documents = load_document_from_file(
-    "/Users/scaswell/VerticalRelevance/Projects/SRE/AWS_DataMeshFoundations/src/ops/post_setup.py"
-)
-
-# Create embeddings and vector store
-embeddings = OpenAIEmbeddings()
-vectorstore = FAISS.from_documents(documents, embeddings)
-
-# scan_file_prompt = ChatPromptTemplate.from_template(
-instructions = f"""\
-Perform the following text searches of the included source code. Treat the included source code as
-a line-based text file.
-
-{search_instructions}
-
-To obtain the source line number, reconstruct the input document line-based text.
-For each found item, return the search term, the category, the level, the source line number, and the source line.
-Don't include any of the following points if contained in string literals.
-
-Format the output as JSON.
+# pylint: disable=line-too-long
 """
-# print()
-# print("instructions:")
-# pprint.pprint(instructions)
-
-# input_context = """\
-# You are an expert in all known programming languages.
-
-# Query: {input}
-
-# Response:
-# """
-retrieval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
-# print()
-# print("retrieval qa chat prompt:")
-# pprint.pprint(retrieval_qa_chat_prompt)
-# retrieval_qa_chat_prompt = PromptTemplate(
-#   input_variables=["input"],
-#   template=input_context
-# )
-
-combine_docs_chain = create_stuff_documents_chain(llm, retrieval_qa_chat_prompt)
-retrieval_chain = create_retrieval_chain(
-    vectorstore.as_retriever(),
-    combine_docs_chain,
+A Python module for analyzing source code structure and identifying optimal locations for adding trace statements.
+This module provides functionality to parse Python source files, build an AST-based tree representation,
+and leverage AI-powered analysis for trace point recommendations.
+"""
+# pylint: enable=line-too-long
+import sys
+import os
+import time
+from pathlib import Path
+import logging
+import ast
+from pprint import pformat
+from configuration import Configuration
+from utilities import (
+    JsonUtils,
+    LoggingUtils,
+    ModelUtils,
+    PathUtils,
+    Utilities,
+    FormatterUtils,
 )
-input_values = {"input": instructions}
+from models.model import ModelError, ModelObject
+from formatters.formatter import (
+    FormatterError,
+    FormatterObject,
+    FormatterFactory,
+    FormatterError,
+)
 
-print("", file=sys.stderr)
-print("call chain.invoke", file=sys.stderr)
-response = retrieval_chain.invoke(input_values)
 
-# print()
-# print("invoke response:")
-# pprint.pprint(response.get('answer'))
+class SourceCodeNode:  # pylint: disable=too-few-public-methods
+    # pylint: disable=line-too-long
+    """
+    A node in the source code tree representing a code element (module, class, function, or import).
 
-answer = response.get("answer")
-# try:
-#     response_json = json.loads(answer)
-#     pprint.pprint(json.dumps(response_json))
-# except JSONDecodeError as jde:
-#     print("", file=sys.stderr)
-#     pprint.pprint(answer)
-pprint.pprint(answer)
-# response_json_sorted = sorted(response_json, key=lambda x: x["trace_score"])
-# print(json.dumps(response_json_sorted))
-# response_json.sort(key=lambda x: x["trace_score"])
+    Attributes:
+        name (str): The name of the code element
+        type (str): The type of the code element (root, module, class, function, import, import_from)
+        source_location (tuple, optional): Tuple of (line_number, column_offset, end_line_number)
+        children (dict): Dictionary of child nodes keyed by their names
 
-# overall_chain = SequentialChain(
-#     chains=[decision_operators_chain, retrieval_chain],
-#     input_variables=["language"],
-#     output_variables=["decision_points"],
-#     verbose=True
-# )
+    """
+    # pylint: enable=line-too-long
 
-# print(overall_chain("python 3"))
+    def __init__(self, name, node_type, source_location=None):
+        """
+        Initialize a new SourceCodeNode.
 
-# Step 4: Answer questions in a loop
-# def ask_question(question):
-#   print(f"question is: {question}")
-#   response = retrieval_chain.invoke({"input": question})
-#   # pprint.pprint(dir(response))
-#   # print(response.get('answer'))
-#   return response.get('answer')
+        Args:
+            name (str): The name of the code element
+            node_type (str): The type of the code element
+            source_location (tuple, optional): Source location information as (line, col, end_line)
+        """
+        self.name = name
+        self.type = node_type
+        self.source_location = source_location
+        self.children = {}  # Use dict for easier management of unique children
 
-# Main loop to interact with the user
-# if __name__ == "__main__":
-#   question = "Display the results."
-#   answer = ask_question(question)
-#   print(answer)
+    def add_child(self, child):
+        """
+        Add a child node to this node, ensuring uniqueness by name.
+
+        Args:
+            child (SourceCodeNode): The child node to add
+
+        Returns:
+            SourceCodeNode: The added child node or existing node if name already exists
+        """
+        # Ensure unique children by name
+        if child.name not in self.children:
+            self.children[child.name] = child
+        return self.children[child.name]
+
+
+class SourceCodeTreeBuilder(ast.NodeVisitor):
+    """
+    AST visitor that builds a tree representation of Python source code structure.
+    Tracks imports, classes, and functions to create a hierarchical view of the code.
+
+    Attributes:
+        root (SourceCodeNode): The root node of the tree
+        current_branch (list): Stack tracking the current position in the tree during traversal
+    """
+
+    def __init__(self):
+        """
+        Initialize a new SourceCodeTreeBuilder with an empty root node.
+        """
+        self.root = SourceCodeNode("Root", "root")
+        self.current_branch = [self.root]
+
+    def _add_module_to_tree(
+        self, module_name, node_type="module", source_location=None
+    ):
+        """
+        Add a module node to the tree, creating intermediate nodes as needed.
+
+        Args:
+            module_name (str): Dot-separated module path
+            node_type (str, optional): Type of node. Defaults to "module"
+            source_location (tuple, optional): Source location information
+
+        Returns:
+            SourceCodeNode: The leaf node that was added
+        """
+        # Split module name into parts
+        parts = module_name.split(".")
+        current_node = self.current_branch[-1]
+
+        for part in parts:
+            # Add or get existing child node
+            current_node = current_node.add_child(
+                SourceCodeNode(part, node_type, source_location)
+            )
+
+        return current_node
+
+    def visit_Import(self, node):  # pylint: disable=invalid-name
+        """
+        Process an Import node in the AST.
+
+        Args:
+            node (ast.Import): The Import node to process
+        """
+        for alias in node.names:
+            self._add_module_to_tree(
+                alias.name,
+                "import",
+                source_location=(node.lineno, node.col_offset, node.end_lineno),
+            )
+        self.generic_visit(node)
+
+    def visit_ImportFrom(self, node):  # pylint: disable=invalid-name
+        """
+        Process an ImportFrom node in the AST.
+
+        Args:
+            node (ast.ImportFrom): The ImportFrom node to process
+        """
+        module = node.module or ""
+        for alias in node.names:
+            full_name = f"{module}.{alias.name}" if module else alias.name
+            self._add_module_to_tree(
+                full_name,
+                "import_from",
+                source_location=(node.lineno, node.col_offset, node.end_lineno),
+            )
+        self.generic_visit(node)
+
+    def visit_ClassDef(self, node):  # pylint: disable=invalid-name
+        """
+        Process a ClassDef node in the AST.
+
+        Args:
+            node (ast.ClassDef): The ClassDef node to process
+        """
+        # Create class node
+        class_node = SourceCodeNode(
+            node.name,
+            "class",
+            source_location=(node.lineno, node.col_offset, node.end_lineno),
+        )
+
+        # Add to current branch
+        current_parent = self.current_branch[-1]
+        current_parent.add_child(class_node)
+
+        # Push this class as the current branch
+        self.current_branch.append(class_node)
+
+        # Visit children of the class
+        self.generic_visit(node)
+
+        # Pop back to previous branch
+        self.current_branch.pop()
+
+    def visit_FunctionDef(self, node):  # pylint: disable=invalid-name
+        """
+        Process a FunctionDef node in the AST.
+
+        Args:
+            node (ast.FunctionDef): The FunctionDef node to process
+        """
+        # Create function node
+        func_node = SourceCodeNode(
+            node.name,
+            "function",
+            source_location=(node.lineno, node.col_offset, node.end_lineno),
+        )
+
+        # Add to current branch
+        current_parent = self.current_branch[-1]
+        current_parent.add_child(func_node)
+
+        # Push this function as the current branch
+        self.current_branch.append(func_node)
+
+        # Visit children of the function
+        self.generic_visit(node)
+
+        # Pop back to previous branch
+        self.current_branch.pop()
+
+
+class SourceCodeAnalyzer:
+    """
+    A class for analyzing Python source code to identify optimal locations for trace statements.
+    Uses AST parsing and AI-powered analysis to provide recommendations for code instrumentation.
+
+    Attributes:
+        _utils (Utilities): Utility functions instance
+        _ast_utils (SourceCodeAnalyzerUtils): AST analysis utility functions
+        _openai_client (openai.OpenAI): OpenAI API client
+        _config (Configuration): Configuration settings
+    """
+
+    def __init__(self):
+        """
+        Initialize the SourceCodeAnalyzer with required dependencies.
+        """
+        self._utils: Utilities = Utilities()
+        self._logging_utils = LoggingUtils()
+        self._path_utils = PathUtils()
+        self._json_utils = JsonUtils()
+        # FUTURE make config file name dynamic
+        self._config: Configuration = Configuration("config.yaml")
+        self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
+        self._model: ModelObject = self._model_utils.get_model_instance()
+        self._formatter: FormatterObject = FormatterFactory(
+            configuration=self._config
+        ).get_formatter(
+            module_name=FormatterUtils(
+                configuration=self._config
+            ).get_desired_formatter_module_name(),
+            class_name=FormatterUtils(
+                configuration=self._config
+            ).get_desired_formatter_class_name(),
+        )
+        self._total_tokens: dict = {"completion": 0, "prompt": 0}
+
+        self._logging_utils.debug(__class__, f"Model: {self._model.get_model_id()}")
+        self._logging_utils.debug(__class__, f"_config: {pformat(self._config)}")
+        self._logging_utils.info(__class__, "Configuration:")
+        self._logging_utils.info(__class__, pformat(str(self._config)))
+
+    def load_model(self):
+        """
+        Load the AI model based on the configuration.
+        """
+
+        self._logging_utils.debug(
+            __class__, f"AI model: {self._model.get_model_name()}"
+        )
+        return self._model_utils.get_model_instance()
+
+    def tree_dumps(self, node) -> str:
+        """
+        Generate a string representation of the source code tree.
+
+        Args:
+            node (SourceCodeNode): The root node of the tree to dump
+
+        Returns:
+            str: A formatted string representation of the tree
+        """
+        self._logging_utils.debug(__name__, "start tree_dumps")
+        self._logging_utils.debug(__name__, f"tree_dumps type(node): {type(node)}")
+        tree_str_parts = []
+        return self._tree_to_str(node, tree_str_parts)
+
+    def _tree_to_str(self, node, tree_str_parts: list[str], prefix="", is_last=True):
+        # pylint: disable=line-too-long
+        """
+        Recursively convert a tree node and its children to a string  with branch-like representation.
+
+        Args:
+            node (SourceCodeNode): The current node to process
+            tree_str_parts (list[str]): List to accumulate string parts
+            prefix (str, optional): Prefix for the current line. Defaults to ""
+            is_last (bool, optional): Whether this is the last child. Defaults to True
+
+        Returns:
+            str: The complete string representation of the tree
+        """
+        # pylint: enable=line-too-long
+
+        self._logging_utils.trace(__class__, "start _tree_to_str")
+        self._logging_utils.debug(__class__, f"_tree_to_str type(node): {type(node)}")
+
+        # Prepare line number and type string
+        location_info = (
+            f" (line {node.source_location[0]})" if node.source_location else ""
+        )
+        type_info = f"[{node.type}]"
+
+        # Prepare prefix for current node
+        connector = "└── " if is_last else "├── "
+        tree_str_parts.append(
+            f"{prefix}{connector}{node.name} {type_info}{location_info}"
+        )
+
+        # Prepare prefix for children
+        child_prefix = prefix + ("    " if is_last else "│   ")
+
+        # Get sorted children to ensure consistent output
+        sorted_children = sorted(node.children.values(), key=lambda x: x.name)
+
+        # Recursively print children
+        for i, child in enumerate(sorted_children):
+            is_child_last = i == len(sorted_children) - 1
+            self._tree_to_str(child, tree_str_parts, child_prefix, is_child_last)
+
+        return "\n".join(tree_str_parts)
+
+    def build_source_tree(self, source_code: str):
+        """
+        Parse and analyze Python source code to build a tree representation.
+
+        Args:
+            source_code (str): The Python source code to analyze
+
+        Returns:
+            SourceCodeNode: The root node of the parsed source tree, or None if parsing fails
+        """
+        # Parse the source code
+        tree_builder = SourceCodeTreeBuilder()
+        try:
+            parsed_ast = ast.parse(source_code)
+            tree_builder.visit(parsed_ast)
+        except SyntaxError as e:
+            self._logging_utils.error(__class__, f"Error parsing source code: {e}")
+            return None
+
+        self._logging_utils.debug(
+            __class__, f"tree_builder.root class: {type(tree_builder.root).__name__}"
+        )
+        return tree_builder.root
+
+    def get_completion_with_retry(self, prompt: str):
+        """
+        Get an AI completion with automatic retry logic.
+
+        Args:
+            messages (list): The messages to send to the AI model
+
+        Returns:
+            str: The AI model's response
+
+        Raises:
+            Exception: If all retry attempts fail
+        """
+        self._logging_utils.trace(__class__, "start get_completion_with_retry")
+        self._logging_utils.debug(__class__, "prompt:")
+        self._logging_utils.debug(__class__, prompt)
+        self._logging_utils.debug(
+            __class__,
+            f"max_llm_retries: {self._model.get_max_llm_retries()}, retry_delay: {self._model.get_retry_delay()}",
+        )
+        self._logging_utils.debug(
+            __class__, f"temperature: {self._model.get_temperature()}"
+        )
+
+        self._total_tokens = {"completion": 0, "prompt": 0}
+        break_llm_loop = False
+        for attempt in range(self._model.get_max_llm_retries()):
+            self._logging_utils.debug_info(
+                __class__,
+                f"Get completion attempt: (attempt {attempt + 1}/{self._model.get_max_llm_retries()})",  # pylint: disable=line-too-long
+            )
+            try:
+                response = self._model.generate_text(prompt=prompt)
+                # self._logging_utils.success(__class__, response)
+
+                self._logging_utils.info(__class__, "LLM response received")
+                self._logging_utils.debug(
+                    __class__, f"LLM Prompt Tokens: {self._model.get_prompt_tokens()}"
+                )
+                self._logging_utils.debug(
+                    __class__,
+                    f"LLM Completion Tokens: {self._model.get_completion_tokens()}",
+                )
+                break_llm_loop = True
+            except ModelError as me:
+                self._logging_utils.error(
+                    __class__,
+                    f"Cannot generate text from model '{self._model.get_model_name()}'. Reason: {me}",
+                )
+                sys.exit(1)
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                self._logging_utils.error(__class__, f"LLM call failed: {str(e)}")
+                if attempt < self._model.get_max_llm_retries() - 1:
+                    self._logging_utils.info(
+                        __class__,
+                        f"Retrying in {self._model.get_retry_delay()} seconds...",
+                    )
+                    time.sleep(self._model.get_retry_delay())
+                else:
+                    self._logging_utils.error(
+                        __class__, "Max retries reached. Giving up."
+                    )
+                    self._logging_utils.debug(
+                        __class__, f"end get_completion_with_retry with exception: {e}"
+                    )
+                    raise e
+
+            # Update token counts
+            self._total_tokens["prompt"] += self._model.get_prompt_tokens()
+            self._logging_utils.debug(
+                __class__,
+                f"total tokens before increment: {self._total_tokens}",
+            )
+            self._logging_utils.debug(
+                __class__,
+                f"model completion tokens: {self._model.get_completion_tokens()}",
+            )
+            self._total_tokens["completion"] += self._model.get_completion_tokens()
+            self._logging_utils.debug(
+                __class__, f"total tokens after increment: {self._total_tokens}"
+            )
+
+            tokens_output = pformat(
+                {
+                    "total_prompt_tokens": self._total_tokens["prompt"],
+                    "total_completion_tokens": self._total_tokens["completion"],
+                }
+            )
+            if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
+                self._logging_utils.debug(__class__, "total tokens:")
+                self._logging_utils.debug(__class__, tokens_output)
+
+            if break_llm_loop:
+                self._logging_utils.debug(__class__, "break_llm_loop is True")
+                self._logging_utils.debug(
+                    __class__, f"total tokens after loop: {self._total_tokens}"
+                )
+                break
+
+        self._logging_utils.trace(__class__, "end get_completion_with_retry")
+
+        return response
+
+    def analyze_source_code_for_decision_points(self, source_code) -> str:
+        """
+        Analyze source code to identify optimal locations for adding trace statements.
+
+        Args:
+            source_code (str): The source code to analyze
+
+        Returns:
+            None
+        """
+        self._logging_utils.trace(
+            __class__, "start analyze_source_code_for_decision_points"
+        )
+
+        prompt = f"""
+Analyze the following Python source code and identify critical locations for adding trace statements.
+Include every critical locations found. Categorize critical locations based on the following priorities.
+
+Priorities:
+{', '.join(self._config.get_value("tracing_priorities", []))}
+
+{'\n'.join(self._config.get_value("clarifications", []))}
+
+For every critical location found, include the following details:
+1. Name of the location function/method.
+2. Fully-qualified name of the containing function/method.
+3. Specific code blocks/lines to trace. Include the function/method name and parent class.
+4. Rationale for tracing
+5. Recommended trace information to capture
+
+Format the output as a JSON array with the following keys:
+- "overall_analysis_summary": A summary of the source code analysis
+- "priorities": for each priority, list the following:
+    - for each critical location found for this priority, include the following keys:
+        - "location_name": Name of the location function/method
+        - "function_name": Fully-qualified name of the function/method
+        - "code_block": Specific code block/line to trace
+        - "rationale": Rationale for tracing
+        - "trace_info": Recommended trace information to capture
+
+Source Code:
+```python
+{source_code}
+```
+"""
+
+        self._logging_utils.info(__class__, "Analyzing code")
+        response = self.get_completion_with_retry(
+            prompt=prompt,
+        )
+        self._logging_utils.info(__class__, "Code analysis complete")
+
+        self._logging_utils.trace(
+            __class__, "end analyze_source_code_for_decision_points"
+        )
+        return response
+
+    def generate_formatted_output(self, response: str):
+        """
+        Generate formatted output based on the provided response.
+
+        Args:
+            response (str): The response from the model
+
+        Returns:
+            None
+        """
+        self._logging_utils.trace(__class__, "start generate_formatted_output")
+        self._logging_utils.debug(__class__, "response:")
+        self._logging_utils.debug(__class__, response)
+
+        # extracted_json = self._json_utils.extract_json(response)
+        # TODO fix
+        extracted_json = self._json_utils.extract_code_blocks(response)
+        self._logging_utils.debug(
+            __class__, f"Extracted code blocks type: {type(extracted_json)}"
+        )
+        self._logging_utils.debug(
+            __class__, f"Extracted code blocks len: {len(extracted_json)}"
+        )
+        self._logging_utils.debug(__class__, f"Extracted json:")
+        self._logging_utils.debug(__class__, extracted_json[0], enable_pformat=True)
+
+        data = self._json_utils.json_loads(json_string=extracted_json[0])
+        data = data[0] if isinstance(data, list) else data
+        self._logging_utils.debug(__class__, "data:")
+        self._logging_utils.debug(__class__, data)
+
+        formatter_inputs = {}
+        formatter_inputs["model_vendor"] = self._model.get_model_vendor()
+        formatter_inputs["model_name"] = self._model.get_model_name()
+
+        response = self._formatter.format_json(data=data, variables=formatter_inputs)
+
+        self._logging_utils.debug(__class__, "end generate_formatted_output")
+        return response
+
+    def process_file(self, input_source_path: str):
+        """
+        Process a single Python source file.
+
+        Args:
+            input_source_path (str): Path to the Python source file
+
+        Returns:
+            bool: True if processing succeeded, None otherwise
+        """
+        self._logging_utils.trace(__class__, "start process_file")
+        self._logging_utils.debug(__class__, f"input_source_path: {input_source_path}")
+        self._logging_utils.error(__class__, "this is sample error output")
+        try:
+            full_code = self._path_utils.get_ascii_file_contents(
+                source_path=input_source_path
+            )
+            self._logging_utils.debug(__class__, f"full_code len: {len(full_code)}")
+            if len(full_code) == 0:
+                self._logging_utils.warning(__class__, "Source file is empty")
+                return
+
+            self._logging_utils.success(
+                __class__, f"\n# Source File: {Path(input_source_path).name}"
+            )
+            self._logging_utils.success(
+                __class__, f"Full file path: '{input_source_path}'"
+            )
+
+            source_tree = self.build_source_tree(source_code=full_code)
+            self._logging_utils.debug(
+                __class__,
+                f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}",  # pylint: disable=line-too-long
+            )
+            if source_tree:
+                self._logging_utils.debug(
+                    __class__, f"source_tree: {type(source_tree).__name__}"
+                )
+                self._logging_utils.success(__class__, "")
+                self._logging_utils.success(__class__, "## Source Code Tree Structure")
+                self._logging_utils.success(__class__, "```")
+                self._logging_utils.success(
+                    __class__, self.tree_dumps(node=source_tree)
+                )
+                self._logging_utils.success(__class__, "```")
+
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            self._logging_utils.error(
+                __class__, f"Failed to build source tree: {str(e)}", exc_info=True
+            )
+            return
+
+        if not source_tree:
+            return
+
+        # self._logging_utils.success(__class__, "")
+        # self._logging_utils.success(
+        #     __class__,
+        #     f"## {self._model.get_model_vendor()} {self._model.get_model_name()} Analysis",
+        # )
+        try:
+            # Analyze the code
+            response = self.analyze_source_code_for_decision_points(full_code)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            self._logging_utils.error(
+                __class__, f"Failed to analyze source code: {str(e)}", exc_info=True
+            )
+            self._logging_utils.trace(__class__, "end process_file (error)")
+            return
+        self._logging_utils.info(__class__, "Analysis complete")
+
+        try:
+            # Format the output
+            response = self.generate_formatted_output(response=response)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            self._logging_utils.error(
+                __class__, f"Failed to format output: {str(e)}", exc_info=True
+            )
+            self._logging_utils.trace(__class__, "end process_file (error)")
+            raise FormatterError("Failed to format output") from e  # type: ignore
+
+        self._logging_utils.success(__class__, response)
+        self._logging_utils.success(__class__, "\n## Summary")
+        self._logging_utils.success(
+            __class__, f"* Total Prompt Tokens: {self._total_tokens['prompt']}"
+        )
+        self._logging_utils.success(
+            __class__,
+            f"* Total Completion Tokens: {self._total_tokens['completion']}",
+        )
+        self._logging_utils.success(
+            __class__, f"* Stop Reason: {self._model.get_stop_reason()}"
+        )
+
+        self._logging_utils.trace(__class__, "end process_file")
+        return
+
+    def process_directory(self, source_path: str) -> None:
+        """
+        Process all Python files in a directory and its subdirectories.
+
+        Args:
+            source_path (str): Path to the directory to process
+
+        Returns:
+            None
+        """
+        self._logging_utils.trace(__class__, "start process_directory")
+        self._logging_utils.debug(__class__, f"source_path: {source_path}")
+        self._logging_utils.info(__class__, f"Process directory '{source_path}'")
+
+        if not Path(source_path).exists():
+            self._logging_utils.error(
+                __class__, f"Source path '{source_path}' does not exist"
+            )
+            self._logging_utils.trace(
+                __class__, "end process_directory path does not exist"
+            )
+            return
+        if not Path(source_path).is_dir():
+            self._logging_utils.error(
+                __class__, f"Source path '{source_path}' is not a directory"
+            )
+            self._logging_utils.trace(
+                __class__, "end process_directory path is not a directory"
+            )
+            return
+
+        for root, dirs, files in Path(source_path).walk():
+            self._logging_utils.debug(__class__, f"root: {root}")
+            self._logging_utils.debug(__class__, f"dirs: {dirs}")
+            self._logging_utils.debug(__class__, f"files: {files}", enable_pformat=True)
+            for file in files:
+                self._logging_utils.debug(__class__, f"file: {file}")
+                if Path(file).suffix == ".py":
+                    self._logging_utils.debug(__class__, "Path(file)")
+                    self._logging_utils.debug(__class__, Path(file))
+                    source_path = f"{root}/{file}"
+                    self.process_file(source_path)
+
+        self._logging_utils.trace(__class__, "end process_directory")
+
+
+def main():
+    # pylint: disable=line-too-long
+    """
+    Main entry point for the source code analyzer.
+    Processes either a single Python file or a directory of Python files based on command line arguments.
+
+    Usage:
+        python script.py source_directory_path|source_file_path
+
+    Returns:
+        None
+    """
+    # pylint: enable=line-too-long
+
+    logging_utils: LoggingUtils = LoggingUtils()
+    # logging_utils.trace(__name__, "start __main__")
+    path_utils: PathUtils = PathUtils()
+    utils = Utilities()
+
+    def usage(script_name: str = "", invalid_args: bool = False, **invalid_arg_values):
+        print(f"Usage: python {script_name} [FILE|DIRECTORY]")
+        print(
+            f"Invalid argument(s): {invalid_arg_values}"
+            if invalid_args
+            else "Analyze the source code in the specified file or directory."
+        )
+        print(
+            """
+Arguments:
+ FILE          Path to an input file
+ DIRECTORY     Path to an input directory"""
+        )
+        if not invalid_args:
+            print(
+                """
+Environment variables:
+    LOG_LEVEL_STDOUT:
+        Sets the level of the logger writing to STDOUT. Preferred values are
+        INFO, SUCCESS, or WARNING. All valid level values are listed below.
+        Default is SUCCESS.
+    LOG_LEVEL_STDERR:
+        Sets the level of the logger writing to STDOUT. Preferred values are
+        TRACE, DEBUG, ERROR, or CRITICAL. All valid level values are listed
+        below. Default is DEBUG.
+    USE_ASSISTANT:
+        The script include experimental functional using the OpenAI Assistant
+        beta feature.  A truthy value enables use of the assistant. Values "1",
+        "true", "yes", "on", "y" are considered truthy. If not set or set to
+        any other value, the default OpenAI analysis is used.
+
+Log Levels:
+    NOTSET:
+        Standard functionality from the Python logging package.
+    TRACE:
+        A custom level for the Python logging package that enables tracing of
+        function entry and exit points.
+    DEBUG:
+        Standard functionality from the Python logging package.
+    INFO:
+        Standard functionality from the Python logging package. Additional
+        progress messages are written to the stdout stream at this level.
+    SUCCESS:
+        A custom level for the Python logging package that enables normal
+        output. This is the preferred level for the stdout stream.
+    WARNING:
+        Standard functionality from the Python logging package. Program
+        warnings are logged to the stdout stream.
+    ERROR:
+        Standard functionality from the Python logging package. This is the
+        preferred level for the stderr stream.
+    CRITICAL:
+        Standard functionality from the Python logging package.
+"""
+            )
+
+    # Check if file path is provided
+    if len(sys.argv) < 2:
+        usage(script_name=sys.argv[0] if len(sys.argv) > 0 else __name__)
+        sys.exit(0)
+    if len(sys.argv) > 2:
+        usage(
+            script_name=sys.argv[0] if len(sys.argv) > 0 else __name__,
+            invalid_args=True,
+            invalid_arg_values=sys.argv[2:] if len(sys.argv) > 2 else ["none"],
+        )
+        sys.exit(1)
+
+    logging_utils.info(__name__, "Starting...")
+
+    use_assistant = utils.is_truthy(os.getenv("USE_ASSISTANT", "false"))
+    logging_utils.info(
+        __name__,
+        f"Using OpenAI with {'code interpreter' if use_assistant else 'no'} assistant",
+    )
+
+    # Initialize the SourceCodeAnalyzerUtils with the configuration
+    analyzer: SourceCodeAnalyzer = SourceCodeAnalyzer()
+
+    # Analyze the source code
+    source_path = sys.argv[1]
+    logging_utils.debug(__name__, f"source_path: {source_path}")
+
+    if path_utils.is_file(source_path):
+        logging_utils.debug(__name__, "Path(source_path)")
+        logging_utils.debug(__name__, Path(source_path))
+        analyzer.process_file(source_path)
+    else:
+        if path_utils.is_dir(source_path):
+            analyzer.process_directory(source_path)
+        else:
+            logging_utils.error(
+                __name__,
+                f"Source path '{source_path}' is neither a file nor a directory",
+            )
+
+    logging_utils.debug(__name__, "end __main__")
+
+
+if __name__ == "__main__":
+    main()

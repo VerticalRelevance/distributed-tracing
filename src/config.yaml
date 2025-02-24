@@ -1,0 +1,65 @@
+aws:
+  region: us-west-2
+
+tracing_priorities:
+  - Message Bus with Amazon SQS
+  - Conditional Branches
+  - Exception Handling Blocks
+  - Function Entry/Exit Points
+  - Complex Algorithm Sections
+  - Performance-Critical Code Paths
+  - State Changes
+  - External Resource Interactions
+
+formatter:
+  class:
+    name: CodedJsonToMarkdownFormatter
+  module:
+    name: coded_json_to_markdown_formatter
+
+formatter_iterative_markdown_formatter:
+  class:
+    name: IterativeMarkdownFormatter
+  module:
+    name: iterative_json_to_markdown_formatter
+
+ai_model:
+  max_llm_retries: 2
+  retry_delay: 4
+  temperature: 0.1
+  custom:
+    max_tokens: 2048
+  class:
+    name: AnthropicClaude3Sonnet20240229V1
+  module:
+    name: anthropic_claude_3_sonnet_20240229_v1_0
+
+ai_model_keep_anthropic_claude3_sonnet:
+  #
+  # This section is not used, but is a holding area for
+  # specific model configuration
+  #
+  max_llm_retries: 2
+  retry_delay: 4
+  temperature: 0.1
+  custom:
+    max_tokens: 2048
+  class:
+    name: AnthropicClaude3Sonnet20240229V1
+  module:
+    name: anthropic_claude_3_sonnet_20240229_v1_0
+
+ai_model_keep_meta_llama:
+  #
+  # This section is not used, but is a holding area for
+  # specific model configuration
+  #
+  max_llm_retries: 2
+  retry_delay: 4
+  temperature: 0.0
+  custom:
+    max_gen_len: 6134
+  class:
+    name: MetaLlama3_2_3b_InstructV1_0
+  module:
+    name: meta_llama3_2_3b_instruct_v1_0
