@@ -238,6 +238,7 @@ class SourceCodeAnalyzer:
                 configuration=self._config
             ).get_desired_formatter_class_name(),
         )
+        self._total_tokens: dict = {"completion": 0, "prompt": 0}
 
         self._logging_utils.debug(__class__, f"Model: {self._model.get_model_id()}")
         self._logging_utils.debug(__class__, f"_config: {pformat(self._config)}")
@@ -361,7 +362,7 @@ class SourceCodeAnalyzer:
             __class__, f"temperature: {self._model.get_temperature()}"
         )
 
-        total_tokens = {"completion": 0, "prompt": 0}
+        self._total_tokens = {"completion": 0, "prompt": 0}
         break_llm_loop = False
         for attempt in range(self._model.get_max_llm_retries()):
             self._logging_utils.debug_info(
@@ -405,24 +406,24 @@ class SourceCodeAnalyzer:
                     raise e
 
             # Update token counts
-            total_tokens["prompt"] += self._model.get_prompt_tokens()
+            self._total_tokens["prompt"] += self._model.get_prompt_tokens()
             self._logging_utils.debug(
                 __class__,
-                f"total tokens before increment: {total_tokens}",
+                f"total tokens before increment: {self._total_tokens}",
             )
             self._logging_utils.debug(
                 __class__,
                 f"model completion tokens: {self._model.get_completion_tokens()}",
             )
-            total_tokens["completion"] += self._model.get_completion_tokens()
+            self._total_tokens["completion"] += self._model.get_completion_tokens()
             self._logging_utils.debug(
-                __class__, f"total tokens after increment: {total_tokens}"
+                __class__, f"total tokens after increment: {self._total_tokens}"
             )
 
             tokens_output = pformat(
                 {
-                    "total_prompt_tokens": total_tokens["prompt"],
-                    "total_completion_tokens": total_tokens["completion"],
+                    "total_prompt_tokens": self._total_tokens["prompt"],
+                    "total_completion_tokens": self._total_tokens["completion"],
                 }
             )
             if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
@@ -432,18 +433,7 @@ class SourceCodeAnalyzer:
             if break_llm_loop:
                 self._logging_utils.debug(__class__, "break_llm_loop is True")
                 self._logging_utils.debug(
-                    __class__, f"total tokens after loop: {total_tokens}"
-                )
-                self._logging_utils.success(__class__, "\n## Summary")
-                self._logging_utils.success(
-                    __class__, f"* Total Prompt Tokens: {total_tokens['prompt']}"
-                )
-                self._logging_utils.success(
-                    __class__,
-                    f"* Total Completion Tokens: {total_tokens['completion']}",
-                )
-                self._logging_utils.success(
-                    __class__, f"* Stop Reason: {self._model.get_stop_reason()}"
+                    __class__, f"total tokens after loop: {self._total_tokens}"
                 )
                 break
 
@@ -617,6 +607,7 @@ Source Code:
             )
             self._logging_utils.trace(__class__, "end process_file (error)")
             return
+        self._logging_utils.info(__class__, "Analysis complete")
 
         try:
             # Format the output
@@ -629,7 +620,17 @@ Source Code:
             raise FormatterError("Failed to format output") from e  # type: ignore
 
         self._logging_utils.success(__class__, response)
-        self._logging_utils.info(__class__, "Analysis complete")
+        self._logging_utils.success(__class__, "\n## Summary")
+        self._logging_utils.success(
+            __class__, f"* Total Prompt Tokens: {self._total_tokens['prompt']}"
+        )
+        self._logging_utils.success(
+            __class__,
+            f"* Total Completion Tokens: {self._total_tokens['completion']}",
+        )
+        self._logging_utils.success(
+            __class__, f"* Stop Reason: {self._model.get_stop_reason()}"
+        )
 
         self._logging_utils.trace(__class__, "end process_file")
         return
