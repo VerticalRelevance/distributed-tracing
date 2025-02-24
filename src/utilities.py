@@ -15,7 +15,7 @@ Classes:
     CtxMgrUtils: Context manager utilities for timing operations
     LoggingUtils: Comprehensive logging functionality with stdout/stderr support
     DirUtils: File and directory management operations
-    Utilities: General utility methods for serialization and environment handling
+    GenericUtils: General utility methods for serialization and environment handling
 """
 
 import sys
@@ -347,7 +347,7 @@ class PathUtils:
         """
         Creates and returns a singleton instance of the PathUtils class.
 
-        This method ensures that only one instance of the Utilities class is created
+        This method ensures that only one instance of the PathUtils class is created
         throughout the application, implementing the singleton design pattern.
 
         Parameters:
@@ -356,7 +356,7 @@ class PathUtils:
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
-            PathUtils: The singleton instance of the Utilities class.
+            PathUtils: The singleton instance of the PathUtils class.
         """
         if not cls._instance:
             cls._instance = super().__new__(cls)
@@ -452,7 +452,7 @@ class PathUtils:
         return source_code
 
 
-class Utilities:
+class GenericUtils:
     """
     A singleton class providing file and directory management utilities.
 
@@ -464,9 +464,9 @@ class Utilities:
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Creates and returns a singleton instance of the Utilities class.
+        Creates and returns a singleton instance of the GenericUtils class.
 
-        This method ensures that only one instance of the Utilities class is created
+        This method ensures that only one instance of the GenericUtils class is created
         throughout the application, implementing the singleton design pattern.
 
         Parameters:
@@ -475,7 +475,7 @@ class Utilities:
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
-            Utilities: The singleton instance of the Utilities class.
+            Utilities: The singleton instance of the GenericUtils class.
         """
         if not cls._instance:
             cls._instance = super().__new__(cls)
@@ -511,7 +511,7 @@ class Utilities:
             bool: True if the value is considered truthy, False otherwise.
 
         Examples:
-            >>> utils = Utilities()
+            >>> utils = GenericUtils()
             >>> utils.is_truthy("1")
             True
             >>> utils.is_truthy("true")
@@ -572,7 +572,7 @@ class ModelUtils:
         Returns:
             ModelObject: The model instance.
         """
-        utils = Utilities()
+        utils = GenericUtils()
         model_class = utils.load_class(
             "." + self.get_desired_model_module_name(),
             self.get_desired_model_class_name(),
@@ -587,7 +587,7 @@ class ModelUtils:
     #     Returns:
     #         ModelObject: The model instance.
     #     """
-    #     utils = Utilities()
+    #     utils = GenericUtils()
     #     model_class = utils.load_class(
     #         "models." + self.get_desired_model_module_name(),
     #         self.get_desired_model_class_name(),
@@ -698,7 +698,7 @@ class JsonUtils:
             TypeError: If the input object is not a datetime object.
 
         Example:
-            >>> utils = Utilities()
+            >>> utils = JsonUtils()
             >>> dt = datetime(2022, 1, 1, 12, 0, 0)
             >>> iso_string = utils.handle_datetime_serialization(dt)
             >>> print(iso_string)
