@@ -271,15 +271,15 @@ class LoggingUtils:
         Returns:
             logging.Logger: A configured logger for standard output.
         """
-        logger = logging.getLogger(f"{name}.stdout")
+        logger: logging.logger = logging.getLogger(f"{name}.stdout")
         if not logger.handlers:
             logger_level = os.getenv("LOG_LEVEL_STDOUT", "SUCCESS").upper()
             self.debug(__class__, f"setting stdout logger level to {logger_level}")
             logger.setLevel(logger_level)
-            console_handler = logging.StreamHandler(stream=sys.stdout)
+            console_handler: logging.Handler = logging.StreamHandler(stream=sys.stdout)
             console_handler.setLevel(logger_level)
 
-            formatter = logging.Formatter("%(message)s")
+            formatter: logging.Formatter = logging.Formatter("%(message)s")
             console_handler.setFormatter(formatter)
 
             logger.addHandler(console_handler)
