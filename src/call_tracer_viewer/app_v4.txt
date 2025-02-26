@@ -1,0 +1,37 @@
+I can see the issue in your code. The error occurs because `st.experimental_rerun()` has been deprecated in newer versions of Streamlit and was replaced with just `st.rerun()`.
+
+Here's how to fix your code:
+
+```python
+# Replace all instances of st.experimental_rerun() with st.rerun()
+```
+
+Specifically, you need to make the following changes:
+
+1. In the `display_json_node` function:
+   ```python
+   if col1.button("➖", key=f"btn_{current_path}"):
+       expanded_paths[current_path] = False
+       st.rerun()  # Changed from st.experimental_rerun()
+   ```
+   and
+   ```python
+   if col1.button("➕", key=f"btn_{current_path}"):
+       expanded_paths[current_path] = True
+       st.rerun()  # Changed from st.experimental_rerun()
+   ```
+
+2. In the `main` function:
+   ```python
+   if st.sidebar.button("Expand all nodes"):
+       st.session_state.expand_all = True
+       st.rerun()  # Changed from st.experimental_rerun()
+   ```
+   and
+   ```python
+   if st.sidebar.button("Collapse all nodes"):
+       st.session_state.expanded_paths = {}
+       st.rerun()  # Changed from st.experimental_rerun()
+   ```
+
+This change will make your code compatible with the current version of Streamlit. The `experimental_rerun()` function was renamed to just `rerun()` when it moved out of experimental status.
