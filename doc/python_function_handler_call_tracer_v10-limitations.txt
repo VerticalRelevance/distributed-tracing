@@ -1,0 +1,170 @@
+User: when I run the script just generated against a file that contains import logging and lines
+            console_handler: logging.Handler = logging.StreamHandler(stream=sys.stdout)
+            console_handler.setLevel(logger_level)
+the console_handler is reported as external/unresolved with no other qualifier. why does this not show up as imported from logging?
+Model: You're right, there's an issue with how the script handles method calls on objects that are created from imported modules. Let me analyze the problem and fix it:
+
+The issue is in how the script tracks method calls on objects created from imported modules. When you have code like:
+
+```python
+console_handler: logging.Handler = logging.StreamHandler(stream=sys.stdout)
+console_handler.setLevel(logger_level)
+```
+
+The script correctly identifies `logging.StreamHandler()` as a call from the logging module, but when you call `console_handler.setLevel()`, it doesn't recognize that `console_handler` is an instance of a class from the logging module.
+
+Let's modify the script to better track these relationships. Here's the fix:
+
+```python
+def trace_calls(self, file_path: str, function_name: str, indent: int = 0) -> None:
+    # ... existing code ...
+
+    for call in calls:
+        # Check if this is a built-in function
+        if call in self.builtin_functions:
+            # ... existing code for built-ins ...
+
+        # For method calls within a class, we need to qualify them
+        if "." in function_name and not "." in call:
+            # ... existing code for class methods ...
+
+        # Check if the call exists in the current file
+        call_def, call_source = self.find_function_in_file(actual_file, call)
+        if call_def:
+            # ... existing code for local calls ...
+        else:
+            # Check if this is a call on an imported object
+            source_obj = call_sources.get(call)
+            library_info = ""
+            package_name = ""
+
+            # Check if the source object is a built-in module
+            if source_obj in self.standard_library_modules:
+                # ... existing code for standard library modules ...
+
+            # Check if the source object is from an imported module
+            if source_obj:
+                # First check if it's directly an imported module
+                if source_obj in import_aliases:
+                    package_name = import_aliases[source_obj]
+                    library_info = f" (imported from {package_name})"
+                elif source_obj in imports:
+                    package_name = imports[source_obj].split(".")[0]
+                    library_info = f" (imported from {package_name})"
+                else:
+                    # Check if it's a variable that was assigned from an imported module
+                    # This is a simplified approach - in a real solution we would need to track variable assignments
+                    for var_name, var_source in call_sources.items():
+                        if var_name == source_obj and var_source in imports:
+                            package_name = imports[var_source].split(".")[0]
+                            library_info = f" (imported from {package_name})"
+                            break
+                        elif var_name == source_obj and var_source in import_aliases:
+                            package_name = import_aliases[var_source]
+                            library_info = f" (imported from {package_name})"
+                            break
+
+                # If it's a standard library module
+                if not package_name and source_obj in self.standard_library_modules:
+                    package_name = source_obj
+                    library_info = f" (imported from {package_name})"
+
+            # Search for the call in other files in the same directory
+            call_file = self.find_file_for_function(
+                call, os.path.dirname(actual_file)
+            )
+
+            if call_file:
+                # ... existing code for local file calls ...
+            else:
+                # Check if this is a method call on an object
+                if source_obj:
+                    # ... existing code for method calls on objects ...
+
+                    # Add this check for methods on imported objects
+                    if not library_info and source_obj in call_sources:
+                        # Check if the object itself was created from an imported module
+                        obj_source = call_sources.get(source_obj)
+                        if obj_source in imports:
+                            package_name = imports[obj_source].split(".")[0]
+                            library_info = f" (imported from {package_name})"
+                        elif obj_source in import_aliases:
+                            package_name = import_aliases[obj_source]
+                            library_info = f" (imported from {package_name})"
+
+                    # Format the call with package name if available
+                    # ... existing code for formatting ...
+                else:
+                    # ... existing code for direct imports ...
+```
+
+However, this is still a partial solution. The real issue is more complex because we need to track variable assignments throughout the code to know that `console_handler` is an instance of `logging.Handler`.
+
+For a complete solution, we would need to:
+
+1. Track variable assignments in the code
+2. Keep track of the types/modules of each variable
+3. When a method is called on a variable, check its origin module
+
+This requires a more sophisticated static analysis that's beyond the scope of a simple modification. The current script doesn't track variable assignments and their types.
+
+For your specific case with `console_handler.setLevel()`, a more targeted fix would be to modify the `FunctionCallVisitor` class to better track the origins of objects:
+
+```python
+class FunctionCallVisitor(ast.NodeVisitor):
+    """AST visitor to collect function calls within a function or method."""
+
+    def __init__(self):
+        self.calls = []
+        self.call_sources = {}  # Maps function calls to their source objects
+        self.variable_sources = {}  # Maps variables to their source modules
+
+    def visit_Assign(self, node):
+        # Track variable assignments
+        if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute):
+            if isinstance(node.value.func.value, ast.Name):
+                # Case like: var = module.function()
+                module_name = node.value.func.value.id
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        self.variable_sources[target.id] = module_name
+        self.generic_visit(node)
+
+    def visit_AnnAssign(self, node):
+        # Track annotated assignments
+        if node.value and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute):
+            if isinstance(node.value.func.value, ast.Name):
+                # Case like: var: Type = module.function()
+                module_name = node.value.func.value.id
+                if isinstance(node.target, ast.Name):
+                    self.variable_sources[node.target.id] = module_name
+        self.generic_visit(node)
+
+    def visit_Call(self, node):
+        # Get the name of the function being called
+        if isinstance(node.func, ast.Name):
+            # Direct function call: function_name()
+            self.calls.append(node.func.id)
+            self.call_sources[node.func.id] = None
+        elif isinstance(node.func, ast.Attribute):
+            # Method call: object.method()
+            if isinstance(node.func.value, ast.Name):
+                # Store the object name as the source
+                self.calls.append(node.func.attr)
+                self.call_sources[node.func.attr] = node.func.value.id
+
+                # Check if we know the source module of this object
+                if node.func.value.id in self.variable_sources:
+                    # This links the method call to the original module
+                    self.call_sources[node.func.attr] = self.variable_sources[node.func.value.id]
+            else:
+                self.calls.append(node.func.attr)
+                self.call_sources[node.func.attr] = None
+
+        # Continue visiting child nodes
+        self.generic_visit(node)
+```
+
+However, implementing this properly would require significant changes to the script's architecture to track variable assignments and their types throughout the code. This is a complex task that would require a more comprehensive static analysis approach.
+
+For your specific case with `console_handler.setLevel()`, the simplest workaround might be to add a special case in the `trace_calls` method to recognize common patterns like this, but a general solution would require a more sophisticated approach to static analysis.
