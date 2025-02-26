@@ -21,6 +21,18 @@ class FunctionCallVisitor(ast.NodeVisitor):
         self.variable_sources = {}  # Maps variables to their source modules
 
     def visit_Assign(self, node):
+        """
+        Visit an assignment node to track variable assignments from module
+        function calls.
+
+        This method identifies assignments where a variable is assigned the
+        result of a function call from a module (e.g., var = module.function()).
+        It maps the variable name to the module name in the variable_sources
+        dictionary for later reference.
+
+        Args:
+            node (ast.Assign): The assignment node to visit.
+        """
         # Track variable assignments
         if isinstance(node.value, ast.Call) and isinstance(
             node.value.func, ast.Attribute
