@@ -382,8 +382,26 @@ class SourceCodeAnalyzer:
                     __class__,
                     f"LLM Completion Tokens: {self._model.get_completion_tokens()}",
                 )
+                self._logging_utils.debug(
+                    __class__, f"stop reason: {self._model.get_stop_reason()}"
+                )
+                if self._model.get_stop_reason() == "max_tokens":
+                    self._logging_utils.warning(
+                        f"Max completion token limit {self._model.get_max_completion_tokens()} exceeded."
+                    )
+                    raise ModelMaxTokenLimitException(
+                        max_token_limit=self._model.get_max_completion_tokens(),
+                        prompt_tokens=self._model.get_prompt_tokens(),
+                        completion_tokens=self._model.get_completion_tokens(),
+                    )
+                self._logging_utils.debug(__class__, "setting break_llm_loop to True")
                 break_llm_loop = True
+            except ModelMaxTokenLimitException as mmtle:
+                raise Exception from mmtle
             except ModelError as me:
+                self._logging_utils.debug(__class__, f"ModelError class: {type(me)}")
+                if isinstance(me, ModelMaxTokenLimitException):
+                    continue
                 self._logging_utils.error(
                     __class__,
                     f"Cannot generate text from model '{self._model.get_model_name()}'. Reason: {me}",
@@ -437,16 +455,6 @@ class SourceCodeAnalyzer:
                     __class__, f"total tokens after loop: {self._total_tokens}"
                 )
                 break
-
-        self._logging_utils.debug(
-            __class__, f"stop reason: {self._model.get_stop_reason()}"
-        )
-        if self._model.get_stop_reason() == "max_tokens":
-            raise ModelMaxTokenLimitException(
-                max_token_limit=self._model.get_max_completion_tokens(),
-                prompt_tokens=self._model.get_prompt_tokens(),
-                completion_tokens=self._model.get_completion_tokens(),
-            )
 
         self._logging_utils.trace(__class__, "end get_completion_with_retry")
 
