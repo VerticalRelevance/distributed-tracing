@@ -12,16 +12,17 @@ from pathlib import Path
 import logging
 import ast
 from pprint import pformat
+from typing import Generic
 from configuration import Configuration
 from utilities import (
     JsonUtils,
     LoggingUtils,
     ModelUtils,
     PathUtils,
-    Utilities,
+    GenericUtils,
     FormatterUtils,
 )
-from models.model import ModelError, ModelObject
+from models.model import ModelError, ModelObject, ModelMaxTokenLimitException
 from formatters.formatter import (
     FormatterError,
     FormatterObject,
@@ -220,7 +221,7 @@ class SourceCodeAnalyzer:
         """
         Initialize the SourceCodeAnalyzer with required dependencies.
         """
-        self._utils: Utilities = Utilities()
+        self._generic_utils: GenericUtils = GenericUtils()
         self._logging_utils = LoggingUtils()
         self._path_utils = PathUtils()
         self._json_utils = JsonUtils()
@@ -436,6 +437,16 @@ class SourceCodeAnalyzer:
                     __class__, f"total tokens after loop: {self._total_tokens}"
                 )
                 break
+
+        self._logging_utils.debug(
+            __class__, f"stop reason: {self._model.get_stop_reason()}"
+        )
+        if self._model.get_stop_reason() == "max_tokens":
+            raise ModelMaxTokenLimitException(
+                max_token_limit=self._model.get_max_completion_tokens(),
+                prompt_tokens=self._model.get_prompt_tokens(),
+                completion_tokens=self._model.get_completion_tokens(),
+            )
 
         self._logging_utils.trace(__class__, "end get_completion_with_retry")
 
@@ -698,7 +709,7 @@ def main():
     logging_utils: LoggingUtils = LoggingUtils()
     # logging_utils.trace(__name__, "start __main__")
     path_utils: PathUtils = PathUtils()
-    utils = Utilities()
+    generic_utils = GenericUtils()
 
     def usage(script_name: str = "", invalid_args: bool = False, **invalid_arg_values):
         print(f"Usage: python {script_name} [FILE|DIRECTORY]")
@@ -770,7 +781,7 @@ Log Levels:
 
     logging_utils.info(__name__, "Starting...")
 
-    use_assistant = utils.is_truthy(os.getenv("USE_ASSISTANT", "false"))
+    use_assistant = generic_utils.is_truthy(os.getenv("USE_ASSISTANT", "false"))
     logging_utils.info(
         __name__,
         f"Using OpenAI with {'code interpreter' if use_assistant else 'no'} assistant",

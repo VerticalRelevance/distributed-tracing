@@ -1,5 +1,5 @@
 import json
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, TokenRetrievalError
 from configuration import Configuration
 from models.model import ModelObject, ModelError
 
@@ -20,15 +20,17 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             in Python source code tracing, with emphasis on identifying critical trace points.
             """
         messages = [{"role": "user", "content": prompt}]
-        max_tokens = self.get_model_custom_value(
+        self._max_completion_tokens = self.get_model_custom_value(
             "max_tokens", expected_type=int, expected_min=0, expected_max=134144
         )
         self._logging_utils.debug(__class__, f"system_prompt: {system_prompt}")
-        self._logging_utils.debug(__class__, f"max_tokens: {max_tokens}")
+        self._logging_utils.debug(
+            __class__, f"max_tokens: {self._max_completion_tokens}"
+        )
         request = json.dumps(
             {
                 "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": max_tokens,
+                "max_tokens": self._max_completion_tokens,
                 "system": system_prompt,
                 "messages": messages,
             }
@@ -41,6 +43,17 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             response = client.invoke_model(modelId=self.get_model_id(), body=request)
             self._logging_utils.debug(__class__, "response:")
             self._logging_utils.debug(__class__, response, enable_pformat=True)
+        except TokenRetrievalError as tre:  # expired or otherwise invalid AWS token
+            # TODO complete this logic
+            print(f"tre: {str(tre)}")
+            print("tre structure:")
+            print(tre.__dict__)
+            # error_code = tre.response["Error"]["Code"]
+            # self._logging_utils.trace(
+            #     __class__,
+            #     f"end generate_text with TokenRetrievalError error ({error_code}): {str(tre)}",
+            # )
+            raise ModelError(f"TokenRetrievalError error: {str(tre)}") from tre
         except ClientError as ce:
             error_code = ce.response["Error"]["Code"]
             self._logging_utils.trace(
