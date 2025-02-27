@@ -13,6 +13,18 @@ class ModelError(Exception):
         super().__init__(self.message)
 
 
+class ModelMaxTokenLimitException(ModelError):
+
+    def __init__(
+        self, max_token_limit: int, prompt_tokens: int, completion_tokens: int
+    ):
+        self._max_token_limit = max_token_limit
+        self._prompt_tokens = prompt_tokens
+        self._completion_tokens = completion_tokens
+        self.message = f"Max tokens limit of {max_token_limit} exceeded. Number of prompt tokens: {prompt_tokens}, completion tokens: {completion_tokens}"
+        super().__init__(self.message)
+
+
 class ModelObject:
     def __init__(self, configuration: Configuration) -> None:
         self._config = configuration
@@ -24,6 +36,7 @@ class ModelObject:
         self._completion_tokens = 0
         self._prompt_tokens = 0
         self._stop_reason = None
+        self._max_completion_tokens = None
 
     def generate_text(self, prompt: str) -> str:
         pass
@@ -151,6 +164,9 @@ class ModelObject:
     def reset_tokens(self) -> None:
         self.set_completion_tokens(value=0)
         self.set_prompt_tokens(value=0)
+
+    def get_max_completion_tokens(self) -> int:
+        return self._max_completion_tokens
 
     def get_model_id(self) -> str:
         pass

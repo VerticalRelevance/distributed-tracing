@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from utilities import LoggingUtils, JsonUtils, Utilities
+from utilities import LoggingUtils, JsonUtils, GenericUtils
 from configuration import Configuration
 from typing import Dict
 
@@ -25,7 +25,7 @@ class FormatterObject(ABC):
 
         self._logging_utils = LoggingUtils()
         self._json_utils = JsonUtils()
-        self._utils = Utilities()
+        self._generic_utils = GenericUtils()
         self._config = configuration
 
     @abstractmethod
@@ -59,14 +59,14 @@ class FormatterFactory:
         return cls._instance
 
     def __init__(self, configuration: Configuration):
-        self._utils = Utilities()
+        self._generic_utils = GenericUtils()
         self._config = configuration
 
     def get_formatter(self, module_name: str, class_name: str) -> FormatterObject:
         """
         Retrieves a formatter instance based on the provided module name, class name, and package name.
 
-        This method uses the Utilities class to load the specified class from the given module and
+        This method uses the GenericUtils class to load the specified class from the given module and
         package. It then creates and returns an instance of the loaded class.
 
         Parameters:
@@ -86,7 +86,7 @@ class FormatterFactory:
         #     file=sys.stderr,
         # )
 
-        formatter_class = self._utils.load_class(
+        formatter_class = self._generic_utils.load_class(
             module_name="formatters." + module_name,
             # module_name=module_name,
             class_name=class_name,
