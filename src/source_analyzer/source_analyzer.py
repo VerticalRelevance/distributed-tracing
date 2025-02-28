@@ -230,7 +230,7 @@ class SourceCodeAnalyzer:
         self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
         self._model: ModelObject = self._model_utils.get_model_instance()
         self._formatter: FormatterObject = FormatterFactory(
-            configuration=self._config
+            config_dict=self._config.items()
         ).get_formatter(
             module_name=FormatterUtils(
                 configuration=self._config
@@ -493,6 +493,7 @@ For every critical location found, include the following details:
 Format the output as a JSON array with the following keys:
 - "overall_analysis_summary": A summary of the source code analysis
 - "priorities": for each priority, list the following:
+    - the priority
     - for each critical location found for this priority, include the following keys:
         - "location_name": Name of the location function/method
         - "function_name": Fully-qualified name of the function/method

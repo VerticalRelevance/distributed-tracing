@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from utilities import LoggingUtils, JsonUtils, GenericUtils
-from configuration import Configuration
 from typing import Dict
 
 
@@ -13,7 +12,7 @@ class FormatterError(Exception):
 
 
 class FormatterObject(ABC):
-    def __init__(self, configuration: Configuration):
+    def __init__(self, config_dict: Dict[str, str]):
         """
         Initializes a new instance of the JsonToMarkdownFormatter class.
 
@@ -26,7 +25,7 @@ class FormatterObject(ABC):
         self._logging_utils = LoggingUtils()
         self._json_utils = JsonUtils()
         self._generic_utils = GenericUtils()
-        self._config = configuration
+        self._config_dict = config_dict
 
     @abstractmethod
     def format_json(self, data: Dict[str, str], variables: Dict[str, str] = None):
@@ -58,9 +57,9 @@ class FormatterFactory:
             # print("Configuration.__new__", file=sys.stderr)
         return cls._instance
 
-    def __init__(self, configuration: Configuration):
+    def __init__(self, config_dict: Dict[str, str]):
         self._generic_utils = GenericUtils()
-        self._config = configuration
+        self._config_dict = config_dict
 
     def get_formatter(self, module_name: str, class_name: str) -> FormatterObject:
         """
@@ -92,4 +91,4 @@ class FormatterFactory:
             class_name=class_name,
             package_name="formatters",
         )
-        return formatter_class(configuration=self._config)
+        return formatter_class(config_dict=self._config_dict)
