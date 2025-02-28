@@ -20,12 +20,6 @@ formatter:
     name: jinja2_json_to_markdown_formatter.jinja2
     path: formatters
 
-formatter_iterative_markdown_formatter:
-  class:
-    name: IterativeMarkdownFormatter
-  module:
-    name: iterative_json_to_markdown_formatter
-
 formatter_coded:
   class:
     name: CodedJsonToMarkdownFormatter
