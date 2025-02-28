@@ -12,7 +12,6 @@ from pathlib import Path
 import logging
 import ast
 from pprint import pformat
-from typing import Generic
 from configuration import Configuration
 from utilities import (
     JsonUtils,
@@ -27,7 +26,6 @@ from formatters.formatter import (
     FormatterError,
     FormatterObject,
     FormatterFactory,
-    FormatterError,
 )
 
 
