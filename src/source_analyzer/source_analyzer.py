@@ -396,7 +396,7 @@ class SourceCodeAnalyzer:
                 break_llm_loop = True
             except ModelMaxTokenLimitException as mmtle:
                 raise Exception from mmtle
-            except ModelError as me:
+            except ModelError as me:  # pylint: disable=broad-exception-raised)
                 self._logging_utils.debug(__class__, f"ModelError class: {type(me)}")
                 if isinstance(me, ModelMaxTokenLimitException):
                     continue

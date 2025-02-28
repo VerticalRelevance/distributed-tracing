@@ -54,7 +54,6 @@ class FormatterFactory:
         """
         if not cls._instance:
             cls._instance = super().__new__(cls)
-            # print("Configuration.__new__", file=sys.stderr)
         return cls._instance
 
     def __init__(self, config_dict: Dict[str, str]):
@@ -80,11 +79,6 @@ class FormatterFactory:
             ImportError: If the specified module or class cannot be imported.
             AttributeError: If the specified class is not found in the module.
         """
-        # print(
-        #     f"module_name: {module_name}, class_name: {class_name}, package_name: {package_name}",
-        #     file=sys.stderr,
-        # )
-
         formatter_class = self._generic_utils.load_class(
             module_name="formatters." + module_name,
             # module_name=module_name,
