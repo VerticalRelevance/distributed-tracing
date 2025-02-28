@@ -539,7 +539,7 @@ Source Code:
         self._logging_utils.debug(
             __class__, f"Extracted code blocks len: {len(extracted_json)}"
         )
-        self._logging_utils.debug(__class__, f"Extracted json:")
+        self._logging_utils.debug(__class__, "Extracted json:")
         self._logging_utils.debug(__class__, extracted_json[0], enable_pformat=True)
 
         data = self._json_utils.json_loads(json_string=extracted_json[0])

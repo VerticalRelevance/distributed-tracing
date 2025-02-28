@@ -56,9 +56,15 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         output_strings.append(data.get("overall_analysis_summary"))
 
         priorities: dict = data.get("priorities", {})
-        self._logging_utils.debug(__class__, f"type(priorities): {type(priorities)}")
         self._logging_utils.debug(
-            __name__, f"priorities keys: {priorities.keys()}", enable_pformat=True
+            __class__, f"type(data.get('priorities'): {type(priorities)}"
+        )
+        self._logging_utils.debug(
+            __name__, f"priorities: {priorities}", enable_pformat=True
+        )
+        self._logging_utils.debug(
+            __class__,
+            f"type(self._config_dict('tracing_priorities')): {type(self._config_dict('tracing_priorities'))}",
         )
         for priority in self._config_dict.get("tracing_priorities"):
             output_strings.append("")
