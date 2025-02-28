@@ -1,0 +1,24 @@
+## {{ model_vendor }} {{ model_name }} Analysis
+{{ overall_analysis_summary}}
+
+{% for priority_item in priorities -%}
+
+### {{ priority_item.priority }}
+{% if priority_item.critical_locations -%}
+{% for location in priority_item.critical_locations -%}
+
+#### {{ location.function_name }}
+- **Specific code blocks/lines to trace:**
+```python
+{{ location.code_block }}
+```
+- **Rationale for tracing:** {{ location.rationale }}
+- **Recommended trace information to capture:** {{ location.trace_info }}
+
+{% endfor -%}
+{% else -%}
+
+No critical findings for this priority.
+
+{% endif -%}
+{% endfor -%}

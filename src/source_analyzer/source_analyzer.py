@@ -12,7 +12,6 @@ from pathlib import Path
 import logging
 import ast
 from pprint import pformat
-from typing import Generic
 from configuration import Configuration
 from utilities import (
     JsonUtils,
@@ -27,7 +26,6 @@ from formatters.formatter import (
     FormatterError,
     FormatterObject,
     FormatterFactory,
-    FormatterError,
 )
 
 
@@ -230,7 +228,7 @@ class SourceCodeAnalyzer:
         self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
         self._model: ModelObject = self._model_utils.get_model_instance()
         self._formatter: FormatterObject = FormatterFactory(
-            configuration=self._config
+            config_dict=self._config.items()
         ).get_formatter(
             module_name=FormatterUtils(
                 configuration=self._config
@@ -382,8 +380,26 @@ class SourceCodeAnalyzer:
                     __class__,
                     f"LLM Completion Tokens: {self._model.get_completion_tokens()}",
                 )
+                self._logging_utils.debug(
+                    __class__, f"stop reason: {self._model.get_stop_reason()}"
+                )
+                if self._model.get_stop_reason() == "max_tokens":
+                    self._logging_utils.warning(
+                        f"Max completion token limit {self._model.get_max_completion_tokens()} exceeded."
+                    )
+                    raise ModelMaxTokenLimitException(
+                        max_token_limit=self._model.get_max_completion_tokens(),
+                        prompt_tokens=self._model.get_prompt_tokens(),
+                        completion_tokens=self._model.get_completion_tokens(),
+                    )
+                self._logging_utils.debug(__class__, "setting break_llm_loop to True")
                 break_llm_loop = True
-            except ModelError as me:
+            except ModelMaxTokenLimitException as mmtle:
+                raise Exception from mmtle
+            except ModelError as me:  # pylint: disable=broad-exception-raised)
+                self._logging_utils.debug(__class__, f"ModelError class: {type(me)}")
+                if isinstance(me, ModelMaxTokenLimitException):
+                    continue
                 self._logging_utils.error(
                     __class__,
                     f"Cannot generate text from model '{self._model.get_model_name()}'. Reason: {me}",
@@ -438,16 +454,6 @@ class SourceCodeAnalyzer:
                 )
                 break
 
-        self._logging_utils.debug(
-            __class__, f"stop reason: {self._model.get_stop_reason()}"
-        )
-        if self._model.get_stop_reason() == "max_tokens":
-            raise ModelMaxTokenLimitException(
-                max_token_limit=self._model.get_max_completion_tokens(),
-                prompt_tokens=self._model.get_prompt_tokens(),
-                completion_tokens=self._model.get_completion_tokens(),
-            )
-
         self._logging_utils.trace(__class__, "end get_completion_with_retry")
 
         return response
@@ -485,6 +491,7 @@ For every critical location found, include the following details:
 Format the output as a JSON array with the following keys:
 - "overall_analysis_summary": A summary of the source code analysis
 - "priorities": for each priority, list the following:
+    - the priority
     - for each critical location found for this priority, include the following keys:
         - "location_name": Name of the location function/method
         - "function_name": Fully-qualified name of the function/method
@@ -532,7 +539,7 @@ Source Code:
         self._logging_utils.debug(
             __class__, f"Extracted code blocks len: {len(extracted_json)}"
         )
-        self._logging_utils.debug(__class__, f"Extracted json:")
+        self._logging_utils.debug(__class__, "Extracted json:")
         self._logging_utils.debug(__class__, extracted_json[0], enable_pformat=True)
 
         data = self._json_utils.json_loads(json_string=extracted_json[0])

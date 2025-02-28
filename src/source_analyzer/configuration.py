@@ -62,7 +62,6 @@ class Configuration:
         """
         if not cls._instance:
             cls._instance = super().__new__(cls)
-            # print("Configuration.__new__", file=sys.stderr)
         return cls._instance
 
     def __init__(self, config_file_path: str) -> None:
@@ -189,6 +188,15 @@ class Configuration:
         #     raise ValueError(f"Missing required config sections: {missing}")
 
         return True
+
+    def items(self):
+        """
+        Return the configuration items.
+
+        Returns:
+            dict_items: The configuration items.
+        """
+        return self._config_content.copy()
 
     def get_value(self, key: str, default_value: Any = None) -> Any:
         """

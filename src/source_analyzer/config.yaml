@@ -13,15 +13,18 @@ tracing_priorities:
 
 formatter:
   class:
+    name: Jinja2JsonToMarkdownFormatter
+  module:
+    name: jinja2_json_to_markdown_formatter
+  template:
+    name: jinja2_json_to_markdown_formatter.jinja2
+    path: formatters
+
+formatter_coded:
+  class:
     name: CodedJsonToMarkdownFormatter
   module:
     name: coded_json_to_markdown_formatter
-
-formatter_iterative_markdown_formatter:
-  class:
-    name: IterativeMarkdownFormatter
-  module:
-    name: iterative_json_to_markdown_formatter
 
 ai_model:
   max_llm_retries: 2

@@ -1,6 +1,5 @@
 from typing import Dict
 from formatters.formatter import FormatterObject
-from configuration import Configuration
 
 
 class CodedJsonToMarkdownFormatter(FormatterObject):
@@ -27,7 +26,7 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, configuration: Configuration):
+    def __init__(self, config_dict: Dict[str, str]):
         """
         Initializes a new instance of the CodedJsonToMarkdownFormatter class.
 
@@ -35,7 +34,8 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         It initializes the instance with any necessary attributes or configurations.
 
         """
-        super().__init__(configuration=configuration)
+        super().__init__(config_dict=config_dict)
+        # self._formatting_config = self._config.get_value("")
 
     def format_json(self, data: Dict[str, str], variables: Dict[str, str]) -> str:
         """
@@ -56,11 +56,17 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         output_strings.append(data.get("overall_analysis_summary"))
 
         priorities: dict = data.get("priorities", {})
-        self._logging_utils.debug(__class__, f"type(priorities): {type(priorities)}")
         self._logging_utils.debug(
-            __name__, f"priorities keys: {priorities.keys()}", enable_pformat=True
+            __class__, f"type(data.get('priorities'): {type(priorities)}"
         )
-        for priority in self._config.get_value("tracing_priorities"):
+        self._logging_utils.debug(
+            __name__, f"priorities: {priorities}", enable_pformat=True
+        )
+        self._logging_utils.debug(
+            __class__,
+            f"type(self._config_dict('tracing_priorities')): {type(self._config_dict('tracing_priorities'))}",
+        )
+        for priority in self._config_dict.get("tracing_priorities"):
             output_strings.append("")
             output_strings.append(f"### {priority}")
             output_strings.append("")
