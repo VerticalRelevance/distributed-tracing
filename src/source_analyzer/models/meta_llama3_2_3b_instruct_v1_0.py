@@ -63,13 +63,10 @@ class MetaLlama3_2_3b_InstructV1_0(ModelObject):
         self.increment_completion_tokens(value=model_response["generation_token_count"])
         self.set_stop_reason(value=model_response["stop_reason"])
 
-        # Extract and return the response text.
-        response_text = model_response["generation"]
-
-        self._logging_utils.trace(__class__, "end generate_text")
-        return response_text
-
-    def get_model_id(self) -> str:
+        self._logging_utils.debug(
+            __class__, f"response text: {response_text}", enable_pformat=True
+        )
+        self._logging_utils.trace(__class__, "end _handle_response")
         return "us.meta.llama3-2-1b-instruct-v1:0"
 
     def get_model_name(self) -> str:

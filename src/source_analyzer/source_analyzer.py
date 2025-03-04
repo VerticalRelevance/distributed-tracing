@@ -345,7 +345,8 @@ class SourceCodeAnalyzer:
         self._logging_utils.debug(__class__, prompt)
         self._logging_utils.debug(
             __class__,
-            f"max_llm_retries: {self._model.get_max_llm_retries()}, retry_delay: {self._model.get_retry_delay()}",
+            f"max_llm_retries: {self._model.max_llm_retries}, "
+            f"retry_delay: {self._model.retry_delay}",
         )
         self._logging_utils.debug(
             __class__, f"temperature: {self._model.get_temperature()}"
@@ -368,7 +369,9 @@ class SourceCodeAnalyzer:
                 )
                 self._logging_utils.debug(
                     __class__,
-                    f"LLM Completion Tokens: {self._model.get_completion_tokens()}",
+                    f"LLM Prompt Tokens: {self._model.prompt_tokens}, "
+                    f"LLM Completion Tokens: {self._model.completion_tokens}, "
+                    f"Stopped Reason: {self._model.stopped_reason}",
                 )
                 self._logging_utils.debug(
                     __class__, f"stop reason: {self._model.get_stop_reason()}"

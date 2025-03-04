@@ -65,7 +65,12 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
             __class__,
             f"type(self._config_dict('tracing_priorities')): {type(self._config_dict('tracing_priorities'))}",
         )
-        for priority in self._config_dict.get("tracing_priorities"):
+            self._logging_utils.debug(
+                __class__, f"type(tracing_priority): {type(tracing_priority)}"
+            )
+            self._logging_utils.debug(
+                __class__, f"tracing_priority: {tracing_priority}"
+            )
             output_strings.append("")
             output_strings.append(f"### {priority}")
             output_strings.append("")

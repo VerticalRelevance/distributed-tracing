@@ -78,8 +78,8 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
         )
         template = jinja2_env.from_string(template_string)
 
-        self._logging_utils.debug(__class__, f"Formatting json data: ")
-        self._logging_utils.debug(__class__, data)
+        self._logging_utils.debug(__class__, "Formatting json data: ")
+        self._logging_utils.debug(__class__, data, enable_pformat=True)
         self._logging_utils.debug(__class__, f"priorities: {data["priorities"]}")
         # Render the template with the data
         markdown_output = template.render(
