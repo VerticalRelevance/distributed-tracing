@@ -226,7 +226,11 @@ class SourceCodeAnalyzer:
         # FUTURE make config file name dynamic
         self._config: Configuration = Configuration("config.yaml")
         self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
-        self._model: ModelObject = self._model_utils.get_model_instance()
+        self._model: ModelObject = ModelFactory(configuration=self._config).get_model(
+            module_name=model_utils.get_desired_model_module_name(),
+            class_name=model_utils.get_desired_model_class_name(),
+        )
+
         self._formatter: FormatterObject = FormatterFactory(
             config_dict=self._config.items()
         ).get_formatter(

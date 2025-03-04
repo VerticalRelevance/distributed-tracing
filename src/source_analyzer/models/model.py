@@ -180,3 +180,39 @@ class ModelObject:
         """Setter for the completion_json property"""
         self._completion_json = completion_json
 
+
+class ModelFactory:
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Creates and returns a new instance of the ModelFactory class.
+
+        This method is responsible for implementing the singleton pattern, ensuring that only one
+        instance of the ModelFactory class is created.
+
+        Parameters:
+            cls (type): The class object.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            ModelFactory: The singleton instance of the ModelFactory class.
+
+        """
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, configuration: Configuration):
+        self._generic_utils = GenericUtils()
+        self._configuration = configuration
+
+    def get_model(self, module_name: str, class_name: str) -> ModelObject:
+        model_class = self._generic_utils.load_class(
+            module_name="models." + module_name,
+            class_name=class_name,
+            package_name="models",
+        )
+        return model_class(configuration=self._configuration)
