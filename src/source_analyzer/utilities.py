@@ -162,7 +162,7 @@ class LoggingUtils:
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
         self.get_stderr_logger(name).debug(
-            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+            (pformat(msg) if enable_pformat else msg), exc_info=exc_info
         )
 
     def debug_info(
@@ -271,7 +271,7 @@ class LoggingUtils:
         Returns:
             logging.Logger: A configured logger for standard output.
         """
-        logger: logging.logger = logging.getLogger(f"{name}.stdout")
+        logger: logging.Logger = logging.getLogger(f"{name}.stdout")
         if not logger.handlers:
             logger_level = os.getenv("LOG_LEVEL_STDOUT", "SUCCESS").upper()
             self.debug(__class__, f"setting stdout logger level to {logger_level}")
@@ -556,45 +556,16 @@ class ModelUtils:
     def get_desired_model_class_name(self):
         return os.getenv(
             "AI_MODEL_CLASS_NAME",
-            self._config.get_value("ai_model").get("class").get("name"),
+            self._config.value("ai_model.class.name"),
         )
 
     def get_desired_model_module_name(self) -> str:
         return os.getenv(
             "AI_MODEL_MODULE_NAME",
-            self._config.get_value("ai_model").get("module").get("name"),
+            self._config.value("ai_model.module.name"),
         )
 
-    def get_model_instance(self) -> any:
-        """
-        Returns the model instance.
-
-        Returns:
-            ModelObject: The model instance.
-        """
-        utils = GenericUtils()
-        model_class = utils.load_class(
-            "." + self.get_desired_model_module_name(),
-            self.get_desired_model_class_name(),
-            "models",
-        )
-        return model_class(self._config)
-
-    # def get_formatter_instance(self) -> any:
-    #     """
-    #     Returns the formatter instance.
-
-    #     Returns:
-    #         ModelObject: The model instance.
-    #     """
-    #     utils = GenericUtils()
-    #     model_class = utils.load_class(
-    #         "models." + self.get_desired_model_module_name(),
-    #         self.get_desired_model_class_name(),
-    #         "models",
-    #     )
-    #     return model_class(self._config)
-
+    # TODO convert to property
     def get_region_name(self) -> str:
         """
         Retrieves the AWS region name.
