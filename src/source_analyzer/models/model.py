@@ -48,6 +48,8 @@ class ModelObject:
         self._prompt_tokens = 0
         self._stop_reason = None
         self._max_completion_tokens = None
+    def generate_text(self, prompt: str):  # pylint: disable=unused-argument
+        raise NotImplementedError("Subclasses must implement this method")
     @property
     def max_llm_retries(self) -> int:
         if self._max_llm_retries is None:

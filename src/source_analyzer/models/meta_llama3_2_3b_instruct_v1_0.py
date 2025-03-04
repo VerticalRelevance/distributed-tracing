@@ -11,7 +11,7 @@ class MetaLlama3_2_3b_InstructV1_0(ModelObject):
     def __init__(self, configuration: Configuration):
         super().__init__(configuration=configuration)
 
-    def generate_text(self, prompt) -> str:
+    def generate_text(self, prompt):
         self._logging_utils.trace(__class__, "start generate_text")
 
         self._logging_utils.debug(__class__, "prompt:")

@@ -12,7 +12,7 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
     def __init__(self, configuration: Configuration):
         super().__init__(configuration=configuration)
 
-    def generate_text(self, prompt) -> str:
+    def generate_text(self, prompt):
         self._logging_utils.trace(__class__, "start generate_text")
 
         self._logging_utils.debug(__class__, "prompt:")
@@ -83,7 +83,6 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
         self.set_stop_reason(value=model_response["stop_reason"])
 
         self._logging_utils.trace(__class__, "end generate_text")
-        return response_text
 
     @property
     def model_id(self) -> str:
