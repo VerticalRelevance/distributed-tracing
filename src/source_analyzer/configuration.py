@@ -17,8 +17,8 @@ Classes:
 """
 
 from pathlib import Path
-from typing import Any
 import yaml
+from parameterized_property import ParameterizedProperty
 
 
 class Configuration:
@@ -198,26 +198,114 @@ class Configuration:
         """
         return self._config_content.copy()
 
-    def get_value(self, key: str, default_value: Any = None) -> Any:
+    @ParameterizedProperty
+    def value(
+        self,
+        key_path,
+        expected_type: type = str,
+        expected_min=None,
+        expected_max=None,
+        default=None,
+    ) -> str | int | float | bool | list:
         """
-        Retrieve values from the config_dict with a default value if the key does not exist.
+        Recursively access a nested dictionary using a dot-separated key path.
 
-        Parameters:
-            key (str): The key to retrieve the value from the config_dict.
-            default_value (Any): The default value to return if the key does not exist.
+        Args:
+            dictionary (dict): The nested dictionary to search through
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            default: Value to return if the key is not found (default: None)
 
         Returns:
-            Any: The value associated with the key in the config_dict, or the default value if
-              the key does not exist.
+            The value at the specified key path, or the default value if not found
         """
-        return self._config_content.get(key, default_value)
+        # Split the key path into individual keys
+        keys = key_path.split(".")
 
-    def set_value(self, key: str, value: Any) -> None:
-        """
-        Set a value in the config_dict.
+        # Start with the provided dictionary
+        value = self._config_content
 
-        Parameters:
-            key (str): The key to set the value in the config_dict.
-            value (Any): The value to set in the config_dict.
+        for key in keys:
+            # Check if current is a dictionary and contains the key
+            if isinstance(value, dict) and key in value:
+                value = value[key]
+            else:
+                # Key not found, use the default value
+                value = None
+
+        # Return the final value
+        value = default if value is None else value
+
+        match expected_type.__name__:
+            case "str":
+                if not isinstance(value, str):
+                    raise TypeError(
+                        f"Value '{value}' for {key_path} is invalid. Value must be a string."
+                    )
+                return str(value)
+            case "int":
+                try:
+                    int_value = int(value)
+                except ValueError as ve:
+                    raise TypeError(
+                        f"Type {type(value)} of value '{value}' for {key_path} is invalid. Value must be a valid integer."
+                    ) from ve
+                if expected_min is not None:
+                    if int_value < expected_min:
+                        raise ValueError(
+                            f"Value '{int_value}' for {key_path} is invalid. Value must be greater than or equal to {expected_min}."
+                        )
+                if expected_max is not None:
+                    if int_value > expected_max:
+                        raise ValueError(
+                            f"Value '{int_value}' for {key_path} is invalid. Value must be less than or equal to {expected_max}."
+                        )
+
+                return int_value
+            case "float":
+                try:
+                    float_value = float(value)
+                except ValueError as ve:
+                    raise TypeError(
+                        f"Type {type(value)} of value '{value}' for {key_path} is invalid. Value must be a valid floating point."
+                    ) from ve
+                if expected_min:
+                    if float_value < expected_min:
+                        raise ValueError(
+                            f"Value '{float_value}' for {key_path} is invalid. Value must be greater than or equal to {expected_min}."
+                        )
+                if expected_max:
+                    if float_value > expected_max:
+                        raise ValueError(
+                            f"Value '{float_value}' for {key_path} is invalid. Value must be less than or equal to {expected_max}."
+                        )
+                return float_value
+            case "bool":
+                return value.lower() in ("true", "1", "yes", "on")
+            case "list":
+                return value
+            case _:
+                raise TypeError(
+                    f"Unsupported type {expected_type} for {key_path}. Supported types are str, int, float, and bool."
+                )
+
+    @value.setter
+    def value(self, key_path, value):
         """
-        self._config_content[key] = value
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        keys = key_path.split(".")
+        current = self._config_content
+
+        # Traverse through each key in the path, except the last one
+        for key in keys[:-1]:
+            if key not in current:
+                current[key] = {}
+            current = current[key]
+
+        # Set the value at the last key
+        current[keys[-1]] = value
