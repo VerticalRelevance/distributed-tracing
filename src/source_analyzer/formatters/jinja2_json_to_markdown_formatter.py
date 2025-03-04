@@ -60,11 +60,15 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
             str: The formatted Markdown string.
         """
         # Get the template file name and path from the configuration
-        file_name = (
-            self._config_dict.get("formatter", {}).get("template", []).get("name", None)
+        file_name = self._config.value(
+            "formatter.template.name",
+            expected_type=str,
+            default="template name not found",
         )
-        file_path = (
-            self._config_dict.get("formatter", {}).get("template", []).get("path", ".")
+        file_path = self._config.value(
+            "formatter.template.path",
+            expected_type=str,
+            default="template path not found",
         )
         template_path = (
             f"{file_path}/{file_name if file_name is not None else f"notfound.jinja2"}"

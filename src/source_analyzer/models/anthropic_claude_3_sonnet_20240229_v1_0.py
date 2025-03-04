@@ -3,6 +3,10 @@ from botocore.exceptions import ClientError, TokenRetrievalError
 from configuration import Configuration
 from models.model import ModelObject, ModelError
 
+MAX_TOKENS_EXPECTED_MIN = 0
+MAX_TOKENS_EXPECTED_MAX = 134144
+MAX_TOKENS_DEFAULT = 2048
+
 
 class AnthropicClaude3Sonnet20240229V1(ModelObject):
     def __init__(self, configuration: Configuration):
@@ -20,8 +24,12 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             in Python source code tracing, with emphasis on identifying critical trace points.
             """
         messages = [{"role": "user", "content": prompt}]
-        self._max_completion_tokens = self.get_model_custom_value(
-            "max_tokens", expected_type=int, expected_min=0, expected_max=134144
+        self._max_completion_tokens = self._config.value(
+            "ai_model.custom.max_tokens",
+            expected_type=int,
+            expected_min=MAX_TOKENS_EXPECTED_MIN,
+            expected_max=MAX_TOKENS_EXPECTED_MAX,
+            default=MAX_TOKENS_DEFAULT,
         )
         self._logging_utils.debug(__class__, f"system_prompt: {system_prompt}")
         self._logging_utils.debug(
@@ -38,9 +46,9 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
 
         try:
             # Get a client for the model.
-            client = self.get_model_client()
+            client = self.model_client
             # Invoke the model with the request.
-            response = client.invoke_model(modelId=self.get_model_id(), body=request)
+            response = client.invoke_model(modelId=self.model_id, body=request)
             self._logging_utils.debug(__class__, "response:")
             self._logging_utils.debug(__class__, response, enable_pformat=True)
         except TokenRetrievalError as tre:  # expired or otherwise invalid AWS token
@@ -77,11 +85,14 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
         self._logging_utils.trace(__class__, "end generate_text")
         return response_text
 
-    def get_model_id(self) -> str:
+    @property
+    def model_id(self) -> str:
         return "anthropic.claude-3-sonnet-20240229-v1:0"
 
-    def get_model_name(self) -> str:
+    @property
+    def model_name(self) -> str:
         return "Claude 3 Sonnet"
 
-    def get_model_vendor(self) -> str:
+    @property
+    def model_vendor(self) -> str:
         return "Anthropic"

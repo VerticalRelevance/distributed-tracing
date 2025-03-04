@@ -2,7 +2,18 @@ import sys
 import os
 import boto3
 from configuration import Configuration
-from utilities import LoggingUtils, ModelUtils
+
+MAX_LLM_RETRIES_EXPECTED_MIN = 0
+MAX_LLM_RETRIES_EXPECTED_MAX = 10
+MAX_LLM_RETRIES_DEFAULT = 3
+
+RETRY_DELAY_EXPECTED_MIN = 0
+RETRY_DELAY_EXPECTED_MAX = 30
+RETRY_DELAY_DEFAULT = 1
+
+TEMPERATURE_EXPECTED_MIN = 0.0
+TEMPERATURE_EXPECTED_MAX = 1.0
+TEMPERATURE_DEFAULT = 0.0
 
 
 class ModelError(Exception):
@@ -37,96 +48,17 @@ class ModelObject:
         self._prompt_tokens = 0
         self._stop_reason = None
         self._max_completion_tokens = None
-
-    def generate_text(self, prompt: str) -> str:
-        pass
-
-    def get_model_custom_value(
-        self, key: str, expected_type: type, expected_min=None, expected_max=None
-    ) -> str:
-        self._logging_utils.debug(
-            __class__,
-            f"custom value: {self._config.get_value("ai_model", {}).get("custom", {}).get(key, "")}",
-        )
-        value = self._config.get_value("ai_model", {}).get("custom", {}).get(key, "")
-        if not isinstance(value, expected_type):
-            raise ModelError(
-                f"Expected custom value type {expected_type.__name__}, got {type(value).__name__}"
-            )
-
-        self._logging_utils.debug(
-            __class__,
-            f"expected_type.__name__: {expected_type.__name__}",
-        )
-        match expected_type.__name__:
-            case "str":
-                return str(value)
-            case "int":
-                try:
-                    int_value = int(value)
-                    self._logging_utils.debug(
-                        __class__,
-                        f"expected type is int, value: {int_value}, expected_min: {expected_min}, expected_max: {expected_max}",
-                    )
-                except ValueError as ve:
-                    raise ModelError(
-                        f"Value '{value}' for {key} is invalid. Value must be a valid integer."
-                    ) from ve
-
-                if expected_min is not None:
-                    self._logging_utils.debug(
-                        __class__,
-                        f"expected_min: {expected_min} int_value < expected_min: {int_value < expected_min}",
-                    )
-                    if int_value < expected_min:
-                        raise ValueError(
-                            f"Value '{int_value}' for {key} is invalid. Value must be greater than or equal to {expected_min}."
-                        )
-                if expected_max is not None:
-                    self._logging_utils.debug(
-                        __class__,
-                        f"expected_max: {expected_max}",
-                    )
-                    if int_value > expected_max:
-                        raise ValueError(
-                            f"Value '{int_value}' for {key} is invalid. Value must be less than or equal to {expected_max}."
-                        )
-
-                return int_value
-            case "float":
-                try:
-                    float_value = float(value)
-                except ValueError as ve:
-                    raise ModelError(
-                        f"Value '{value}' for {key} is invalid. Value must be a valid float."
-                    ) from ve
-                if expected_min:
-                    if float_value < expected_min:
-                        raise ValueError(
-                            f"Value '{float_value}' for {key} is invalid. Value must be greater than or equal to {expected_min}."
-                        )
-                if expected_max:
-                    if float_value > expected_max:
-                        raise ValueError(
-                            f"Value '{float_value}' for {key} is invalid. Value must be less than or equal to {expected_max}."
-                        )
-                return float_value
-            case "bool":
-                return value.lower() in ("true", "1", "yes", "on")
-            case _:
-                raise ModelError(
-                    f"Unsupported type {expected_type} for {key}. Supported types are str, int, float, and bool."
-                )
-
-    def get_max_llm_retries(self) -> int:
+    @property
+    def max_llm_retries(self) -> int:
         if self._max_llm_retries is None:
-            ai_model: dict = self._config.get_value("ai_model")
-            value = os.getenv(
-                "MAX_LLM_RETRIES",
-                ai_model.get("max_llm_retries", "10"),
-            )
-            try:
-                self._max_llm_retries = int(value)
+                self._max_llm_retries = self._config.value(
+                    key_path="ai_model.max_llm_retries",
+                    expected_type=int,
+                    expected_min=MAX_LLM_RETRIES_EXPECTED_MIN,
+                    expected_max=MAX_LLM_RETRIES_EXPECTED_MAX,
+                    default=MAX_LLM_RETRIES_DEFAULT,
+                )
+            except TypeError as te:
             except ValueError as ve:
                 raise ModelError(
                     f"Value '{value}' for max LLM retries is invalid. Value must be a valid integer zero between 0 and 10."
@@ -138,53 +70,65 @@ class ModelObject:
 
         return self._max_llm_retries
 
-    def get_model_client(self):
+    @property
+    def model_client(self) -> boto3.client:
         return boto3.client(
-            "bedrock-runtime", region_name=self._model_utils.get_region_name()
+            region_name=self._config.value(
+                "aws.region", expected_type=str, default="us-west-2"
+            ),
         )
 
-    def get_completion_tokens(self) -> int:
+    @property
+    def completion_tokens(self) -> int:
         return self._completion_tokens
 
     def increment_completion_tokens(self, value: int) -> None:
         self._completion_tokens += value
 
-    def set_completion_tokens(self, value: int) -> None:
+    @completion_tokens.setter
+    def completion_tokens(self, value: int) -> None:
         self._completion_tokens = value
 
-    def get_prompt_tokens(self) -> int:
+    @property
+    def prompt_tokens(self) -> int:
         return self._prompt_tokens
 
     def increment_prompt_tokens(self, value: int) -> None:
         self._prompt_tokens += value
 
-    def set_prompt_tokens(self, value: int) -> None:
+    @prompt_tokens.setter
+    def prompt_tokens(self, value: int) -> None:
         self._prompt_tokens = value
 
     def reset_tokens(self) -> None:
-        self.set_completion_tokens(value=0)
-        self.set_prompt_tokens(value=0)
+        self.completion_tokens = 0
+        self.prompt_tokens = 0
 
-    def get_max_completion_tokens(self) -> int:
+    @property
+    def max_completion_tokens(self) -> int:
         return self._max_completion_tokens
 
-    def get_model_id(self) -> str:
-        pass
+    @property
+    def model_id(self) -> str:
 
-    def get_model_name(self) -> str:
-        pass
+    @property
+    def model_name(self) -> str:
 
-    def get_model_vendor(self) -> str:
-        pass
+    @property
+    def model_vendor(self) -> str:
+        raise NotImplementedError("Subclasses must implement this method")
 
-    def get_retry_delay(self) -> int:
+    @property
+    def retry_delay(self) -> int:
         if not self._retry_delay:
-            value = os.getenv(
-                "RETRY_DELAY",
-                self._config.get_value("ai_model", {}).get("retry_delay", "0"),
-            )
-            try:
-                self._retry_delay = int(value)
+                self._retry_delay = self._config.value(
+                    key_path="ai_model.retry_delay",
+                    expected_type=int,
+                    expected_min=RETRY_DELAY_EXPECTED_MIN,
+                    expected_max=RETRY_DELAY_EXPECTED_MAX,
+                    default=RETRY_DELAY_DEFAULT,
+                )
+            except TypeError as te:
             except ValueError as ve:
                 raise ModelError(
                     f"Value '{value}' for retry delay is invalid. Value must be a valid integer 0 or greater."
@@ -196,14 +140,17 @@ class ModelObject:
 
         return self._retry_delay
 
-    def get_temperature(self) -> float:
+    @property
+    def temperature(self) -> float:
         if not self._temperature:
-            value = os.getenv(
-                "TEMPERATURE",
-                self._config.get_value("ai_model", {}).get("temperature", "0.0"),
-            )
-            try:
-                self._temperature = float(value)
+                self._temperature = self._config.value(
+                    "ai_model.temperature",
+                    expected_type=float,
+                    expected_min=TEMPERATURE_EXPECTED_MIN,
+                    expected_max=TEMPERATURE_EXPECTED_MAX,
+                    default=TEMPERATURE_DEFAULT,
+                )
+            except TypeError as te:
             except ValueError as ve:
                 raise ModelError(
                     f"Value '{value}' for temperature is invalid. Value must be a valid floating point between 0.0 and 1.0."
@@ -215,8 +162,21 @@ class ModelObject:
 
         return self._temperature
 
-    def get_stop_reason(self) -> str:
-        return self._stop_reason
+    @property
+    def stopped_reason(self) -> str:
+        return self._stopped_reason
 
-    def set_stop_reason(self, value: str) -> None:
-        self._stop_reason = value
+    @stopped_reason.setter
+    def stopped_reason(self, stopped_reason: str) -> None:
+        self._stopped_reason = stopped_reason
+
+    @property
+    def completion_json(self) -> Dict[str, str]:
+        """Getter for the completion_json property"""
+        return self._completion_json
+
+    @completion_json.setter
+    def completion_json(self, completion_json: Dict[str, str]) -> None:
+        """Setter for the completion_json property"""
+        self._completion_json = completion_json
+

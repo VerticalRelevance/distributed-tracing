@@ -727,11 +727,11 @@ class FormatterUtils:
     def get_desired_formatter_class_name(self):
         return os.getenv(
             "FORMATTER_CLASS_NAME",
-            self._config.get_value("formatter").get("class").get("name"),
+            self._config.value("formatter.class.name"),
         )
 
     def get_desired_formatter_module_name(self) -> str:
         return os.getenv(
             "FORMATTER_MODULE_NAME",
-            self._config.get_value("formatter").get("module").get("name"),
+            self._config.value("formatter.module.name"),
         )

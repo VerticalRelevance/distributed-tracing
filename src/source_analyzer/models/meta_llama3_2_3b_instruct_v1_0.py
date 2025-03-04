@@ -1,7 +1,10 @@
 import json
 from botocore.exceptions import ClientError
 from configuration import Configuration
-from model import ModelObject, ModelError
+
+MAX_GEN_LEN_EXPECTED_MIN = 0
+MAX_GEN_LEN_EXPECTED_MAX = 204800
+MAX_GEN_LEN_DEFAULT = 6144
 
 
 class MetaLlama3_2_3b_InstructV1_0(ModelObject):
@@ -20,14 +23,19 @@ class MetaLlama3_2_3b_InstructV1_0(ModelObject):
 <|start_header_id|>assistant<|end_header_id|>
 """
         # Format the request payload using the model's native structure.
-        max_gen_len: int = self.get_model_custom_value(
-            "max_gen_len", expected_type=int, expected_min=0, expected_max=204800
+        max_gen_len: int = self._config.value(
+            "ai_model.custom.max_gen_len",
+            expected_type=int,
+            expected_min=MAX_GEN_LEN_EXPECTED_MIN,
+            expected_max=MAX_GEN_LEN_EXPECTED_MAX,
+            default=MAX_GEN_LEN_DEFAULT,
         )
         self._logging_utils.debug(__class__, f"max_gen_len: {max_gen_len}")
+        self._max_completion_tokens = max_gen_len
         native_request = {
             "prompt": formatted_prompt,
             "max_gen_len": max_gen_len,
-            "temperature": self.get_temperature(),
+            "temperature": self.temperature,
         }
         self._logging_utils.debug(__class__, "native_request:")
         self._logging_utils.debug(__class__, native_request, enable_pformat=True)
@@ -37,9 +45,9 @@ class MetaLlama3_2_3b_InstructV1_0(ModelObject):
 
         try:
             # Get a client for the model.
-            client = self.get_model_client()
+            client = self.model_client
             # Invoke the model with the request.
-            response = client.invoke_model(modelId=self.get_model_id(), body=request)
+            response = client.invoke_model(modelId=self.model_id, body=request)
             self._logging_utils.debug(__class__, "response:")
             self._logging_utils.debug(__class__, response, enable_pformat=True)
         except ClientError as ce:
@@ -61,16 +69,21 @@ class MetaLlama3_2_3b_InstructV1_0(ModelObject):
 
         self.increment_prompt_tokens(value=model_response["prompt_token_count"])
         self.increment_completion_tokens(value=model_response["generation_token_count"])
-        self.set_stop_reason(value=model_response["stop_reason"])
+        self.stopped_reason = model_response["stop_reason"]
 
         self._logging_utils.debug(
             __class__, f"response text: {response_text}", enable_pformat=True
         )
         self._logging_utils.trace(__class__, "end _handle_response")
+
+    @property
+    def model_id(self) -> str:
         return "us.meta.llama3-2-1b-instruct-v1:0"
 
-    def get_model_name(self) -> str:
+    @property
+    def model_name(self) -> str:
         return "Llama 3.2 3B Instruct"
 
-    def get_model_vendor(self):
+    @property
+    def model_vendor(self) -> str:
         return "Meta"

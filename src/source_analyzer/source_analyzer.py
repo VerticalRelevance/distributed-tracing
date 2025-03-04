@@ -348,16 +348,14 @@ class SourceCodeAnalyzer:
             f"max_llm_retries: {self._model.max_llm_retries}, "
             f"retry_delay: {self._model.retry_delay}",
         )
-        self._logging_utils.debug(
-            __class__, f"temperature: {self._model.get_temperature()}"
-        )
+        self._logging_utils.debug(__class__, f"temperature: {self._model.temperature}")
 
         self._total_tokens = {"completion": 0, "prompt": 0}
         break_llm_loop = False
-        for attempt in range(self._model.get_max_llm_retries()):
+        for attempt in range(self._model.max_llm_retries):
             self._logging_utils.debug_info(
                 __class__,
-                f"Get completion attempt: (attempt {attempt + 1}/{self._model.get_max_llm_retries()})",  # pylint: disable=line-too-long
+                f"Get completion attempt: (attempt {attempt + 1}/{self._model.max_llm_retries})",  # pylint: disable=line-too-long
             )
             try:
                 response = self._model.generate_text(prompt=prompt)
@@ -373,20 +371,16 @@ class SourceCodeAnalyzer:
                     f"LLM Completion Tokens: {self._model.completion_tokens}, "
                     f"Stopped Reason: {self._model.stopped_reason}",
                 )
-                self._logging_utils.debug(
-                    __class__, f"stop reason: {self._model.get_stop_reason()}"
-                )
-                if self._model.get_stop_reason() == "max_tokens":
+                if self._model.stopped_reason not in self._model.stop_valid_reasons:
                     self._logging_utils.warning(
-                        f"Max completion token limit {self._model.get_max_completion_tokens()} exceeded."
+                        f"Unsuccessful stop reason '{self._model.stopped_reason}'",
                     )
-                    raise ModelMaxTokenLimitException(
-                        max_token_limit=self._model.get_max_completion_tokens(),
-                        prompt_tokens=self._model.get_prompt_tokens(),
-                        completion_tokens=self._model.get_completion_tokens(),
-                    )
-                self._logging_utils.debug(__class__, "setting break_llm_loop to True")
-                break_llm_loop = True
+                    if attempt < self._model.max_llm_retries - 1:
+                        self._logging_utils.debug_info(
+                            f"Retrying in {self._model.retry_delay} seconds...",
+                        )
+                        time.sleep(self._model.retry_delay)
+                    else:
             except ModelMaxTokenLimitException as mmtle:
                 raise Exception from mmtle
             except ModelError as me:  # pylint: disable=broad-exception-raised)
@@ -395,17 +389,18 @@ class SourceCodeAnalyzer:
                     continue
                 self._logging_utils.error(
                     __class__,
-                    f"Cannot generate text from model '{self._model.get_model_name()}'. Reason: {me}",
+                    f"Cannot generate text from model '{self._model.model_name}'."
+                    f"Reason: {me}",
                 )
                 sys.exit(1)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 self._logging_utils.error(__class__, f"LLM call failed: {str(e)}")
-                if attempt < self._model.get_max_llm_retries() - 1:
+                if attempt < self._model.max_llm_retries - 1:
                     self._logging_utils.info(
                         __class__,
-                        f"Retrying in {self._model.get_retry_delay()} seconds...",
+                        f"Retrying again in {self._model.retry_delay} seconds...",
                     )
-                    time.sleep(self._model.get_retry_delay())
+                    time.sleep(self._model.retry_delay)
                 else:
                     self._logging_utils.error(
                         __class__, "Max retries reached. Giving up."
@@ -416,19 +411,8 @@ class SourceCodeAnalyzer:
                     raise e
 
             # Update token counts
-            self._total_tokens["prompt"] += self._model.get_prompt_tokens()
-            self._logging_utils.debug(
-                __class__,
-                f"total tokens before increment: {self._total_tokens}",
-            )
-            self._logging_utils.debug(
-                __class__,
-                f"model completion tokens: {self._model.get_completion_tokens()}",
-            )
-            self._total_tokens["completion"] += self._model.get_completion_tokens()
-            self._logging_utils.debug(
-                __class__, f"total tokens after increment: {self._total_tokens}"
-            )
+            self._total_tokens["prompt"] += self._model.prompt_tokens
+            self._total_tokens["completion"] += self._model.completion_tokens
 
             tokens_output = pformat(
                 {
@@ -463,6 +447,12 @@ class SourceCodeAnalyzer:
         """
         self._logging_utils.trace(
             __class__, "start analyze_source_code_for_decision_points"
+        )
+        tracing_priorities = self._config.value(
+            key_path="tracing_priorities", expected_type=list, default=[]
+        )
+        clarifications = self._config.value(
+            key_path="clarifications", expected_type=list, default=[]
         )
 
         prompt = f"""
@@ -541,10 +531,9 @@ Source Code:
         self._logging_utils.debug(__class__, data)
 
         formatter_inputs = {}
-        formatter_inputs["model_vendor"] = self._model.get_model_vendor()
-        formatter_inputs["model_name"] = self._model.get_model_name()
-
-        response = self._formatter.format_json(data=data, variables=formatter_inputs)
+        formatter_inputs["model_vendor"] = model.model_vendor
+        formatter_inputs["model_name"] = model.model_name
+        formatter_inputs["total_prompt_tokens"] = self._total_tokens["prompt"]
 
         self._logging_utils.debug(__class__, "end generate_formatted_output")
         return response
