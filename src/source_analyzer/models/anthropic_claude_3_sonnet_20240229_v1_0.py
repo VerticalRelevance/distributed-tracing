@@ -44,15 +44,7 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             self._logging_utils.debug(__class__, "response:")
             self._logging_utils.debug(__class__, response, enable_pformat=True)
         except TokenRetrievalError as tre:  # expired or otherwise invalid AWS token
-            # TODO complete this logic
-            print(f"tre: {str(tre)}")
-            print("tre structure:")
-            print(tre.__dict__)
-            # error_code = tre.response["Error"]["Code"]
-            # self._logging_utils.trace(
-            #     __class__,
-            #     f"end generate_text with TokenRetrievalError error ({error_code}): {str(tre)}",
-            # )
+            self._logging_utils.debug(__class__, tre.__dict__)
             raise ModelError(f"TokenRetrievalError error: {str(tre)}") from tre
         except ClientError as ce:
             error_code = ce.response["Error"]["Code"]

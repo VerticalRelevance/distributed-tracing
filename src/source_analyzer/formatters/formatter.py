@@ -81,7 +81,6 @@ class FormatterFactory:
         """
         formatter_class = self._generic_utils.load_class(
             module_name="formatters." + module_name,
-            # module_name=module_name,
             class_name=class_name,
             package_name="formatters",
         )

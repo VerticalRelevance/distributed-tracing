@@ -34,8 +34,7 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         It initializes the instance with any necessary attributes or configurations.
 
         """
-        super().__init__(config_dict=config_dict)
-        # self._formatting_config = self._config.get_value("")
+        super().__init__(configuration=configuration)
 
     def format_json(self, data: Dict[str, str], variables: Dict[str, str]) -> str:
         """

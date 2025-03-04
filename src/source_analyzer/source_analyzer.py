@@ -244,16 +244,6 @@ class SourceCodeAnalyzer:
         self._logging_utils.info(__class__, "Configuration:")
         self._logging_utils.info(__class__, pformat(str(self._config)))
 
-    def load_model(self):
-        """
-        Load the AI model based on the configuration.
-        """
-
-        self._logging_utils.debug(
-            __class__, f"AI model: {self._model.get_model_name()}"
-        )
-        return self._model_utils.get_model_instance()
-
     def tree_dumps(self, node) -> str:
         """
         Generate a string representation of the source code tree.
@@ -611,11 +601,6 @@ Source Code:
         if not source_tree:
             return
 
-        # self._logging_utils.success(__class__, "")
-        # self._logging_utils.success(
-        #     __class__,
-        #     f"## {self._model.get_model_vendor()} {self._model.get_model_name()} Analysis",
-        # )
         try:
             # Analyze the code
             response = self.analyze_source_code_for_decision_points(full_code)
@@ -637,18 +622,8 @@ Source Code:
             self._logging_utils.trace(__class__, "end process_file (error)")
             raise FormatterError("Failed to format output") from e  # type: ignore
 
-        self._logging_utils.success(__class__, response)
-        self._logging_utils.success(__class__, "\n## Summary")
-        self._logging_utils.success(
-            __class__, f"* Total Prompt Tokens: {self._total_tokens['prompt']}"
-        )
-        self._logging_utils.success(
-            __class__,
-            f"* Total Completion Tokens: {self._total_tokens['completion']}",
-        )
-        self._logging_utils.success(
-            __class__, f"* Stop Reason: {self._model.get_stop_reason()}"
-        )
+        # Write the formatted output to the console
+        self._logging_utils.success(__class__, formatted_output)
 
         self._logging_utils.trace(__class__, "end process_file")
         return
@@ -714,7 +689,6 @@ def main():
     # pylint: enable=line-too-long
 
     logging_utils: LoggingUtils = LoggingUtils()
-    # logging_utils.trace(__name__, "start __main__")
     path_utils: PathUtils = PathUtils()
     generic_utils = GenericUtils()
 

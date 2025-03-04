@@ -34,8 +34,7 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
         It initializes the instance with any necessary attributes or configurations.
 
         """
-        super().__init__(config_dict=config_dict)
-        self._formatting_config = self._config_dict.get("")
+        super().__init__(configuration=configuration)
 
     def _load_template(self, template_path: str) -> str:
         """
