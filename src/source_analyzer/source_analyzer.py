@@ -231,15 +231,12 @@ class SourceCodeAnalyzer:
             class_name=model_utils.get_desired_model_class_name(),
         )
 
+        formatter_utils = FormatterUtils(configuration=self._config)
         self._formatter: FormatterObject = FormatterFactory(
-            config_dict=self._config.items()
+            configuration=self._config
         ).get_formatter(
-            module_name=FormatterUtils(
-                configuration=self._config
-            ).get_desired_formatter_module_name(),
-            class_name=FormatterUtils(
-                configuration=self._config
-            ).get_desired_formatter_class_name(),
+            module_name=formatter_utils.get_desired_formatter_module_name(),
+            class_name=formatter_utils.get_desired_formatter_class_name(),
         )
         self._total_tokens: dict = {"completion": 0, "prompt": 0}
 
