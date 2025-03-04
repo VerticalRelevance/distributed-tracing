@@ -1,5 +1,6 @@
 import json
 from botocore.exceptions import ClientError
+from models.model import ModelObject, ModelError
 from configuration import Configuration
 
 MAX_GEN_LEN_EXPECTED_MIN = 0
@@ -7,7 +8,7 @@ MAX_GEN_LEN_EXPECTED_MAX = 204800
 MAX_GEN_LEN_DEFAULT = 6144
 
 
-class MetaLlama3_2_3b_InstructV1_0(ModelObject):
+class MetaLlama323bInstructV1(ModelObject):
     def __init__(self, configuration: Configuration):
         super().__init__(configuration=configuration)
 
@@ -60,6 +61,12 @@ class MetaLlama3_2_3b_InstructV1_0(ModelObject):
                 f"Bedrock invoke_model error ({error_code}): {str(ce)}"
             ) from ce
 
+        # return self._handle_response(response=response)
+        self._handle_response(response=response)
+        self._logging_utils.trace(__class__, "end generate_text")
+
+    def _handle_response(self, response):
+        self._logging_utils.trace(__class__, "start _handle_response")
         # Decode the response body.
         model_response: dict = json.loads(response["body"].read())
         self._logging_utils.debug(__class__, "model_response keys")
@@ -67,10 +74,40 @@ class MetaLlama3_2_3b_InstructV1_0(ModelObject):
         self._logging_utils.debug(__class__, "model_response")
         self._logging_utils.debug(__class__, model_response, enable_pformat=True)
 
+        # Extract and return the response text.
+        response_text = model_response["generation"]
+        self._logging_utils.debug(
+            __class__, f"response_text: {response_text}", enable_pformat=True
+        )
+
+        extracted_json = self._json_utils.extract_json(response_text)
+        self._logging_utils.debug(
+            __class__, f"Extracted code blocks type: {type(extracted_json)}"
+        )
+        self._logging_utils.debug(
+            __class__, f"Extracted code blocks len: {len(extracted_json)}"
+        )
+        self._logging_utils.debug(__class__, "Extracted json:")
+        self._logging_utils.debug(__class__, extracted_json, enable_pformat=True)
+
+        data = self._json_utils.json_loads(json_string=extracted_json)
+        data: dict = data[0] if isinstance(data, list) else data
+        self._logging_utils.debug(__class__, "data:")
+        self._logging_utils.debug(__class__, data, enable_pformat=True)
+
+        self.completion_json = {}
+        self.completion_json["overall_analysis_summary"] = data.get(
+            "overall_analysis_summary"
+        ).get("message")
+        self.completion_json["priorities"] = data.get("overall_analysis_summary").get(
+            "priorities"
+        )
+
         self.increment_prompt_tokens(value=model_response["prompt_token_count"])
         self.increment_completion_tokens(value=model_response["generation_token_count"])
         self.stopped_reason = model_response["stop_reason"]
 
+        # Return the response text.
         self._logging_utils.debug(
             __class__, f"response text: {response_text}", enable_pformat=True
         )

@@ -1,7 +1,7 @@
-import sys
-import os
+from typing import Dict, List
 import boto3
 from configuration import Configuration
+from utilities import JsonUtils, LoggingUtils, ModelUtils, GenericUtils
 
 MAX_LLM_RETRIES_EXPECTED_MIN = 0
 MAX_LLM_RETRIES_EXPECTED_MAX = 10
@@ -46,13 +46,19 @@ class ModelObject:
         self._temperature = None
         self._completion_tokens = 0
         self._prompt_tokens = 0
-        self._stop_reason = None
         self._max_completion_tokens = None
+        self._completion_json = None
+        self._json_utils = JsonUtils()
+        self._stopped_reason = None
+        self._stop_valid_reasons = None
+
     def generate_text(self, prompt: str):  # pylint: disable=unused-argument
         raise NotImplementedError("Subclasses must implement this method")
+
     @property
     def max_llm_retries(self) -> int:
         if self._max_llm_retries is None:
+            try:
                 self._max_llm_retries = self._config.value(
                     key_path="ai_model.max_llm_retries",
                     expected_type=int,
@@ -61,20 +67,20 @@ class ModelObject:
                     default=MAX_LLM_RETRIES_DEFAULT,
                 )
             except TypeError as te:
+                raise ModelError(
+                    f"Type for max LLM retries is invalid. Value must be a valid integer between {MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
+                ) from te
             except ValueError as ve:
                 raise ModelError(
-                    f"Value '{value}' for max LLM retries is invalid. Value must be a valid integer zero between 0 and 10."
+                    f"Value for max LLM retries is invalid. Value must be a valid integer between {MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
                 ) from ve
-            if self._max_llm_retries < 0 or self._max_llm_retries > 10:
-                raise ModelError(
-                    f"Value '{self._max_llm_retries}' for max LLM retries is invalid. Value must be between 0 and 10."
-                )
 
         return self._max_llm_retries
 
     @property
     def model_client(self) -> boto3.client:
         return boto3.client(
+            "bedrock-runtime",
             region_name=self._config.value(
                 "aws.region", expected_type=str, default="us-west-2"
             ),
@@ -112,9 +118,11 @@ class ModelObject:
 
     @property
     def model_id(self) -> str:
+        raise NotImplementedError("Subclasses must implement this method")
 
     @property
     def model_name(self) -> str:
+        raise NotImplementedError("Subclasses must implement this method")
 
     @property
     def model_vendor(self) -> str:
@@ -123,6 +131,7 @@ class ModelObject:
     @property
     def retry_delay(self) -> int:
         if not self._retry_delay:
+            try:
                 self._retry_delay = self._config.value(
                     key_path="ai_model.retry_delay",
                     expected_type=int,
@@ -131,20 +140,20 @@ class ModelObject:
                     default=RETRY_DELAY_DEFAULT,
                 )
             except TypeError as te:
+                raise ModelError(
+                    f"Type for retry delay is invalid. Value must be a valid integer between {RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
+                ) from te
             except ValueError as ve:
                 raise ModelError(
-                    f"Value '{value}' for retry delay is invalid. Value must be a valid integer 0 or greater."
+                    f"Value for retry delay is invalid. Value must be a valid integer between {RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
                 ) from ve
-            if self._retry_delay < 0:
-                raise ModelError(
-                    f"Value '{self._retry_delay}' is invalid. Value must be 0 or greater."
-                )
 
         return self._retry_delay
 
     @property
     def temperature(self) -> float:
         if not self._temperature:
+            try:
                 self._temperature = self._config.value(
                     "ai_model.temperature",
                     expected_type=float,
@@ -153,16 +162,34 @@ class ModelObject:
                     default=TEMPERATURE_DEFAULT,
                 )
             except TypeError as te:
+                raise ModelError(
+                    f"Type for temperature is invalid. Value must be a valid floating point between {TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
+                ) from te
             except ValueError as ve:
                 raise ModelError(
-                    f"Value '{value}' for temperature is invalid. Value must be a valid floating point between 0.0 and 1.0."
+                    f"Value for temperature is invalid. Value must be a valid floating point between {TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
                 ) from ve
-            if self._temperature < 0.0 or self._temperature > 1.0:
-                raise ModelError(
-                    f"Value '{self._temperature}' for temperature is invalid. Value must be between 0.0 and 1.0."
-                )
-
         return self._temperature
+
+    @property
+    def stop_valid_reasons(self) -> List[str]:
+        if self._stop_valid_reasons is None:
+            try:
+                self._stop_valid_reasons = self._config.value(
+                    key_path="ai_model.model_stop.reasons.valid",
+                    expected_type=list,
+                    default=[],
+                )
+            except TypeError as te:
+                raise ModelError(
+                    "Type for model stop valid reasons is invalid. Value must be a valid list."
+                ) from te
+            except ValueError as ve:
+                raise ModelError(
+                    "Value for model stop valid reasons is invalid. Value must be a valid list."
+                ) from ve
+
+        return self._stop_valid_reasons
 
     @property
     def stopped_reason(self) -> str:

@@ -21,7 +21,12 @@ from utilities import (
     GenericUtils,
     FormatterUtils,
 )
-from models.model import ModelError, ModelObject, ModelMaxTokenLimitException
+from models.model import (
+    ModelError,
+    ModelFactory,
+    ModelObject,
+    ModelMaxTokenLimitException,
+)
 from formatters.formatter import (
     FormatterError,
     FormatterObject,
@@ -224,8 +229,10 @@ class SourceCodeAnalyzer:
         self._path_utils = PathUtils()
         self._json_utils = JsonUtils()
         # FUTURE make config file name dynamic
-        self._config: Configuration = Configuration("config.yaml")
+        self._config: Configuration = Configuration("source_analyzer/config.yaml")
         self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
+
+        model_utils = ModelUtils(configuration=self._config)
         self._model: ModelObject = ModelFactory(configuration=self._config).get_model(
             module_name=model_utils.get_desired_model_module_name(),
             class_name=model_utils.get_desired_model_class_name(),
@@ -238,9 +245,10 @@ class SourceCodeAnalyzer:
             module_name=formatter_utils.get_desired_formatter_module_name(),
             class_name=formatter_utils.get_desired_formatter_class_name(),
         )
+
         self._total_tokens: dict = {"completion": 0, "prompt": 0}
 
-        self._logging_utils.debug(__class__, f"Model: {self._model.get_model_id()}")
+        self._logging_utils.debug(__class__, f"Model: {self._model.model_id}")
         self._logging_utils.debug(__class__, f"_config: {pformat(self._config)}")
         self._logging_utils.info(__class__, "Configuration:")
         self._logging_utils.info(__class__, pformat(str(self._config)))
@@ -328,7 +336,7 @@ class SourceCodeAnalyzer:
         )
         return tree_builder.root
 
-    def get_completion_with_retry(self, prompt: str):
+    def get_completion_with_retry(self, prompt: str) -> None:
         """
         Get an AI completion with automatic retry logic.
 
@@ -359,13 +367,9 @@ class SourceCodeAnalyzer:
                 f"Get completion attempt: (attempt {attempt + 1}/{self._model.max_llm_retries})",  # pylint: disable=line-too-long
             )
             try:
-                response = self._model.generate_text(prompt=prompt)
-                # self._logging_utils.success(__class__, response)
+                self._model.generate_text(prompt=prompt)
 
                 self._logging_utils.info(__class__, "LLM response received")
-                self._logging_utils.debug(
-                    __class__, f"LLM Prompt Tokens: {self._model.get_prompt_tokens()}"
-                )
                 self._logging_utils.debug(
                     __class__,
                     f"LLM Prompt Tokens: {self._model.prompt_tokens}, "
@@ -374,20 +378,32 @@ class SourceCodeAnalyzer:
                 )
                 if self._model.stopped_reason not in self._model.stop_valid_reasons:
                     self._logging_utils.warning(
+                        __class__,
                         f"Unsuccessful stop reason '{self._model.stopped_reason}'",
                     )
                     if attempt < self._model.max_llm_retries - 1:
                         self._logging_utils.debug_info(
+                            __class__,
                             f"Retrying in {self._model.retry_delay} seconds...",
                         )
                         time.sleep(self._model.retry_delay)
                     else:
+                        self._logging_utils.error(
+                            __class__, "Max retries reached. Giving up."
+                        )
+                        raise ModelMaxTokenLimitException(
+                            max_token_limit=self._model.max_completion_tokens,
+                            prompt_tokens=self._model.prompt_tokens,
+                            completion_tokens=self._model.completion_tokens,
+                        )
+                else:
+                    self._logging_utils.debug(
+                        __class__, "setting break_llm_loop to True"
+                    )
+                    break_llm_loop = True
             except ModelMaxTokenLimitException as mmtle:
-                raise Exception from mmtle
-            except ModelError as me:  # pylint: disable=broad-exception-raised)
-                self._logging_utils.debug(__class__, f"ModelError class: {type(me)}")
-                if isinstance(me, ModelMaxTokenLimitException):
-                    continue
+                raise Exception from mmtle  # pylint: disable=broad-exception-raised)
+            except ModelError as me:  # pylint: disable=broad-exception-raised
                 self._logging_utils.error(
                     __class__,
                     f"Cannot generate text from model '{self._model.model_name}'."
@@ -404,7 +420,7 @@ class SourceCodeAnalyzer:
                     time.sleep(self._model.retry_delay)
                 else:
                     self._logging_utils.error(
-                        __class__, "Max retries reached. Giving up."
+                        __class__, "Max retries reached again. Giving up."
                     )
                     self._logging_utils.debug(
                         __class__, f"end get_completion_with_retry with exception: {e}"
@@ -434,9 +450,7 @@ class SourceCodeAnalyzer:
 
         self._logging_utils.trace(__class__, "end get_completion_with_retry")
 
-        return response
-
-    def analyze_source_code_for_decision_points(self, source_code) -> str:
+    def analyze_source_code_for_decision_points(self, source_code) -> None:
         """
         Analyze source code to identify optimal locations for adding trace statements.
 
@@ -449,6 +463,7 @@ class SourceCodeAnalyzer:
         self._logging_utils.trace(
             __class__, "start analyze_source_code_for_decision_points"
         )
+
         tracing_priorities = self._config.value(
             key_path="tracing_priorities", expected_type=list, default=[]
         )
@@ -461,9 +476,9 @@ Analyze the following Python source code and identify critical locations for add
 Include every critical locations found. Categorize critical locations based on the following priorities.
 
 Priorities:
-{', '.join(self._config.get_value("tracing_priorities", []))}
+{', '.join(tracing_priorities)}
 
-{'\n'.join(self._config.get_value("clarifications", []))}
+{'\n'.join(clarifications)}
 
 For every critical location found, include the following details:
 1. Name of the location function/method.
@@ -490,7 +505,7 @@ Source Code:
 """
 
         self._logging_utils.info(__class__, "Analyzing code")
-        response = self.get_completion_with_retry(
+        self.get_completion_with_retry(
             prompt=prompt,
         )
         self._logging_utils.info(__class__, "Code analysis complete")
@@ -498,9 +513,8 @@ Source Code:
         self._logging_utils.trace(
             __class__, "end analyze_source_code_for_decision_points"
         )
-        return response
 
-    def generate_formatted_output(self, response: str):
+    def generate_formatted_output(self, model: ModelObject) -> str:
         """
         Generate formatted output based on the provided response.
 
@@ -511,33 +525,22 @@ Source Code:
             None
         """
         self._logging_utils.trace(__class__, "start generate_formatted_output")
-        self._logging_utils.debug(__class__, "response:")
-        self._logging_utils.debug(__class__, response)
-
-        # extracted_json = self._json_utils.extract_json(response)
-        # TODO fix
-        extracted_json = self._json_utils.extract_code_blocks(response)
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks type: {type(extracted_json)}"
-        )
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks len: {len(extracted_json)}"
-        )
-        self._logging_utils.debug(__class__, "Extracted json:")
-        self._logging_utils.debug(__class__, extracted_json[0], enable_pformat=True)
-
-        data = self._json_utils.json_loads(json_string=extracted_json[0])
-        data = data[0] if isinstance(data, list) else data
-        self._logging_utils.debug(__class__, "data:")
-        self._logging_utils.debug(__class__, data)
+        self._logging_utils.debug(__class__, "completion_json:")
+        self._logging_utils.debug(__class__, model.completion_json, enable_pformat=True)
 
         formatter_inputs = {}
         formatter_inputs["model_vendor"] = model.model_vendor
         formatter_inputs["model_name"] = model.model_name
         formatter_inputs["total_prompt_tokens"] = self._total_tokens["prompt"]
+        formatter_inputs["total_completion_tokens"] = self._total_tokens["completion"]
+        formatter_inputs["stopped_reason"] = self._model.stopped_reason
+
+        formatted_output = self._formatter.format_json(
+            data=model.completion_json, variables=formatter_inputs
+        )
 
         self._logging_utils.debug(__class__, "end generate_formatted_output")
-        return response
+        return formatted_output
 
     def process_file(self, input_source_path: str):
         """
@@ -596,7 +599,7 @@ Source Code:
 
         try:
             # Analyze the code
-            response = self.analyze_source_code_for_decision_points(full_code)
+            self.analyze_source_code_for_decision_points(full_code)
         except Exception as e:  # pylint: disable=broad-exception-caught
             self._logging_utils.error(
                 __class__, f"Failed to analyze source code: {str(e)}", exc_info=True
@@ -607,7 +610,7 @@ Source Code:
 
         try:
             # Format the output
-            response = self.generate_formatted_output(response=response)
+            formatted_output = self.generate_formatted_output(model=self._model)
         except Exception as e:  # pylint: disable=broad-exception-caught
             self._logging_utils.error(
                 __class__, f"Failed to format output: {str(e)}", exc_info=True
@@ -692,6 +695,7 @@ def main():
             if invalid_args
             else "Analyze the source code in the specified file or directory."
         )
+        # TODO refactor usage
         print(
             """
 Arguments:

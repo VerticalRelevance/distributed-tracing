@@ -66,6 +66,12 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
                 f"Bedrock invoke_model error ({error_code}): {str(ce)}"
             ) from ce
 
+        self._handle_response(response=response)
+        self._logging_utils.trace(__class__, "end generate_text")
+
+    def _handle_response(self, response):
+        self._logging_utils.trace(__class__, "start _handle_response")
+
         # Decode the response body.
         model_response = json.loads(response["body"].read())
         self._logging_utils.debug(__class__, "model_response")
@@ -77,10 +83,25 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
         )
         response_text = model_response["content"][0].get("text")
         self._logging_utils.debug(__class__, f"usage: {model_response.get("usage")}")
+        extracted_json = self._json_utils.extract_json(response_text)
+        self._logging_utils.debug(
+            __class__, f"Extracted code blocks type: {type(extracted_json)}"
+        )
+        self._logging_utils.debug(
+            __class__, f"Extracted code blocks len: {len(extracted_json)}"
+        )
+        self._logging_utils.debug(__class__, "Extracted json:")
+        self._logging_utils.debug(__class__, extracted_json, enable_pformat=True)
+
+        data = self._json_utils.json_loads(json_string=extracted_json)
+        data = data[0] if isinstance(data, list) else data
+        self._logging_utils.debug(__class__, "data:")
+        self._logging_utils.debug(__class__, data)
+        self.completion_json = data
 
         self.increment_completion_tokens(value=model_response["usage"]["output_tokens"])
         self.increment_prompt_tokens(value=model_response["usage"]["input_tokens"])
-        self.set_stop_reason(value=model_response["stop_reason"])
+        self.stopped_reason = model_response["stop_reason"]
 
         self._logging_utils.trace(__class__, "end generate_text")
 

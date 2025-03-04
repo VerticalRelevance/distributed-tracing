@@ -1,6 +1,7 @@
 from typing import Dict
 from jinja2 import Environment
 from formatters.formatter import FormatterObject
+from configuration import Configuration
 
 
 class Jinja2JsonToMarkdownFormatter(FormatterObject):
@@ -26,7 +27,7 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
         cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, config_dict: Dict[str, str]):
+    def __init__(self, configuration: Configuration):
         """
         Initializes a new instance of the Jinja2JsonToMarkdownFormatter class.
 
@@ -59,6 +60,7 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
         Returns:
             str: The formatted Markdown string.
         """
+        # FUTURE refactor to use a shared utilities module
         # Get the template file name and path from the configuration
         file_name = self._config.value(
             "formatter.template.name",
@@ -71,12 +73,13 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
             default="template path not found",
         )
         template_path = (
-            f"{file_path}/{file_name if file_name is not None else f"notfound.jinja2"}"
+            f"{file_path}/{file_name if file_name is not None else "notfound.jinja2"}"
         )
         self._logging_utils.debug(__class__, f"Template path: {template_path}")
         template_string = self._load_template(template_path=template_path)
 
         # Create the Jinja2 environment and template
+        # FUTURE make jinja debug extension optional
         jinja2_env = Environment(
             extensions=["jinja2.ext.debug"],  # Enable the debug extension
         )
@@ -91,6 +94,16 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
             priorities=data["priorities"],
             model_vendor=variables["model_vendor"],
             model_name=variables["model_name"],
+            total_prompt_tokens=variables["total_prompt_tokens"],
+            total_completion_tokens=variables["total_completion_tokens"],
+            stopped_reason=variables["stopped_reason"],
+            # FUTURE add the following variables
+            # total_cost=variables["total_cost"],
+            # total_time=variables["total_time"],
+            # total_time_in_seconds=variables["total_time_in_seconds"],
+            # total_time_in_milliseconds=variables["total_time_in_milliseconds"],
+            # total_time_in_microseconds=variables["total_time_in_microseconds"],
+            # total_time_in_nanoseconds=variables["total_time_in_nanoseconds"],
         )
         self._logging_utils.debug(__class__, f"Markdown output: {markdown_output}")
 

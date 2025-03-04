@@ -11,14 +11,25 @@ tracing_priorities:
   - State Changes
   - External Resource Interactions
 
-formatter:
+# formatter
+formatter_jinja2:
   class:
     name: Jinja2JsonToMarkdownFormatter
   module:
     name: jinja2_json_to_markdown_formatter
   template:
     name: jinja2_json_to_markdown_formatter.jinja2
-    path: formatters
+    path: source_analyzer/formatters
+
+# formatter_jinja2_meta
+formatter:
+  class:
+    name: Jinja2JsonToMarkdownFormatter
+  module:
+    name: jinja2_json_to_markdown_formatter
+  template:
+    name: jinja2_json_to_markdown_formatter_meta.jinja2
+    path: source_analyzer/formatters
 
 formatter_coded:
   class:
@@ -29,13 +40,17 @@ formatter_coded:
 ai_model:
   max_llm_retries: 2
   retry_delay: 4
-  temperature: 0.1
+  temperature: 0.0
   custom:
-    max_tokens: 2048
+    max_gen_len: 6144
   class:
-    name: AnthropicClaude3Sonnet20240229V1
+    name: MetaLlama323bInstructV1
   module:
-    name: anthropic_claude_3_sonnet_20240229_v1_0
+    name: meta_llama3_2_3b_instruct_v1_0
+  model_stop:
+    reasons:
+      valid:
+        - end_turn
 
 ai_model_keep_anthropic_claude3_sonnet:
   #
@@ -44,13 +59,17 @@ ai_model_keep_anthropic_claude3_sonnet:
   #
   max_llm_retries: 2
   retry_delay: 4
-  temperature: 0.1
+  temperature: 0.0
   custom:
     max_tokens: 2048
   class:
     name: AnthropicClaude3Sonnet20240229V1
   module:
     name: anthropic_claude_3_sonnet_20240229_v1_0
+  model_stop:
+    reasons:
+      valid:
+        - end_turn
 
 ai_model_keep_meta_llama:
   #
@@ -63,6 +82,10 @@ ai_model_keep_meta_llama:
   custom:
     max_gen_len: 6134
   class:
-    name: MetaLlama3_2_3b_InstructV1_0
+    name: MetaLlama323bInstructV1
   module:
     name: meta_llama3_2_3b_instruct_v1_0
+  model_stop:
+    reasons:
+      valid:
+        - end_turn

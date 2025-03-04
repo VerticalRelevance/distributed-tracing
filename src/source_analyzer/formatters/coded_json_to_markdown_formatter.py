@@ -1,5 +1,6 @@
 from typing import Dict
 from formatters.formatter import FormatterObject
+from configuration import Configuration
 
 
 class CodedJsonToMarkdownFormatter(FormatterObject):
@@ -26,7 +27,7 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, config_dict: Dict[str, str]):
+    def __init__(self, configuration: Configuration):
         """
         Initializes a new instance of the CodedJsonToMarkdownFormatter class.
 
@@ -36,7 +37,9 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         """
         super().__init__(configuration=configuration)
 
-    def format_json(self, data: Dict[str, str], variables: Dict[str, str]) -> str:
+    def format_json(
+        self, data: Dict[str, str], variables: Dict[str, str] = None
+    ) -> str:
         """
         Formats the given text using the CodedJsonToMarkdownFormatter.
 
@@ -66,8 +69,9 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         )
         self._logging_utils.debug(
             __class__,
-            f"type(self._config_dict('tracing_priorities')): {type(self._config_dict('tracing_priorities'))}",
+            f"type(self._config('tracing_priorities')): {type(tracing_priorities)}",
         )
+        for tracing_priority in tracing_priorities:
             self._logging_utils.debug(
                 __class__, f"type(tracing_priority): {type(tracing_priority)}"
             )
@@ -75,13 +79,20 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
                 __class__, f"tracing_priority: {tracing_priority}"
             )
             output_strings.append("")
-            output_strings.append(f"### {priority}")
+            output_strings.append(f"### {tracing_priority}")
             output_strings.append("")
-            locations: list = priorities.get(priority, [])
+            locations = [
+                element
+                for element in priorities
+                if element["priority"] == tracing_priority
+            ][0].get("critical_locations")
+            self._logging_utils.debug(__class__, f"locations: {locations}")
+            self._logging_utils.debug(__class__, f"len(locations): {len(locations)}")
             if len(locations) == 0:
                 output_strings.append("No critical findings for this priority.")
                 continue
             for location in locations:
+                self._logging_utils.debug(__class__, f"location: {location}")
                 output_strings.append(f"#### Location {location.get('function_name')}")
                 output_strings.append(
                     f"- **Specific code blocks/lines to trace:**\n```python\n{location.get('code_block')}\n```"
@@ -92,5 +103,15 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
                 output_strings.append(
                     f"- **Recommended trace information to capture**\n{location.get('trace_info')}"
                 )
+
+        output_strings.append("")
+        output_strings.append("## Summary")
+        output_strings.append(
+            f"* Total prompt tokens: {variables['total_prompt_tokens']}"
+        )
+        output_strings.append(
+            f"* Total completion tokens: {variables['total_completion_tokens']}"
+        )
+        output_strings.append(f"* Stop reason: {variables['stop_reason']}")
 
         return "\n".join(output_strings)

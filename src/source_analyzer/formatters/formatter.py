@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod
-from utilities import LoggingUtils, JsonUtils, GenericUtils
 from typing import Dict
+from configuration import Configuration
+from utilities import LoggingUtils, JsonUtils, GenericUtils
 
 
 class FormatterError(Exception):
@@ -11,8 +11,8 @@ class FormatterError(Exception):
         super().__init__(self.message)
 
 
-class FormatterObject(ABC):
-    def __init__(self, config_dict: Dict[str, str]):
+class FormatterObject:  # pylint: disable=too-few-public-methods
+    def __init__(self, configuration: Configuration):
         """
         Initializes a new instance of the JsonToMarkdownFormatter class.
 
@@ -20,20 +20,18 @@ class FormatterObject(ABC):
         It initializes the instance with any necessary attributes or configurations.
 
         """
-        super().__init__()
-
         self._logging_utils = LoggingUtils()
         self._json_utils = JsonUtils()
         self._generic_utils = GenericUtils()
-        self._config_dict = config_dict
+        self._config = configuration
 
-    @abstractmethod
-    def format_json(self, data: Dict[str, str], variables: Dict[str, str] = None):
-        pass
+    def format_json(
+        self, data: Dict[str, str], variables: Dict[str, str] = None
+    ) -> str:  # pylint: disable=unused-argument
+        raise NotImplementedError("Subclasses must implement this method")
 
 
 class FormatterFactory:
-
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
@@ -56,9 +54,9 @@ class FormatterFactory:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, config_dict: Dict[str, str]):
-        self._generic_utils = GenericUtils()
-        self._config_dict = config_dict
+    def __init__(self, configuration: Configuration):
+        self._generic_utils: GenericUtils = GenericUtils()
+        self._config: Configuration = configuration
 
     def get_formatter(self, module_name: str, class_name: str) -> FormatterObject:
         """
@@ -84,4 +82,4 @@ class FormatterFactory:
             class_name=class_name,
             package_name="formatters",
         )
-        return formatter_class(config_dict=self._config_dict)
+        return formatter_class(configuration=self._config)
