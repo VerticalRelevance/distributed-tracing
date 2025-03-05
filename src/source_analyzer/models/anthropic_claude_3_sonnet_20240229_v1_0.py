@@ -1,3 +1,10 @@
+"""
+Module for interacting with Anthropic's Claude 3 Sonnet model via AWS Bedrock.
+
+This module provides a class for generating text using the Claude 3 Sonnet model,
+handling API requests and responses, and processing the returned data.
+"""
+
 import json
 from botocore.exceptions import ClientError, TokenRetrievalError
 from configuration import Configuration
@@ -9,10 +16,43 @@ MAX_TOKENS_DEFAULT = 2048
 
 
 class AnthropicClaude3Sonnet20240229V1(ModelObject):
+    """
+    Client for Anthropic's Claude 3 Sonnet model via AWS Bedrock.
+
+    This class handles text generation requests to the Claude 3 Sonnet model,
+    processes responses, and extracts relevant information from the model output.
+
+    Attributes:
+        _max_completion_tokens (int): Maximum number of tokens for model completion.
+        completion_json (dict): Processed JSON data from the model response.
+        stopped_reason (str): Reason why the model stopped generating text.
+    """
+
     def __init__(self, configuration: Configuration):
+        """
+        Initialize the Claude 3 Sonnet model client.
+
+        Args:
+            configuration: Configuration object containing model settings.
+        """
         super().__init__(configuration=configuration)
 
     def generate_text(self, prompt):
+        """
+        Generate text using the Claude 3 Sonnet model.
+
+        This method sends a prompt to the Claude 3 Sonnet model and processes the response.
+        It handles token configuration, request formatting, and error handling.
+
+        Args:
+            prompt (str): The text prompt to send to the model.
+
+        Raises:
+            ModelError: If there's an error with token retrieval or model invocation.
+
+        Returns:
+            None: Results are stored in instance attributes.
+        """
         self._logging_utils.trace(__class__, "start generate_text")
 
         self._logging_utils.debug(__class__, "prompt:")
@@ -70,6 +110,18 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
         self._logging_utils.trace(__class__, "end generate_text")
 
     def _handle_response(self, response):
+        """
+        Process the raw response from the Claude 3 Sonnet model.
+
+        This method extracts text from the model response, processes any JSON content,
+        and updates token usage statistics.
+
+        Args:
+            response: Raw response object from the AWS Bedrock API.
+
+        Returns:
+            None: Results are stored in instance attributes.
+        """
         self._logging_utils.trace(__class__, "start _handle_response")
 
         # Decode the response body.
@@ -107,12 +159,30 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
 
     @property
     def model_id(self) -> str:
+        """
+        Get the AWS Bedrock model ID for Claude 3 Sonnet.
+
+        Returns:
+            str: The model ID string.
+        """
         return "anthropic.claude-3-sonnet-20240229-v1:0"
 
     @property
     def model_name(self) -> str:
+        """
+        Get the human-readable name of the model.
+
+        Returns:
+            str: The model name.
+        """
         return "Claude 3 Sonnet"
 
     @property
     def model_vendor(self) -> str:
+        """
+        Get the vendor name for the model.
+
+        Returns:
+            str: The vendor name.
+        """
         return "Anthropic"

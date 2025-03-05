@@ -1,3 +1,10 @@
+"""
+Module for interacting with Meta's Llama 3.2 3B Instruct model through AWS Bedrock.
+
+This module provides a class for generating text using the Meta Llama 3.2 3B Instruct model,
+handling the specific formatting requirements and response parsing for this model.
+"""
+
 import json
 from botocore.exceptions import ClientError
 from models.model import ModelObject, ModelError
@@ -9,10 +16,38 @@ MAX_GEN_LEN_DEFAULT = 6144
 
 
 class MetaLlama323bInstructV1(ModelObject):
+    """
+    Client for interacting with Meta's Llama 3.2 3B Instruct model via AWS Bedrock.
+
+    This class handles the specific prompt formatting, request structure, and response
+    parsing required for the Llama 3.2 3B Instruct model.
+
+    Attributes:
+        completion_json (dict): Structured data extracted from the model's response.
+    """
+
     def __init__(self, configuration: Configuration):
+        """
+        Initialize the Llama 3.2 3B Instruct model client.
+
+        Args:
+            configuration (Configuration): Configuration object containing model settings.
+        """
         super().__init__(configuration=configuration)
 
     def generate_text(self, prompt):
+        """
+        Generate text using the Llama 3.2 3B Instruct model.
+
+        This method formats the prompt according to the model's expected input format,
+        sends the request to the model, and processes the response.
+
+        Args:
+            prompt (str): The input prompt to send to the model.
+
+        Raises:
+            ModelError: If there's an error invoking the model.
+        """
         self._logging_utils.trace(__class__, "start generate_text")
 
         self._logging_utils.debug(__class__, "prompt:")
@@ -66,6 +101,15 @@ class MetaLlama323bInstructV1(ModelObject):
         self._logging_utils.trace(__class__, "end generate_text")
 
     def _handle_response(self, response):
+        """
+        Process the raw response from the model.
+
+        This method extracts the generated text from the model's response,
+        parses any JSON content, and updates token usage statistics.
+
+        Args:
+            response: The raw response from the model invocation.
+        """
         self._logging_utils.trace(__class__, "start _handle_response")
         # Decode the response body.
         model_response: dict = json.loads(response["body"].read())
@@ -115,12 +159,30 @@ class MetaLlama323bInstructV1(ModelObject):
 
     @property
     def model_id(self) -> str:
+        """
+        Get the AWS Bedrock model ID for Llama 3.2 3B Instruct.
+
+        Returns:
+            str: The model ID.
+        """
         return "us.meta.llama3-2-1b-instruct-v1:0"
 
     @property
     def model_name(self) -> str:
+        """
+        Get the human-readable name of the model.
+
+        Returns:
+            str: The model name.
+        """
         return "Llama 3.2 3B Instruct"
 
     @property
     def model_vendor(self) -> str:
+        """
+        Get the vendor name for the model.
+
+        Returns:
+            str: The model vendor.
+        """
         return "Meta"

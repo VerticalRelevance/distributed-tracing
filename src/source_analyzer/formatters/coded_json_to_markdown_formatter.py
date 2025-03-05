@@ -1,27 +1,44 @@
+"""
+CodedJsonToMarkdownFormatter module that provides functionality for formatting JSON analysis data
+into structured Markdown reports. This module implements a singleton pattern for the formatter
+and provides methods for transforming JSON data into readable Markdown documentation.
+"""
+
 from typing import Dict
 from formatters.formatter import FormatterObject
 from configuration import Configuration
 
 
 class CodedJsonToMarkdownFormatter(FormatterObject):
+    """
+    A formatter that converts JSON analysis data to structured Markdown reports.
+
+    This class implements the singleton pattern to ensure only one instance exists.
+    It processes JSON data containing analysis results and generates a comprehensive
+    Markdown report with sections for overall analysis, priority-based findings,
+    and summary statistics.
+
+    Attributes:
+        _instance (CodedJsonToMarkdownFormatter): The singleton instance of this class
+    """
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Creates and returns a new instance of the CodedJsonToMarkdownFormatter class.
+        Implements the singleton pattern for the CodedJsonToMarkdownFormatter class.
 
-        This method is responsible for implementing the singleton pattern, ensuring that only one
-        instance of the Configuration class is created.
+        This method ensures that only one instance of the CodedJsonToMarkdownFormatter
+        is created throughout the application's lifecycle. Subsequent calls to create
+        an instance will return the existing instance.
 
-        Parameters:
-            cls (type): The class object.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
+        Args:
+            cls (type): The class object being instantiated.
+            *args: Variable length argument list to support flexible instantiation.
+            **kwargs: Arbitrary keyword arguments to support flexible instantiation.
 
         Returns:
-            FormatterObject: The singleton instance of the CodedJsonToMarkdownFormatter class.
-
+            CodedJsonToMarkdownFormatter: The singleton instance of the class.
         """
         if not cls._instance:
             cls._instance = super().__new__(cls)
@@ -29,11 +46,15 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
 
     def __init__(self, configuration: Configuration):
         """
-        Initializes a new instance of the CodedJsonToMarkdownFormatter class.
+        Initializes the CodedJsonToMarkdownFormatter with the given configuration.
 
-        This method is called automatically when a new instance of the class is created.
-        It initializes the instance with any necessary attributes or configurations.
+        Sets up the formatter by calling the parent class's initialization method
+        with the provided configuration object. This ensures that the formatter
+        is properly configured with the necessary settings for processing.
 
+        Args:
+            configuration (Configuration): The configuration object containing
+                settings and parameters for the formatter.
         """
         super().__init__(configuration=configuration)
 
@@ -41,15 +62,31 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         self, data: Dict[str, str], variables: Dict[str, str] = None
     ) -> str:
         """
-        Formats the given text using the CodedJsonToMarkdownFormatter.
+        Transforms JSON-formatted analysis data into a structured Markdown report.
+
+        This method takes analysis data and variables as input, and generates
+        a comprehensive Markdown-formatted report. The report includes:
+        - A header with model vendor and name
+        - Overall analysis summary
+        - Detailed findings for each tracing priority
+        - Critical locations with specific code blocks, rationales, and trace recommendations
+        - Summary of token usage and stop reason
 
         Args:
-            text_to_format (str): The text to be formatted.
+            data (Dict[str, str]): A dictionary containing analysis data,
+                including priorities, critical locations, and summaries.
+            variables (Dict[str, str], optional): A dictionary of additional
+                variables such as model details, token counts, and stop reason.
+                Defaults to None.
 
         Returns:
-            None
-        """
+            str: A markdown-formatted report of the analysis results.
 
+        Note:
+            - Requires 'tracing_priorities' to be configured in the configuration.
+            - Logs debug information using the internal logging utility.
+            - Handles cases where no critical findings exist for a priority.
+        """
         output_strings = []
         output_strings.append("")
         output_strings.append(

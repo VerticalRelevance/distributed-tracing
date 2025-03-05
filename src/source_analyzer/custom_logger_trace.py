@@ -26,7 +26,6 @@ TRACE = 5
 logging.addLevelName(TRACE, "TRACE")
 
 
-# Create a custom logger with the new method
 class CustomLoggerTrace(logging.Logger):
     """
     A custom Logger class that extends the standard logging.Logger

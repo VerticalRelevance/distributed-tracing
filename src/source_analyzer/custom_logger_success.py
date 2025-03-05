@@ -26,7 +26,6 @@ SUCCESS = 25
 logging.addLevelName(SUCCESS, "SUCCESS")
 
 
-# Create a custom logger with the new method
 class CustomLoggerSuccess(logging.Logger):
     """
     A custom Logger class that extends the standard logging.Logger

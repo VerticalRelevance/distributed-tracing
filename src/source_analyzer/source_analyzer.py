@@ -350,14 +350,13 @@ class SourceCodeAnalyzer:
             Exception: If all retry attempts fail
         """
         self._logging_utils.trace(__class__, "start get_completion_with_retry")
-        self._logging_utils.debug(__class__, "prompt:")
-        self._logging_utils.debug(__class__, prompt)
+        self._logging_utils.debug(__class__, f"prompt:\n{prompt}")
         self._logging_utils.debug(
             __class__,
             f"max_llm_retries: {self._model.max_llm_retries}, "
-            f"retry_delay: {self._model.retry_delay}",
+            f"retry_delay: {self._model.retry_delay}, "
+            f"temperature: {self._model.temperature}",
         )
-        self._logging_utils.debug(__class__, f"temperature: {self._model.temperature}")
 
         self._total_tokens = {"completion": 0, "prompt": 0}
         break_llm_loop = False

@@ -1,3 +1,9 @@
+"""
+Jinja2JsonToMarkdownFormatter module that provides functionality for formatting JSON data
+into Markdown using Jinja2 templates. This module implements a singleton pattern for the formatter
+and provides methods for loading templates and rendering JSON data to Markdown.
+"""
+
 from typing import Dict
 from jinja2 import Environment
 from formatters.formatter import FormatterObject
@@ -5,6 +11,17 @@ from configuration import Configuration
 
 
 class Jinja2JsonToMarkdownFormatter(FormatterObject):
+    """
+    A formatter that converts JSON data to Markdown using Jinja2 templates.
+
+    This class implements the singleton pattern to ensure only one instance exists.
+    It provides methods for loading Jinja2 templates and formatting JSON data into
+    structured Markdown documents based on those templates.
+
+    Attributes:
+        _instance (Jinja2JsonToMarkdownFormatter): The singleton instance of this class
+    """
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
@@ -22,9 +39,9 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
         Returns:
             FormatterFactory: The singleton instance of the Jinja2JsonToMarkdownFormatter class.
 
-        if not cls._instance:
         """
-        cls._instance = super().__new__(cls)
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, configuration: Configuration):
