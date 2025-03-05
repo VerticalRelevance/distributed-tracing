@@ -21,7 +21,12 @@ from utilities import (
     GenericUtils,
     FormatterUtils,
 )
-from models.model import ModelError, ModelObject, ModelMaxTokenLimitException
+from models.model import (
+    ModelError,
+    ModelFactory,
+    ModelObject,
+    ModelMaxTokenLimitException,
+)
 from formatters.formatter import (
     FormatterError,
     FormatterObject,
@@ -224,35 +229,29 @@ class SourceCodeAnalyzer:
         self._path_utils = PathUtils()
         self._json_utils = JsonUtils()
         # FUTURE make config file name dynamic
-        self._config: Configuration = Configuration("config.yaml")
+        self._config: Configuration = Configuration("source_analyzer/config.yaml")
         self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
-        self._model: ModelObject = self._model_utils.get_model_instance()
-        self._formatter: FormatterObject = FormatterFactory(
-            config_dict=self._config.items()
-        ).get_formatter(
-            module_name=FormatterUtils(
-                configuration=self._config
-            ).get_desired_formatter_module_name(),
-            class_name=FormatterUtils(
-                configuration=self._config
-            ).get_desired_formatter_class_name(),
+
+        model_utils = ModelUtils(configuration=self._config)
+        self._model: ModelObject = ModelFactory(configuration=self._config).get_model(
+            module_name=model_utils.get_desired_model_module_name(),
+            class_name=model_utils.get_desired_model_class_name(),
         )
+
+        formatter_utils = FormatterUtils(configuration=self._config)
+        self._formatter: FormatterObject = FormatterFactory(
+            configuration=self._config
+        ).get_formatter(
+            module_name=formatter_utils.get_desired_formatter_module_name(),
+            class_name=formatter_utils.get_desired_formatter_class_name(),
+        )
+
         self._total_tokens: dict = {"completion": 0, "prompt": 0}
 
-        self._logging_utils.debug(__class__, f"Model: {self._model.get_model_id()}")
+        self._logging_utils.debug(__class__, f"Model: {self._model.model_id}")
         self._logging_utils.debug(__class__, f"_config: {pformat(self._config)}")
         self._logging_utils.info(__class__, "Configuration:")
         self._logging_utils.info(__class__, pformat(str(self._config)))
-
-    def load_model(self):
-        """
-        Load the AI model based on the configuration.
-        """
-
-        self._logging_utils.debug(
-            __class__, f"AI model: {self._model.get_model_name()}"
-        )
-        return self._model_utils.get_model_instance()
 
     def tree_dumps(self, node) -> str:
         """
@@ -337,7 +336,7 @@ class SourceCodeAnalyzer:
         )
         return tree_builder.root
 
-    def get_completion_with_retry(self, prompt: str):
+    def get_completion_with_retry(self, prompt: str) -> None:
         """
         Get an AI completion with automatic retry logic.
 
@@ -355,67 +354,73 @@ class SourceCodeAnalyzer:
         self._logging_utils.debug(__class__, prompt)
         self._logging_utils.debug(
             __class__,
-            f"max_llm_retries: {self._model.get_max_llm_retries()}, retry_delay: {self._model.get_retry_delay()}",
+            f"max_llm_retries: {self._model.max_llm_retries}, "
+            f"retry_delay: {self._model.retry_delay}",
         )
-        self._logging_utils.debug(
-            __class__, f"temperature: {self._model.get_temperature()}"
-        )
+        self._logging_utils.debug(__class__, f"temperature: {self._model.temperature}")
 
         self._total_tokens = {"completion": 0, "prompt": 0}
         break_llm_loop = False
-        for attempt in range(self._model.get_max_llm_retries()):
+        for attempt in range(self._model.max_llm_retries):
             self._logging_utils.debug_info(
                 __class__,
-                f"Get completion attempt: (attempt {attempt + 1}/{self._model.get_max_llm_retries()})",  # pylint: disable=line-too-long
+                f"Get completion attempt: (attempt {attempt + 1}/{self._model.max_llm_retries})",  # pylint: disable=line-too-long
             )
             try:
-                response = self._model.generate_text(prompt=prompt)
-                # self._logging_utils.success(__class__, response)
+                self._model.generate_text(prompt=prompt)
 
                 self._logging_utils.info(__class__, "LLM response received")
                 self._logging_utils.debug(
-                    __class__, f"LLM Prompt Tokens: {self._model.get_prompt_tokens()}"
-                )
-                self._logging_utils.debug(
                     __class__,
-                    f"LLM Completion Tokens: {self._model.get_completion_tokens()}",
+                    f"LLM Prompt Tokens: {self._model.prompt_tokens}, "
+                    f"LLM Completion Tokens: {self._model.completion_tokens}, "
+                    f"Stopped Reason: {self._model.stopped_reason}",
                 )
-                self._logging_utils.debug(
-                    __class__, f"stop reason: {self._model.get_stop_reason()}"
-                )
-                if self._model.get_stop_reason() == "max_tokens":
+                if self._model.stopped_reason not in self._model.stop_valid_reasons:
                     self._logging_utils.warning(
-                        f"Max completion token limit {self._model.get_max_completion_tokens()} exceeded."
+                        __class__,
+                        f"Unsuccessful stop reason '{self._model.stopped_reason}'",
                     )
-                    raise ModelMaxTokenLimitException(
-                        max_token_limit=self._model.get_max_completion_tokens(),
-                        prompt_tokens=self._model.get_prompt_tokens(),
-                        completion_tokens=self._model.get_completion_tokens(),
+                    if attempt < self._model.max_llm_retries - 1:
+                        self._logging_utils.debug_info(
+                            __class__,
+                            f"Retrying in {self._model.retry_delay} seconds...",
+                        )
+                        time.sleep(self._model.retry_delay)
+                    else:
+                        self._logging_utils.error(
+                            __class__, "Max retries reached. Giving up."
+                        )
+                        raise ModelMaxTokenLimitException(
+                            max_token_limit=self._model.max_completion_tokens,
+                            prompt_tokens=self._model.prompt_tokens,
+                            completion_tokens=self._model.completion_tokens,
+                        )
+                else:
+                    self._logging_utils.debug(
+                        __class__, "setting break_llm_loop to True"
                     )
-                self._logging_utils.debug(__class__, "setting break_llm_loop to True")
-                break_llm_loop = True
+                    break_llm_loop = True
             except ModelMaxTokenLimitException as mmtle:
-                raise Exception from mmtle
-            except ModelError as me:  # pylint: disable=broad-exception-raised)
-                self._logging_utils.debug(__class__, f"ModelError class: {type(me)}")
-                if isinstance(me, ModelMaxTokenLimitException):
-                    continue
+                raise Exception from mmtle  # pylint: disable=broad-exception-raised)
+            except ModelError as me:  # pylint: disable=broad-exception-raised
                 self._logging_utils.error(
                     __class__,
-                    f"Cannot generate text from model '{self._model.get_model_name()}'. Reason: {me}",
+                    f"Cannot generate text from model '{self._model.model_name}'."
+                    f"Reason: {me}",
                 )
                 sys.exit(1)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 self._logging_utils.error(__class__, f"LLM call failed: {str(e)}")
-                if attempt < self._model.get_max_llm_retries() - 1:
+                if attempt < self._model.max_llm_retries - 1:
                     self._logging_utils.info(
                         __class__,
-                        f"Retrying in {self._model.get_retry_delay()} seconds...",
+                        f"Retrying again in {self._model.retry_delay} seconds...",
                     )
-                    time.sleep(self._model.get_retry_delay())
+                    time.sleep(self._model.retry_delay)
                 else:
                     self._logging_utils.error(
-                        __class__, "Max retries reached. Giving up."
+                        __class__, "Max retries reached again. Giving up."
                     )
                     self._logging_utils.debug(
                         __class__, f"end get_completion_with_retry with exception: {e}"
@@ -423,19 +428,8 @@ class SourceCodeAnalyzer:
                     raise e
 
             # Update token counts
-            self._total_tokens["prompt"] += self._model.get_prompt_tokens()
-            self._logging_utils.debug(
-                __class__,
-                f"total tokens before increment: {self._total_tokens}",
-            )
-            self._logging_utils.debug(
-                __class__,
-                f"model completion tokens: {self._model.get_completion_tokens()}",
-            )
-            self._total_tokens["completion"] += self._model.get_completion_tokens()
-            self._logging_utils.debug(
-                __class__, f"total tokens after increment: {self._total_tokens}"
-            )
+            self._total_tokens["prompt"] += self._model.prompt_tokens
+            self._total_tokens["completion"] += self._model.completion_tokens
 
             tokens_output = pformat(
                 {
@@ -456,9 +450,7 @@ class SourceCodeAnalyzer:
 
         self._logging_utils.trace(__class__, "end get_completion_with_retry")
 
-        return response
-
-    def analyze_source_code_for_decision_points(self, source_code) -> str:
+    def analyze_source_code_for_decision_points(self, source_code) -> None:
         """
         Analyze source code to identify optimal locations for adding trace statements.
 
@@ -472,14 +464,21 @@ class SourceCodeAnalyzer:
             __class__, "start analyze_source_code_for_decision_points"
         )
 
+        tracing_priorities = self._config.value(
+            key_path="tracing_priorities", expected_type=list, default=[]
+        )
+        clarifications = self._config.value(
+            key_path="clarifications", expected_type=list, default=[]
+        )
+
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements.
 Include every critical locations found. Categorize critical locations based on the following priorities.
 
 Priorities:
-{', '.join(self._config.get_value("tracing_priorities", []))}
+{', '.join(tracing_priorities)}
 
-{'\n'.join(self._config.get_value("clarifications", []))}
+{'\n'.join(clarifications)}
 
 For every critical location found, include the following details:
 1. Name of the location function/method.
@@ -506,7 +505,7 @@ Source Code:
 """
 
         self._logging_utils.info(__class__, "Analyzing code")
-        response = self.get_completion_with_retry(
+        self.get_completion_with_retry(
             prompt=prompt,
         )
         self._logging_utils.info(__class__, "Code analysis complete")
@@ -514,9 +513,8 @@ Source Code:
         self._logging_utils.trace(
             __class__, "end analyze_source_code_for_decision_points"
         )
-        return response
 
-    def generate_formatted_output(self, response: str):
+    def generate_formatted_output(self, model: ModelObject) -> str:
         """
         Generate formatted output based on the provided response.
 
@@ -527,34 +525,22 @@ Source Code:
             None
         """
         self._logging_utils.trace(__class__, "start generate_formatted_output")
-        self._logging_utils.debug(__class__, "response:")
-        self._logging_utils.debug(__class__, response)
-
-        # extracted_json = self._json_utils.extract_json(response)
-        # TODO fix
-        extracted_json = self._json_utils.extract_code_blocks(response)
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks type: {type(extracted_json)}"
-        )
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks len: {len(extracted_json)}"
-        )
-        self._logging_utils.debug(__class__, "Extracted json:")
-        self._logging_utils.debug(__class__, extracted_json[0], enable_pformat=True)
-
-        data = self._json_utils.json_loads(json_string=extracted_json[0])
-        data = data[0] if isinstance(data, list) else data
-        self._logging_utils.debug(__class__, "data:")
-        self._logging_utils.debug(__class__, data)
+        self._logging_utils.debug(__class__, "completion_json:")
+        self._logging_utils.debug(__class__, model.completion_json, enable_pformat=True)
 
         formatter_inputs = {}
-        formatter_inputs["model_vendor"] = self._model.get_model_vendor()
-        formatter_inputs["model_name"] = self._model.get_model_name()
+        formatter_inputs["model_vendor"] = model.model_vendor
+        formatter_inputs["model_name"] = model.model_name
+        formatter_inputs["total_prompt_tokens"] = self._total_tokens["prompt"]
+        formatter_inputs["total_completion_tokens"] = self._total_tokens["completion"]
+        formatter_inputs["stopped_reason"] = self._model.stopped_reason
 
-        response = self._formatter.format_json(data=data, variables=formatter_inputs)
+        formatted_output = self._formatter.format_json(
+            data=model.completion_json, variables=formatter_inputs
+        )
 
         self._logging_utils.debug(__class__, "end generate_formatted_output")
-        return response
+        return formatted_output
 
     def process_file(self, input_source_path: str):
         """
@@ -611,14 +597,9 @@ Source Code:
         if not source_tree:
             return
 
-        # self._logging_utils.success(__class__, "")
-        # self._logging_utils.success(
-        #     __class__,
-        #     f"## {self._model.get_model_vendor()} {self._model.get_model_name()} Analysis",
-        # )
         try:
             # Analyze the code
-            response = self.analyze_source_code_for_decision_points(full_code)
+            self.analyze_source_code_for_decision_points(full_code)
         except Exception as e:  # pylint: disable=broad-exception-caught
             self._logging_utils.error(
                 __class__, f"Failed to analyze source code: {str(e)}", exc_info=True
@@ -629,7 +610,7 @@ Source Code:
 
         try:
             # Format the output
-            response = self.generate_formatted_output(response=response)
+            formatted_output = self.generate_formatted_output(model=self._model)
         except Exception as e:  # pylint: disable=broad-exception-caught
             self._logging_utils.error(
                 __class__, f"Failed to format output: {str(e)}", exc_info=True
@@ -637,18 +618,8 @@ Source Code:
             self._logging_utils.trace(__class__, "end process_file (error)")
             raise FormatterError("Failed to format output") from e  # type: ignore
 
-        self._logging_utils.success(__class__, response)
-        self._logging_utils.success(__class__, "\n## Summary")
-        self._logging_utils.success(
-            __class__, f"* Total Prompt Tokens: {self._total_tokens['prompt']}"
-        )
-        self._logging_utils.success(
-            __class__,
-            f"* Total Completion Tokens: {self._total_tokens['completion']}",
-        )
-        self._logging_utils.success(
-            __class__, f"* Stop Reason: {self._model.get_stop_reason()}"
-        )
+        # Write the formatted output to the console
+        self._logging_utils.success(__class__, formatted_output)
 
         self._logging_utils.trace(__class__, "end process_file")
         return
@@ -714,7 +685,6 @@ def main():
     # pylint: enable=line-too-long
 
     logging_utils: LoggingUtils = LoggingUtils()
-    # logging_utils.trace(__name__, "start __main__")
     path_utils: PathUtils = PathUtils()
     generic_utils = GenericUtils()
 
@@ -725,6 +695,7 @@ def main():
             if invalid_args
             else "Analyze the source code in the specified file or directory."
         )
+        # TODO refactor usage
         print(
             """
 Arguments:

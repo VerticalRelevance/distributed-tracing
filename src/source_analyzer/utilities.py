@@ -162,7 +162,7 @@ class LoggingUtils:
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
         """
         self.get_stderr_logger(name).debug(
-            pformat(msg) if enable_pformat else msg, exc_info=exc_info
+            (pformat(msg) if enable_pformat else msg), exc_info=exc_info
         )
 
     def debug_info(
@@ -271,7 +271,7 @@ class LoggingUtils:
         Returns:
             logging.Logger: A configured logger for standard output.
         """
-        logger: logging.logger = logging.getLogger(f"{name}.stdout")
+        logger: logging.Logger = logging.getLogger(f"{name}.stdout")
         if not logger.handlers:
             logger_level = os.getenv("LOG_LEVEL_STDOUT", "SUCCESS").upper()
             self.debug(__class__, f"setting stdout logger level to {logger_level}")
@@ -485,10 +485,6 @@ class GenericUtils:
         self, module_name: str, class_name: str, package_name: str
     ) -> object:
         try:
-            # print(
-            #     f"module_name: {module_name}, class_name: {class_name}, package_name: {package_name}",
-            #     file=sys.stderr,
-            # )
             module = importlib.import_module(module_name, package_name)
             return getattr(module, class_name)
         except ImportError as ie:
@@ -531,18 +527,6 @@ class GenericUtils:
 
 
 class ModelUtils:
-    """
-    A utility class for managing pluggable model classes.
-
-    This class provides methods to retrieve AI model configuration parameters
-    from environment variables, with default values and validation.
-
-    Attributes:
-        _ai_model (str): The AI model to be used for analysis.
-        _max_llm_retries (int): Maximum number of retries for LLM operations.
-        _retry_delay (int): Delay between retry attempts.
-        _temperature (float): Temperature setting for AI model randomness.
-    """
 
     def __init__(self, configuration: Configuration):
         """
@@ -553,48 +537,21 @@ class ModelUtils:
         """
         self._config: Configuration = configuration
 
+    # TODO convert to property
     def get_desired_model_class_name(self):
         return os.getenv(
             "AI_MODEL_CLASS_NAME",
-            self._config.get_value("ai_model").get("class").get("name"),
+            self._config.value("ai_model.class.name"),
         )
 
+    # TODO convert to property
     def get_desired_model_module_name(self) -> str:
         return os.getenv(
             "AI_MODEL_MODULE_NAME",
-            self._config.get_value("ai_model").get("module").get("name"),
+            self._config.value("ai_model.module.name"),
         )
 
-    def get_model_instance(self) -> any:
-        """
-        Returns the model instance.
-
-        Returns:
-            ModelObject: The model instance.
-        """
-        utils = GenericUtils()
-        model_class = utils.load_class(
-            "." + self.get_desired_model_module_name(),
-            self.get_desired_model_class_name(),
-            "models",
-        )
-        return model_class(self._config)
-
-    # def get_formatter_instance(self) -> any:
-    #     """
-    #     Returns the formatter instance.
-
-    #     Returns:
-    #         ModelObject: The model instance.
-    #     """
-    #     utils = GenericUtils()
-    #     model_class = utils.load_class(
-    #         "models." + self.get_desired_model_module_name(),
-    #         self.get_desired_model_class_name(),
-    #         "models",
-    #     )
-    #     return model_class(self._config)
-
+    # TODO convert to property
     def get_region_name(self) -> str:
         """
         Retrieves the AWS region name.
@@ -708,25 +665,28 @@ class JsonUtils:
             return obj.isoformat()
         raise TypeError(f"Type {type(obj)} not serializable")
 
-    def extract_code_blocks(self, response: str) -> list:
+    def extract_code_blocks(self, text: str, block_type: str) -> list | str:
         """Extract all json blocks from the given input."""
         self._logging_utils.debug(__class__, "start extract_code_blocks")
         self._logging_utils.debug(__class__, "end extract_code_blocks")
-        return re.findall(r"```json\s*(.*?)\s*```", response, re.DOTALL)
+        return re.findall(rf"```{block_type}\s*(.*?)\s*```", text, re.DOTALL)
 
-    # TODO clean this up
-    def extract_json(self, response: str) -> str:
+    def extract_json(self, text: str) -> list | str:
         """Extract the first json block from the given input."""
         self._logging_utils.debug(__class__, "start extract_json")
-        code_blocks = self.extract_code_blocks(response)
-        if code_blocks:
+        json_blocks = self.extract_code_blocks(text, "json")
+        if json_blocks:
+            self._logging_utils.debug(
+                __class__, f"type(json_blocks): {type(json_blocks)}"
+            )
             self._logging_utils.debug(
                 __class__,
-                f"extract_json code_blocks: {code_blocks}",
+                f"extract_json json_blocks: {json_blocks[0] if isinstance(json_blocks, list) else json_blocks}",
                 enable_pformat=True,
             )
             self._logging_utils.debug(__class__, "end extract_json")
-            return code_blocks[0]
+            return json_blocks[0] if isinstance(json_blocks, list) else json_blocks
+        self._logging_utils.warning(__class__, "No json blocks found")
         self._logging_utils.debug(__class__, "end extract_json empty")
         return "{}"
 
@@ -756,14 +716,16 @@ class FormatterUtils:
     def __init__(self, configuration: Configuration):
         self._config = configuration
 
+    # TODO convert to property
     def get_desired_formatter_class_name(self):
         return os.getenv(
             "FORMATTER_CLASS_NAME",
-            self._config.get_value("formatter").get("class").get("name"),
+            self._config.value("formatter.class.name"),
         )
 
+    # TODO convert to property
     def get_desired_formatter_module_name(self) -> str:
         return os.getenv(
             "FORMATTER_MODULE_NAME",
-            self._config.get_value("formatter").get("module").get("name"),
+            self._config.value("formatter.module.name"),
         )
