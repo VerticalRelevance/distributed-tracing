@@ -1,0 +1,59 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.16 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36" version="26.0.16">
+  <diagram name="folder_layout" id="19d8dcba-68ad-dc05-1034-9cf7b2a963f6">
+    <mxGraphModel dx="1818" dy="1486" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="lClv2xu1qIuoql5JKpK0-1" value="source_analyzer" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Folder_Blank.svg;" parent="1" vertex="1">
+          <mxGeometry x="130" y="163" width="69" height="56.00000000000001" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-2" value="formatters" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Folder_Blank.svg;" parent="1" vertex="1">
+          <mxGeometry x="320" y="80" width="69" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-3" value="models" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Folder_Blank.svg;" parent="1" vertex="1">
+          <mxGeometry x="320" y="223" width="69" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-5" value="&lt;ul&gt;&lt;li&gt;coded_json_to_markdown_formatter.py&lt;/li&gt;&lt;li&gt;formatter.py&lt;/li&gt;&lt;li&gt;jinja2_json_to_markdown_formatter.jinja2&lt;/li&gt;&lt;li&gt;jinja2_json_to_markdown_formatter.py&lt;/li&gt;&lt;/ul&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="420" y="68" width="50" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-13" value="&lt;ul&gt;&lt;li&gt;coded_json_to_markdown_formatter.py&lt;/li&gt;&lt;li&gt;formatter.py&lt;/li&gt;&lt;li&gt;jinja2_json_to_markdown_formatter.jinja2&lt;/li&gt;&lt;li&gt;jinja2_json_to_markdown_formatter.py&lt;/li&gt;&lt;/ul&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="420" y="210" width="50" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-15" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.971;exitY=0.482;exitDx=0;exitDy=0;exitPerimeter=0;strokeWidth=2;" parent="1" source="lClv2xu1qIuoql5JKpK0-3" target="lClv2xu1qIuoql5JKpK0-13" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-17" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;" parent="1" source="lClv2xu1qIuoql5JKpK0-2" target="lClv2xu1qIuoql5JKpK0-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-19" value="&lt;ul&gt;&lt;li&gt;config.yaml&lt;/li&gt;&lt;li&gt;configuration.py&lt;/li&gt;&lt;li&gt;custom_logger_success.py&lt;/li&gt;&lt;li&gt;custom_logger_trace.py&lt;/li&gt;&lt;li&gt;source_analyzer.py&lt;/li&gt;&lt;li&gt;utilities.py&lt;/li&gt;&lt;/ul&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="310" y="320" width="40" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.014;entryY=0.625;entryDx=0;entryDy=0;entryPerimeter=0;curved=1;strokeWidth=2;" parent="1" source="lClv2xu1qIuoql5JKpK0-1" target="lClv2xu1qIuoql5JKpK0-2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;curved=1;strokeWidth=2;" parent="1" source="lClv2xu1qIuoql5JKpK0-1" target="lClv2xu1qIuoql5JKpK0-19" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.058;entryY=0.661;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;curved=1;" parent="1" target="lClv2xu1qIuoql5JKpK0-3" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="191" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="200" y="192" />
+              <mxPoint x="270" y="192" />
+              <mxPoint x="270" y="260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-32" value="call_tracer" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Folder_Blank.svg;" parent="1" vertex="1">
+          <mxGeometry x="130" y="520" width="69" height="56.00000000000001" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-33" value="&lt;ul&gt;&lt;li&gt;call_tracer.py&lt;/li&gt;&lt;/ul&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" parent="1" vertex="1">
+          <mxGeometry x="280" y="503" width="40" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="lClv2xu1qIuoql5JKpK0-34" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;" parent="1" source="lClv2xu1qIuoql5JKpK0-32" target="lClv2xu1qIuoql5JKpK0-33" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

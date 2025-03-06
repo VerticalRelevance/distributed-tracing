@@ -14,7 +14,6 @@ import ast
 from pprint import pformat
 from configuration import Configuration
 from utilities import (
-    JsonUtils,
     LoggingUtils,
     ModelUtils,
     PathUtils,
@@ -227,10 +226,8 @@ class SourceCodeAnalyzer:
         self._generic_utils: GenericUtils = GenericUtils()
         self._logging_utils = LoggingUtils()
         self._path_utils = PathUtils()
-        self._json_utils = JsonUtils()
         # FUTURE make config file name dynamic
         self._config: Configuration = Configuration("source_analyzer/config.yaml")
-        self._model_utils: ModelUtils = ModelUtils(configuration=self._config)
 
         model_utils = ModelUtils(configuration=self._config)
         self._model: ModelObject = ModelFactory(configuration=self._config).get_model(
@@ -253,7 +250,7 @@ class SourceCodeAnalyzer:
         self._logging_utils.info(__class__, "Configuration:")
         self._logging_utils.info(__class__, pformat(str(self._config)))
 
-    def tree_dumps(self, node) -> str:
+    def tree_dumps(self, node: SourceCodeNode) -> str:
         """
         Generate a string representation of the source code tree.
 
@@ -350,14 +347,13 @@ class SourceCodeAnalyzer:
             Exception: If all retry attempts fail
         """
         self._logging_utils.trace(__class__, "start get_completion_with_retry")
-        self._logging_utils.debug(__class__, "prompt:")
-        self._logging_utils.debug(__class__, prompt)
+        self._logging_utils.debug(__class__, f"prompt:\n{prompt}")
         self._logging_utils.debug(
             __class__,
             f"max_llm_retries: {self._model.max_llm_retries}, "
-            f"retry_delay: {self._model.retry_delay}",
+            f"retry_delay: {self._model.retry_delay}, "
+            f"temperature: {self._model.temperature}",
         )
-        self._logging_utils.debug(__class__, f"temperature: {self._model.temperature}")
 
         self._total_tokens = {"completion": 0, "prompt": 0}
         break_llm_loop = False
