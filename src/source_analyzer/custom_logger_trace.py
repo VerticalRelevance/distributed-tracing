@@ -11,7 +11,7 @@ Key Features:
     - Allows logging trace messages with a dedicated log level
 
 Classes:
-    CustomLoggerSuccess: A custom Logger class that adds a trace logging method.
+    CustomLoggerTrace: A custom Logger class that adds a trace logging method.
 
 Constants:
     TRACE (int): Custom logging level with value 5, positioned between NOTSET and DEBUG.
