@@ -10,7 +10,9 @@ from formatters.formatter import FormatterObject
 from configuration import Configuration
 
 
-class Jinja2JsonToMarkdownFormatter(FormatterObject):
+class Jinja2JsonToMarkdownFormatter(
+    FormatterObject
+):  # pylint: disable=too-few-public-methods
     """
     A formatter that converts JSON data to Markdown using Jinja2 templates.
 

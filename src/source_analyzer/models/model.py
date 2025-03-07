@@ -41,7 +41,10 @@ class ModelMaxTokenLimitException(ModelError):
         self._max_token_limit = max_token_limit
         self._prompt_tokens = prompt_tokens
         self._completion_tokens = completion_tokens
-        self.message = f"Max tokens limit of {max_token_limit} exceeded. Number of prompt tokens: {prompt_tokens}, completion tokens: {completion_tokens}"
+        self.message = (
+            f"Max tokens limit of {max_token_limit} exceeded. "
+            f"Number of prompt tokens: {prompt_tokens}, completion tokens: {completion_tokens}"
+        )
         super().__init__(self.message)
 
 
@@ -107,11 +110,15 @@ class ModelObject:
                 )
             except TypeError as te:
                 raise ModelError(
-                    f"Type for max LLM retries is invalid. Value must be a valid integer between {MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
+                    "Type for max LLM retries is invalid. "
+                    "Value must be a valid integer between "
+                    f"{MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
                 raise ModelError(
-                    f"Value for max LLM retries is invalid. Value must be a valid integer between {MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
+                    "Value for max LLM retries is invalid. "
+                    "Value must be a valid integer between "
+                    f"{MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
                 ) from ve
 
         return self._max_llm_retries
@@ -264,11 +271,14 @@ class ModelObject:
                 )
             except TypeError as te:
                 raise ModelError(
-                    f"Type for retry delay is invalid. Value must be a valid integer between {RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
+                    f"Type for retry delay is invalid. Value must be a valid integer between "
+                    f"{RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
                 raise ModelError(
-                    f"Value for retry delay is invalid. Value must be a valid integer between {RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
+                    "Value for retry delay is invalid. "
+                    "Value must be a valid integer between "
+                    f"{RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
                 ) from ve
 
         return self._retry_delay
@@ -294,11 +304,14 @@ class ModelObject:
                 )
             except TypeError as te:
                 raise ModelError(
-                    f"Type for temperature is invalid. Value must be a valid floating point between {TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
+                    "Type for temperature is invalid. Value must be a valid floating point "
+                    f"between {TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
                 raise ModelError(
-                    f"Value for temperature is invalid. Value must be a valid floating point between {TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
+                    "Value for temperature is invalid. "
+                    "Value must be a valid floating point between "
+                    f"{TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
                 ) from ve
         return self._temperature
 
