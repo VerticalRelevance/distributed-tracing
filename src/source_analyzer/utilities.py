@@ -36,10 +36,63 @@ from custom_logger_trace import CustomLoggerTrace  # pylint: disable=unused-impo
 
 class CtxMgrUtils:
     """
-    A singleton class providing context manager utilities for timing operations.
+    A singleton utility class providing context managers for time measurement and
+    performance monitoring.
 
-    This class implements the singleton pattern to ensure only one instance exists
-    throughout the application lifecycle.
+    This class implements the singleton pattern and offers context managers for measuring
+    execution time of code blocks. It provides precise timing functionality using Python's
+    timeit.default_timer for maximum accuracy across different platforms.
+
+    Features:
+        - Singleton pattern implementation
+        - High-precision time measurement
+        - Context manager support
+        - Platform-independent timing
+        - Callable timer function access
+
+    Methods:
+        __new__(cls, *args, **kwargs): Creates singleton instance
+        elapsed_timer(): Context manager for time measurement
+
+    Time Measurement:
+        - Uses timeit.default_timer for highest available precision
+        - Platform-independent timing functionality
+        - Provides both running and final elapsed time
+        - Returns callable function for accessing elapsed time
+
+    Context Manager Usage:
+        The elapsed_timer context manager:
+        - Starts timing when entering the context
+        - Provides access to elapsed time during execution
+        - Updates to final time when exiting context
+        - Returns time in seconds with floating-point precision
+
+    Example:
+        >>> utils = CtxMgrUtils()  # Creates or returns existing instance
+        >>> with utils.elapsed_timer() as timer:
+        ...     # Perform operations
+        ...     time.sleep(1)
+        ...     current_time = timer()  # Get current elapsed time
+        >>> final_time = timer()  # Get total elapsed time
+        >>> print(f"Operation took {final_time:.2f} seconds")
+
+    Timer Function:
+        The yielded timer function:
+        - Takes no arguments
+        - Returns elapsed time in seconds
+        - Can be called multiple times
+        - Updates automatically at context exit
+
+    Dependencies:
+        - contextlib: For context manager implementation
+        - timeit.default_timer: For high-precision timing
+        - typing: For type hints
+
+    Notes:
+        - Timer precision depends on platform-specific implementation
+        - All times are returned in seconds as floating-point numbers
+        - The context manager is reentrant and can be nested
+        - The singleton pattern ensures consistent timing across the application
     """
 
     _instance = None
@@ -108,13 +161,74 @@ class CtxMgrUtils:
 
 
 class LoggingUtils:
+    # pylint: disable=line-too-long
     """
-    A singleton class providing comprehensive logging functionality.
+    A singleton utility class providing advanced logging functionality with separate stdout and stderr streams.
 
-    Configures and manages separate loggers for stdout and stderr streams with
-    configurable log levels. Automatically suppresses verbose logging from common
-    libraries like boto3, botocore, urllib3, httpcore, and httpx.
+    This class implements a comprehensive logging system with support for different log levels,
+    formatted output, and separate handling of stdout and stderr streams. It includes special
+    handling for AWS and HTTP-related libraries to suppress verbose logging.
+
+    Features:
+        - Singleton pattern implementation
+        - Dual-stream logging (stdout and stderr)
+        - Multiple logging levels (debug, info, error, success)
+        - Pretty-format support for complex objects
+        - Exception information logging
+        - Automatic suppression of verbose third-party logging
+        - Environment variable configuration support
+
+    Methods:
+        __new__(cls, *args, **kwargs): Creates singleton instance
+        __init__(): Configures initial logging settings
+        debug(name, msg, exc_info, enable_pformat): Logs debug messages to stderr
+        debug_info(name, msg, exc_info, enable_pformat): Logs to both debug and info streams
+        error(name, msg, exc_info, enable_pformat): Logs error messages to stderr
+        info(name, msg, exc_info, enable_pformat): Logs info messages to stdout
+        success(name, msg, exc_info, enable_pformat): Logs success messages to stdout
+        get_stdout_logger(name): Creates/retrieves stdout logger
+        get_stderr_logger(name): Creates/retrieves stderr logger
+
+    Stream Configuration:
+        stdout:
+            - Default level: SUCCESS
+            - Format: %(message)s
+            - Used for: info, success messages
+        stderr:
+            - Default level: DEBUG
+            - Format: %(asctime)s - %(levelname)s - %(message)s
+            - Used for: debug, error messages
+
+    Environment Variables:
+        LOG_LEVEL_STDOUT: Controls stdout logging level
+        LOG_LEVEL_STDERR: Controls stderr logging level
+
+    Example:
+        >>> logger = LoggingUtils()  # Creates or returns existing instance
+        >>> logger.info("module_name", "Operation completed")
+        >>> logger.debug("module_name", {"complex": "data"}, enable_pformat=True)
+        >>> logger.error("module_name", "Error occurred", exc_info=True)
+
+    Third-party Logging Control:
+        Automatically sets CRITICAL level for:
+        - boto3
+        - botocore
+        - urllib3
+        - httpcore
+        - httpx
+
+    Dependencies:
+        - logging: Python's standard logging module
+        - pprint.pformat: For pretty-printing complex objects
+        - os: For environment variable access
+
+    Notes:
+        - All logging methods are thread-safe
+        - Pretty-formatting is optional for complex objects
+        - Exception stack traces can be included via exc_info parameter
+        - Logging levels follow standard Python logging hierarchy
     """
+    # pylint: disable=line-too-long
 
     _instance = None
 
@@ -334,11 +448,65 @@ class LoggingUtils:
 
 class PathUtils:
     """
-    A singleton class providing comprehensive logging functionality.
+    A singleton utility class for file system operations and path management.
 
-    Configures and manages separate loggers for stdout and stderr streams with
-    configurable log levels. Automatically suppresses verbose logging from common
-    libraries like boto3, botocore, urllib3, httpcore, and httpx.
+    This class provides a comprehensive set of methods for checking and validating file system
+    paths, including existence verification for both files and directories, and file content
+    reading capabilities. It implements the singleton pattern to ensure consistent path
+    handling throughout the application.
+
+    Features:
+        - Singleton pattern implementation
+        - File and directory existence checking
+        - Path type validation
+        - File content reading with UTF-8 support
+        - Error handling for invalid path types
+
+    Methods:
+        __new__(cls, *args, **kwargs): Creates singleton instance
+        is_dir(check_path): Checks if path is a directory
+        is_file(check_path): Checks if path is a file
+        path_exists(check_path): Verifies path existence
+        directory_exists(check_path): Validates directory existence
+        file_exists(check_path): Validates file existence
+        get_ascii_file_contents(source_path): Reads file contents
+
+    Path Validation:
+        - Supports both file and directory path checking
+        - Provides type-specific validation
+        - Raises appropriate errors for mismatched path types
+
+    File Operations:
+        - UTF-8 encoded file reading
+        - Trace logging for file operations
+        - Safe file handling with context managers
+
+    Example:
+        >>> path_utils = PathUtils()  # Creates or returns existing instance
+        >>> # Check if path is a directory
+        >>> path_utils.is_dir("/path/to/dir")  # Returns True/False
+        >>> # Read file contents
+        >>> content = path_utils.get_ascii_file_contents("/path/to/file.txt")
+
+    Error Handling:
+        directory_exists():
+            - ValueError: When path exists but is not a directory
+        file_exists():
+            - ValueError: When path exists but is not a file
+        get_ascii_file_contents():
+            - FileNotFoundError: When file doesn't exist
+            - UnicodeDecodeError: When file is not UTF-8 encoded
+
+    Dependencies:
+        - pathlib.Path: For path operations
+        - LoggingUtils: For operation tracing
+        - typing: For type hints
+
+    Notes:
+        - All path operations are performed using pathlib.Path for consistency
+        - File reading operations use UTF-8 encoding by default
+        - Logging is implemented for file reading operations
+        - Path existence checks are performed before type validation
     """
 
     _instance = None
@@ -454,10 +622,58 @@ class PathUtils:
 
 class GenericUtils:
     """
-    A singleton class providing file and directory management utilities.
+    A singleton utility class providing general-purpose functionality for dynamic class loading
+    and boolean value interpretation.
 
-    Offers methods for checking existence and types of filesystem paths,
-    and reading file contents.
+    This class implements the singleton pattern and provides utility methods for dynamic
+    class loading from modules and packages, as well as string-to-boolean conversion using
+    common truthy value representations.
+
+    Features:
+        - Singleton pattern implementation
+        - Dynamic class loading from modules
+        - Flexible boolean value interpretation
+        - Package-aware module importing
+
+    Methods:
+        __new__(cls, *args, **kwargs): Creates singleton instance
+        load_class(module_name, class_name, package_name): Dynamically loads a class
+        is_truthy(value): Determines if a string value represents a truthy value
+
+    Dynamic Class Loading:
+        Supports loading classes from modules with:
+        - Relative and absolute imports
+        - Package-aware module resolution
+        - Proper error handling for missing modules/classes
+
+    Truthy Value Interpretation:
+        Recognizes the following as True:
+        - "1", "true", "yes", "on", "y"
+        - Case-insensitive matching
+        - None values (default to True)
+        All other values are considered False
+
+    Example:
+        >>> utils = GenericUtils()  # Creates or returns existing instance
+        >>> # Dynamic class loading
+        >>> MyClass = utils.load_class("my_module", "MyClass", "my_package")
+        >>> # Truthy value checking
+        >>> utils.is_truthy("yes")  # Returns True
+        >>> utils.is_truthy("no")   # Returns False
+
+    Error Handling:
+        load_class():
+            - ImportError: When module cannot be found
+            - AttributeError: When class doesn't exist in module
+
+    Dependencies:
+        - importlib: For dynamic module importing
+        - typing: For type hints
+
+    Notes:
+        - The singleton pattern ensures consistent behavior across the application
+        - String comparisons for truthy values are case-insensitive
+        - Whitespace is stripped from truthy value inputs
     """
 
     _instance = None
@@ -484,6 +700,26 @@ class GenericUtils:
     def load_class(
         self, module_name: str, class_name: str, package_name: str
     ) -> object:
+        """
+        Dynamically loads a class from a specified module and package.
+
+        This method attempts to import a module and retrieve a class by name
+        from that module. It raises an ImportError if the module cannot be
+        found and an AttributeError if the class does not exist within the
+        module.
+
+        Parameters:
+            module_name (str): The name of the module to import.
+            class_name (str): The name of the class to retrieve.
+            package_name (str): The package name to use for relative imports.
+
+        Returns:
+            object: The class object if found.
+
+        Raises:
+            ImportError: If the module cannot be imported.
+            AttributeError: If the class cannot be found in the module.
+        """
         try:
             module = importlib.import_module(module_name, package_name)
             return getattr(module, class_name)
@@ -527,6 +763,57 @@ class GenericUtils:
 
 
 class ModelUtils:
+    """
+    A utility class for managing AI model configuration and AWS region settings.
+
+    This class provides methods for retrieving AI model-related configuration values and
+    AWS region settings from either environment variables or a configuration object. It
+    implements lazy loading of values and supports environment variable overrides.
+
+    Features:
+        - AI model class and module name configuration
+        - AWS region configuration management
+        - Environment variable override support
+        - Configuration fallback values
+        - Lazy loading of configuration values
+
+    Methods:
+        __init__(configuration): Initializes with Configuration object
+        get_desired_model_class_name(): Retrieves AI model class name
+        get_desired_model_module_name(): Retrieves AI model module name
+        get_region_name(): Retrieves AWS region name
+
+    Configuration Priority:
+        1. Environment variables (AI_MODEL_CLASS_NAME, AI_MODEL_MODULE_NAME, AWS_REGION)
+        2. Configuration object values (ai_model.class.name, ai_model.module.name, aws.region)
+        3. Default values (us-west-2 for region)
+
+    Example:
+        >>> config = Configuration()
+        >>> model_utils = ModelUtils(config)
+        >>> class_name = model_utils.get_desired_model_class_name()
+        >>> module_name = model_utils.get_desired_model_module_name()
+        >>> region = model_utils.get_region_name()
+
+    Environment Variables:
+        - AI_MODEL_CLASS_NAME: Override for model class name
+        - AI_MODEL_MODULE_NAME: Override for model module name
+        - AWS_REGION: Override for AWS region
+
+    Configuration Keys:
+        - ai_model.class.name: Default model class name
+        - ai_model.module.name: Default model module name
+        - aws.region: Default AWS region (defaults to 'us-west-2')
+
+    Dependencies:
+        - os: For environment variable access
+        - Configuration: For default configuration values
+
+    Notes:
+        - All getter methods are planned to be converted to properties (TODO)
+        - Values are lazily loaded when first accessed
+        - Region configuration follows AWS standard region format
+    """
 
     def __init__(self, configuration: Configuration):
         """
@@ -539,10 +826,32 @@ class ModelUtils:
 
     # TODO convert to property
     def get_desired_model_class_name(self):
+        # pylint: disable=line-too-long
+        """
+        Retrieves the configured AI model class name from the configuration.
+
+        This method fetches the class name for the AI model from the configuration using a dot-notation path.
+        If the configuration value is not found, it returns a default value of "not found".
+
+        Returns:
+            str: The configured class name for the AI model, or "not found" if not configured.
+        """
+        # pylint: enable=line-too-long
         return self._config.str_value("ai_model.class.name", "not found")
 
     # TODO convert to property
     def get_desired_model_module_name(self) -> str:
+        # pylint: disable=line-too-long
+        """
+        Retrieves the configured AI model module name from the configuration.
+
+        This method fetches the module name for the AI model from the configuration using a dot-notation path.
+        If the configuration value is not found, it returns a default value of "not found".
+
+        Returns:
+            str: The configured module name for the AI model, or "not found" if not configured.
+        """
+        # pylint: enable=line-too-long
         return self._config.str_value("ai_model.module.name", "not found")
 
     # TODO convert to property
@@ -567,6 +876,48 @@ class ModelUtils:
 
 
 class JsonUtils:
+    """
+    A utility class for JSON-related operations with singleton pattern implementation.
+
+    This class provides various utility methods for handling JSON operations, including
+    serialization, deserialization, and extraction of JSON blocks from text. It implements
+    the singleton pattern to ensure only one instance exists throughout the application.
+
+    Features:
+        - JSON serialization with datetime support
+        - JSON deserialization
+        - Code block extraction from text
+        - JSON block extraction from text
+        - Singleton pattern implementation
+
+    Methods:
+        __new__(cls, *args, **kwargs): Creates singleton instance
+        __init__(): Initializes the class with logging utilities
+        json_loads(json_string): Deserializes JSON string to Python object
+        json_dumps_with_datetime_serialization(obj, json_options): Serializes object to JSON string
+        handle_datetime_serialization(obj): Converts datetime objects to ISO format
+        extract_code_blocks(text, block_type): Extracts code blocks of specified type
+        extract_json(text): Extracts JSON blocks from text
+
+    Example:
+        >>> json_utils = JsonUtils()  # Creates or returns existing instance
+        >>> data = {'timestamp': datetime.now(), 'value': 42}
+        >>> json_str = json_utils.json_dumps_with_datetime_serialization(data)
+        >>> print(json_str)
+        {"timestamp": "2023-12-20T10:30:00", "value": 42}
+
+    Notes:
+        - The class uses LoggingUtils for debug and warning messages
+        - DateTime objects are automatically serialized to ISO format strings
+        - JSON extraction supports markdown-style code blocks
+
+    Dependencies:
+        - json: For JSON serialization/deserialization
+        - re: For regular expression operations
+        - datetime: For datetime handling
+        - LoggingUtils: For logging functionality
+    """
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
@@ -595,11 +946,14 @@ class JsonUtils:
         self._logging_utils = LoggingUtils()
 
     def json_loads(self, json_string: str):
+        # pylint: enable=line-too-long
         """
         Deserializes a JSON formatted string to a Python object.
 
-        This method takes a JSON formatted string as input and deserializes it to a Python dictionary
+        This method takes a JSON formatted string as input and deserializes
+        it to a Python dictionary
         """
+        # pylint: enable=line-too-long
         return json.loads(json_string)
 
     def json_dumps_with_datetime_serialization(self, obj, json_options=None):
@@ -675,7 +1029,8 @@ class JsonUtils:
             )
             self._logging_utils.debug(
                 __class__,
-                f"extract_json json_blocks: {json_blocks[0] if isinstance(json_blocks, list) else json_blocks}",
+                f"extract_json json_blocks: "
+                f"{json_blocks[0] if isinstance(json_blocks, list) else json_blocks}",
                 enable_pformat=True,
             )
             self._logging_utils.debug(__class__, "end extract_json")
@@ -686,6 +1041,48 @@ class JsonUtils:
 
 
 class FormatterUtils:
+    """
+    A utility class for managing formatter configuration with singleton pattern implementation.
+
+    This class provides methods for retrieving formatter-related configuration values from
+    either environment variables or a configuration object. It implements the singleton pattern
+    to ensure consistent formatter configuration throughout the application.
+
+    Features:
+        - Singleton pattern implementation
+        - Environment variable override support
+        - Configuration fallback values
+        - Formatter class and module name retrieval
+
+    Methods:
+        __new__(cls, *args, **kwargs): Creates singleton instance
+        __init__(configuration): Initializes with Configuration object
+        get_desired_formatter_class_name(): Retrieves formatter class name
+        get_desired_formatter_module_name(): Retrieves formatter module name
+
+    Configuration Priority:
+        1. Environment variables (FORMATTER_CLASS_NAME, FORMATTER_MODULE_NAME)
+        2. Configuration object values (formatter.class.name, formatter.module.name)
+
+    Example:
+        >>> config = Configuration()
+        >>> formatter_utils = FormatterUtils(config)
+        >>> class_name = formatter_utils.get_desired_formatter_class_name()
+        >>> module_name = formatter_utils.get_desired_formatter_module_name()
+
+    Environment Variables:
+        - FORMATTER_CLASS_NAME: Override for formatter class name
+        - FORMATTER_MODULE_NAME: Override for formatter module name
+
+    Configuration Keys:
+        - formatter.class.name: Default formatter class name
+        - formatter.module.name: Default formatter module name
+
+    Dependencies:
+        - os: For environment variable access
+        - Configuration: For default configuration values
+    """
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
@@ -708,18 +1105,60 @@ class FormatterUtils:
         return cls._instance
 
     def __init__(self, configuration: Configuration):
+        """
+        Initializes a new instance of the FormatterUtils class.
+
+        This method sets up the FormatterUtils instance with a configuration object
+        that will be used to retrieve formatter settings. Since this class implements
+        the singleton pattern, this initialization will only take effect the first time
+        an instance is created.
+
+        Parameters:
+            configuration (Configuration): The configuration object containing formatter settings.
+                                        This object should provide a 'value' method to retrieve
+                                        configuration properties.
+
+        Note:
+            Due to the singleton implementation, subsequent initializations with different
+            configuration objects will not affect the existing instance.
+        """
+
         self._config = configuration
 
-    # TODO convert to property
-    def get_desired_formatter_class_name(self):
-        return os.getenv(
-            "FORMATTER_CLASS_NAME",
-            self._config.value("formatter.class.name"),
-        )
+    def get_desired_formatter_class_name(self) -> str:
+        """
+        Retrieves the desired formatter class name from configuration.
 
-    # TODO convert to property
+        This method returns the formatter class name based on the following priority:
+        1. FORMATTER_CLASS_NAME environment variable if set
+        2. Value from configuration using the key 'formatter.class.name'
+
+        Returns:
+            str: The name of the formatter class to be used.
+
+        Example:
+            >>> formatter_utils = FormatterUtils(config)
+            >>> formatter_class_name = formatter_utils.get_desired_formatter_class_name()
+            >>> print(formatter_class_name)
+            'JsonFormatter'
+        """
+        return self._config.str_value("formatter.class.name", "not found")
+
     def get_desired_formatter_module_name(self) -> str:
-        return os.getenv(
-            "FORMATTER_MODULE_NAME",
-            self._config.value("formatter.module.name"),
-        )
+        """
+        Retrieves the desired formatter module name from configuration.
+
+        This method returns the formatter module name based on the following priority:
+        1. FORMATTER_MODULE_NAME environment variable if set
+        2. Value from configuration using the key 'formatter.module.name'
+
+        Returns:
+            str: The name of the module containing the formatter class.
+
+        Example:
+            >>> formatter_utils = FormatterUtils(config)
+            >>> formatter_module_name = formatter_utils.get_desired_formatter_module_name()
+            >>> print(formatter_module_name)
+            'formatters.json'
+        """
+        return self._config.str_value("formatter.module.name", "not found")

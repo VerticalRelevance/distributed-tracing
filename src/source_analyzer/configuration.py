@@ -195,6 +195,33 @@ class Configuration:
         return self._config_content.copy()
 
     def _config_getter(self, key_path: str, default_value=None):
+        # pylint: disable=line-too-long
+        """
+        Retrieves a value from a nested configuration dictionary using a dot-notation path.
+
+        Args:
+            key_path (str): Period-delimited path to the configuration value (e.g., 'database.host.port').
+            default_value (Any, optional): Value to return if the key_path is not found or if any part of
+                the path is invalid. Defaults to None.
+
+        Returns:
+            Any: The value found at the specified path in the configuration dictionary, or the default_value
+                if the path is not found.
+
+        Examples:
+            Get a deeply nested configuration value:
+                >>> config._config_getter('database.primary.connection.port', default_value=5432)
+
+            Get a top-level configuration value:
+                >>> config._config_getter('app_name', default_value='MyApp')
+
+        Notes:
+            This is an internal helper method used by other configuration getters. It traverses a nested
+            dictionary structure using the provided dot-notation path. If any segment of the path is not
+            found or if any intermediate value is not a dictionary, it returns the default_value.
+        """
+        # pylint: enable=line-too-long
+
         keys = key_path.split(".")
 
         # Start with the config dictionary
@@ -217,6 +244,35 @@ class Configuration:
         key_path,
         default_value=None,
     ) -> list:
+        # pylint: disable=line-too-long
+        """
+        Retrieves a configuration value and ensures it is a list.
+
+        Args:
+            key_path (str): Path to the configuration value in the configuration hierarchy.
+            default_value (Any, optional): Value to return if the key_path is not found. If
+                provided, this value must also be a list. Defaults to None.
+
+        Returns:
+            list: The configuration value as a list.
+
+        Raises:
+            TypeError: If the retrieved value or default value is not a list.
+
+        Examples:
+            Get list of allowed hosts with default:
+                >>> allowed_hosts = config.list_value('security.allowed_hosts',
+                ...                                  default_value=['localhost'])
+
+            Get required list of database replicas:
+                >>> replicas = config.list_value('database.replicas')
+
+        Notes:
+            The method performs type checking to ensure the returned value is a valid list. This validation
+            applies to both the retrieved configuration value and any provided default value.
+        """
+        # pylint: enable=line-too-long
+
         list_value = self._config_getter(key_path=key_path, default_value=default_value)
         if not isinstance(list_value, list):
             raise TypeError(
@@ -231,6 +287,35 @@ class Configuration:
         key_path,
         default_value=None,
     ) -> str:
+        # pylint: disable=line-too-long
+        """
+        Retrieves a configuration value and ensures it is a string.
+
+        Args:
+            key_path (str): Path to the configuration value in the configuration hierarchy.
+            default_value (Any, optional): Value to return if the key_path is not found. If provided,
+                this value must also be a string. Defaults to None.
+
+        Returns:
+            str: The configuration value as a string.
+
+        Raises:
+            TypeError: If the retrieved value or default value is not a string.
+
+        Examples:
+            Get API endpoint URL with default:
+                >>> api_url = config.str_value('service.api.endpoint',
+                ...                           default_value='https://api.default.com')
+
+            Get required connection string:
+                >>> conn_str = config.str_value('database.connection_string')
+
+        Notes:
+            The method performs type checking to ensure the returned value is a valid string. This
+            validation applies to both the retrieved configuration value and any provided default value.
+        """
+        # pylint: enable=line-too-long
+
         str_value = self._config_getter(key_path=key_path, default_value=default_value)
         if not isinstance(str_value, str):
             raise TypeError(
@@ -247,6 +332,39 @@ class Configuration:
         expected_max=None,
         default_value=None,
     ) -> int:
+        # pylint: disable=line-too-long
+        """
+        Retrieves and converts a configuration value to an integer with optional range validation.
+
+        Args:
+            key_path (str): Path to the configuration value in the configuration hierarchy.
+            expected_min (int, optional): Minimum allowed value for the integer. If specified, the value must
+                be greater than or equal to this minimum. Defaults to None.
+            expected_max (int, optional): Maximum allowed value for the integer. If specified, the value must
+                be less than or equal to this maximum. Defaults to None.
+            default_value (Any, optional): Value to return if the key_path is not found. If provided, this
+                value must also be convertible to integer and meet range requirements. Defaults to None.
+
+        Returns:
+            int: The configuration value converted to an integer.
+
+        Raises:
+            TypeError: If the value cannot be converted to an integer.
+            ValueError: If the value is outside the specified range (when expected_min or expected_max are
+                provided).
+
+        Examples:
+            Configure maximum number of retries between 0 and 5:
+                >>> max_retries = config.int_value('app.max_retries', expected_min=0, expected_max=5)
+
+        Notes:
+            The method first attempts to convert the configuration value to an integer.
+            After successful conversion, if either expected_min or expected_max are specified,
+            it validates that the value falls within the acceptable range.
+            The range validation is only performed when the respective boundary values are not None.
+        """
+        # pylint: enable=line-too-long
+
         int_value = self._config_getter(key_path=key_path, default_value=default_value)
         try:
             _ = int(int_value)
@@ -278,6 +396,36 @@ class Configuration:
         expected_max=None,
         default_value=None,
     ) -> float:
+        """
+        Retrieves and converts a configuration value to a float with optional range validation.
+
+        Args:
+            key_path: Path to the configuration value in the configuration hierarchy.
+            expected_min (float, optional): Minimum allowed value for the float. Defaults to None.
+                If specified, the value must be greater than or equal to this minimum.
+            expected_max (float, optional): Maximum allowed value for the float. Defaults to None.
+                If specified, the value must be less than or equal to this maximum.
+            default_value (optional): Value to return if the key_path is not found. Defaults
+                to None. If provided, this value must also be convertible to float and meet range
+                requirements.
+
+        Returns:
+            float: The configuration value converted to a floating-point number.
+
+        Raises:
+            TypeError: If the value cannot be converted to a float.
+            ValueError: If the value is outside the specified range (when expected_min
+                or expected_max are provided).
+
+        Example:
+            >>> # Configure a timeout value between 0.1 and 30.0 seconds
+            >>> timeout = config.float_value('app.timeout', expected_min=0.1, expected_max=30.0)
+
+        Note:
+            The method first attempts to convert the configuration value to a float.
+            After successful conversion, if either expected_min or expected_max are specified,
+            it validates that the value falls within the acceptable range.
+        """
         float_value = self._config_getter(
             key_path=key_path, default_value=default_value
         )
@@ -308,6 +456,28 @@ class Configuration:
         key_path,
         default_value=None,
     ) -> bool:
+        """
+        Retrieves and converts a configuration value to a boolean based on common truth string
+        representations.
+
+        Args:
+            key_path: Path to the configuration value in the configuration hierarchy.
+            default_value (optional): Value to return if the key_path is not found. Defaults to
+            None.
+
+        Returns:
+            bool: True if the configuration value (case-insensitive) matches any of the following:
+                    - "true"
+                    - "1"
+                    - "yes"
+                    - "on"
+                    False for all other values.
+
+        Note:
+            The method converts the configuration value to lowercase before comparison.
+            If default_value is provided and the key_path is not found, the default_value
+            will be processed through the same boolean conversion logic.
+        """
         bool_value = self._config_getter(key_path=key_path, default_value=default_value)
         return bool_value.lower() in ("true", "1", "yes", "on")
 
