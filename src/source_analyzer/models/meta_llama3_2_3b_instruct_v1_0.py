@@ -66,6 +66,7 @@ class MetaLlama323bInstructV1(ModelObject):
             MAX_GEN_LEN_DEFAULT,
         )
         self._logging_utils.debug(__class__, f"max_gen_len: {max_gen_len}")
+        # TODO convert to property
         self._max_completion_tokens = max_gen_len
         native_request = {
             "prompt": formatted_prompt,
@@ -138,6 +139,7 @@ class MetaLlama323bInstructV1(ModelObject):
         self._logging_utils.debug(__class__, "data:")
         self._logging_utils.debug(__class__, data, enable_pformat=True)
 
+        # TODO convert to property
         self.completion_json = {}
         self.completion_json["overall_analysis_summary"] = data.get(
             "overall_analysis_summary"
@@ -148,6 +150,7 @@ class MetaLlama323bInstructV1(ModelObject):
 
         self.increment_prompt_tokens(value=model_response["prompt_token_count"])
         self.increment_completion_tokens(value=model_response["generation_token_count"])
+        # TODO convert to property
         self.stopped_reason = model_response["stop_reason"]
 
         # Return the response text.

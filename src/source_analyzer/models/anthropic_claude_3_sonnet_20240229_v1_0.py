@@ -148,10 +148,12 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
         data = data[0] if isinstance(data, list) else data
         self._logging_utils.debug(__class__, "data:")
         self._logging_utils.debug(__class__, data)
+        # TODO convert to property
         self.completion_json = data
 
         self.increment_completion_tokens(value=model_response["usage"]["output_tokens"])
         self.increment_prompt_tokens(value=model_response["usage"]["input_tokens"])
+        # TODO convert to property
         self.stopped_reason = model_response["stop_reason"]
 
         self._logging_utils.trace(__class__, "end generate_text")
