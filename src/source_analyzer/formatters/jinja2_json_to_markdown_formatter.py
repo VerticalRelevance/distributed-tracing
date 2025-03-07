@@ -24,28 +24,6 @@ class Jinja2JsonToMarkdownFormatter(
         _instance (Jinja2JsonToMarkdownFormatter): The singleton instance of this class
     """
 
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Creates and returns a new instance of the Jinja2JsonToMarkdownFormatter class.
-
-        This method is responsible for implementing the singleton pattern, ensuring that only one
-        instance of the Configuration class is created.
-
-        Parameters:
-            cls (type): The class object.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-
-        Returns:
-            FormatterFactory: The singleton instance of the Jinja2JsonToMarkdownFormatter class.
-
-        """
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
     def __init__(self, configuration: Configuration):
         """
         Initializes a new instance of the Jinja2JsonToMarkdownFormatter class.
