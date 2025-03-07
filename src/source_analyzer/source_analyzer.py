@@ -460,12 +460,14 @@ class SourceCodeAnalyzer:
             __class__, "start analyze_source_code_for_decision_points"
         )
 
-        tracing_priorities = self._config.value(
-            key_path="tracing_priorities", expected_type=list, default=[]
-        )
-        clarifications = self._config.value(
-            key_path="clarifications", expected_type=list, default=[]
-        )
+        # tracing_priorities = self._config.value(
+        #     key_path="tracing_priorities", expected_type=list, default=[]
+        # )
+        tracing_priorities = self._config.list_value("tracing_priorities", [])
+        # clarifications = self._config.value(
+        #     key_path="clarifications", expected_type=list, default=[]
+        # )
+        clarifications = self._config.list_value("clarifications", [])
 
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements.

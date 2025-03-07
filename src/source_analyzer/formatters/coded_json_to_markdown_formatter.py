@@ -101,9 +101,7 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         self._logging_utils.debug(
             __name__, f"priorities: {priorities}", enable_pformat=True
         )
-        tracing_priorities: list = self._config.value(
-            key_path="tracing_priorities", expected_type=list, default=[]
-        )
+        tracing_priorities: list = self._config.list_value("tracing_priorities", [])
         self._logging_utils.debug(
             __class__,
             f"type(self._config('tracing_priorities')): {type(tracing_priorities)}",

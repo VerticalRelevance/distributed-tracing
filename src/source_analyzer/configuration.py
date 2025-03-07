@@ -182,10 +182,6 @@ class Configuration:
         """
         # validate the loaded configuration against a predefined schema
         # FUTURE add configuration validation
-        # required = {'document', 'formatting', 'styles'}
-        # if not all(key in self.config for key in required):
-        #     missing = required - set(self.config.keys())
-        #     raise ValueError(f"Missing required config sections: {missing}")
 
         return True
 
@@ -198,30 +194,10 @@ class Configuration:
         """
         return self._config_content.copy()
 
-    @ParameterizedProperty
-    def value(
-        self,
-        key_path,
-        expected_type: type = str,
-        expected_min=None,
-        expected_max=None,
-        default=None,
-    ) -> str | int | float | bool | list:
-        """
-        Recursively access a nested dictionary using a dot-separated key path.
-
-        Args:
-            dictionary (dict): The nested dictionary to search through
-            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
-            default: Value to return if the key is not found (default: None)
-
-        Returns:
-            The value at the specified key path, or the default value if not found
-        """
-        # Split the key path into individual keys
+    def _config_getter(self, key_path: str, default_value=None):
         keys = key_path.split(".")
 
-        # Start with the provided dictionary
+        # Start with the config dictionary
         value = self._config_content
 
         for key in keys:
@@ -233,63 +209,109 @@ class Configuration:
                 value = None
 
         # Return the final value
-        value = default if value is None else value
+        return default_value if value is None else value
 
-        match expected_type.__name__:
-            case "str":
-                if not isinstance(value, str):
-                    raise TypeError(
-                        f"Value '{value}' for {key_path} is invalid. Value must be a string."
-                    )
-                return str(value)
-            case "int":
-                try:
-                    int_value = int(value)
-                except ValueError as ve:
-                    raise TypeError(
-                        f"Type {type(value)} of value '{value}' for {key_path} is invalid. Value must be a valid integer."
-                    ) from ve
-                if expected_min is not None:
-                    if int_value < expected_min:
-                        raise ValueError(
-                            f"Value '{int_value}' for {key_path} is invalid. Value must be greater than or equal to {expected_min}."
-                        )
-                if expected_max is not None:
-                    if int_value > expected_max:
-                        raise ValueError(
-                            f"Value '{int_value}' for {key_path} is invalid. Value must be less than or equal to {expected_max}."
-                        )
+    @ParameterizedProperty
+    def list_value(
+        self,
+        key_path,
+        default_value=None,
+    ) -> list:
+        list_value = self._config_getter(key_path=key_path, default_value=default_value)
+        if not isinstance(list_value, list):
+            raise TypeError(
+                f"Value '{list_value}' for {key_path} is invalid. Value must be a list."
+            )
 
-                return int_value
-            case "float":
-                try:
-                    float_value = float(value)
-                except ValueError as ve:
-                    raise TypeError(
-                        f"Type {type(value)} of value '{value}' for {key_path} is invalid. Value must be a valid floating point."
-                    ) from ve
-                if expected_min:
-                    if float_value < expected_min:
-                        raise ValueError(
-                            f"Value '{float_value}' for {key_path} is invalid. Value must be greater than or equal to {expected_min}."
-                        )
-                if expected_max:
-                    if float_value > expected_max:
-                        raise ValueError(
-                            f"Value '{float_value}' for {key_path} is invalid. Value must be less than or equal to {expected_max}."
-                        )
-                return float_value
-            case "bool":
-                return value.lower() in ("true", "1", "yes", "on")
-            case "list":
-                return value
-            case _:
-                raise TypeError(
-                    f"Unsupported type {expected_type} for {key_path}. Supported types are str, int, float, and bool."
+        return list_value
+
+    @ParameterizedProperty
+    def str_value(
+        self,
+        key_path,
+        default_value=None,
+    ) -> str:
+        str_value = self._config_getter(key_path=key_path, default_value=default_value)
+        if not isinstance(str_value, str):
+            raise TypeError(
+                f"Value '{str_value}' for {key_path} is invalid. Value must be a string."
+            )
+
+        return str_value
+
+    @ParameterizedProperty
+    def int_value(
+        self,
+        key_path,
+        expected_min=None,
+        expected_max=None,
+        default_value=None,
+    ) -> int:
+        int_value = self._config_getter(key_path=key_path, default_value=default_value)
+        try:
+            _ = int(int_value)
+        except ValueError as ve:
+            raise TypeError(
+                f"Type {type(int_value)} of value '{int_value}' for {key_path} is invalid. "
+                f"Value must be a valid integer."
+            ) from ve
+        if expected_min is not None:
+            if int_value < expected_min:
+                raise ValueError(
+                    f"Value '{int_value}' for {key_path} is invalid. "
+                    f"Value must be greater than or equal to {expected_min}."
+                )
+        if expected_max is not None:
+            if int_value > expected_max:
+                raise ValueError(
+                    f"Value '{int_value}' for {key_path} is invalid. "
+                    f"Value must be less than or equal to {expected_max}."
                 )
 
-    @value.setter
-    def value(self, key_path, value):
+        return int_value
+
+    @ParameterizedProperty
+    def float_value(
+        self,
+        key_path,
+        expected_min=None,
+        expected_max=None,
+        default_value=None,
+    ) -> float:
+        float_value = self._config_getter(
+            key_path=key_path, default_value=default_value
+        )
+        try:
+            float_value = float(float_value)
+        except ValueError as ve:
+            raise TypeError(
+                f"Type {type(float_value)} of value '{float_value}' for {key_path} is invalid. "
+                "Value must be a valid floating point."
+            ) from ve
+        if expected_min:
+            if float_value < expected_min:
+                raise ValueError(
+                    f"Value '{float_value}' for {key_path} is invalid. "
+                    f"Value must be greater than or equal to {expected_min}."
+                )
+        if expected_max:
+            if float_value > expected_max:
+                raise ValueError(
+                    f"Value '{float_value}' for {key_path} is invalid. "
+                    f"Value must be less than or equal to {expected_max}."
+                )
+        return float_value
+
+    @ParameterizedProperty
+    def bool_value(
+        self,
+        key_path,
+        default_value=None,
+    ) -> bool:
+        bool_value = self._config_getter(key_path=key_path, default_value=default_value)
+        return bool_value.lower() in ("true", "1", "yes", "on")
+
+    def _config_setter(self, key_path: str, value):
         """
         Recursively set a value in a nested dictionary using a dot-separated key path.
 
@@ -309,3 +331,85 @@ class Configuration:
 
         # Set the value at the last key
         current[keys[-1]] = value
+
+    @str_value.setter
+    def str_value(self, str_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(str_value, key_path)
+
+    @int_value.setter
+    def int_value(self, int_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(int_value, key_path)
+
+    @float_value.setter
+    def float_value(self, float_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(float_value, key_path)
+
+    @bool_value.setter
+    def bool_value(self, bool_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(bool_value, key_path)
+
+    @list_value.setter
+    def list_value(self, list_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(key_path, list_value)
+
+    # @value.setter
+    # def value(self, key_path, value):
+    #     """
+    #     Recursively set a value in a nested dictionary using a dot-separated key path.
+
+    #     Args:
+    #         dictionary (dict): The nested dictionary to modify
+    #         key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+    #         value: The value to set at the specified key path
+    #     """
+    #     keys = key_path.split(".")
+    #     current = self._config_content
+
+    #     # Traverse through each key in the path, except the last one
+    #     for key in keys[:-1]:
+    #         if key not in current:
+    #             current[key] = {}
+    #         current = current[key]
+
+    #     # Set the value at the last key
+    #     current[keys[-1]] = value

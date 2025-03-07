@@ -59,12 +59,11 @@ class MetaLlama323bInstructV1(ModelObject):
 <|start_header_id|>assistant<|end_header_id|>
 """
         # Format the request payload using the model's native structure.
-        max_gen_len: int = self._config.value(
+        max_gen_len: int = self._config.int_value(
             "ai_model.custom.max_gen_len",
-            expected_type=int,
-            expected_min=MAX_GEN_LEN_EXPECTED_MIN,
-            expected_max=MAX_GEN_LEN_EXPECTED_MAX,
-            default=MAX_GEN_LEN_DEFAULT,
+            MAX_GEN_LEN_EXPECTED_MIN,
+            MAX_GEN_LEN_EXPECTED_MAX,
+            MAX_GEN_LEN_DEFAULT,
         )
         self._logging_utils.debug(__class__, f"max_gen_len: {max_gen_len}")
         self._max_completion_tokens = max_gen_len

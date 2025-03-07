@@ -64,12 +64,11 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             in Python source code tracing, with emphasis on identifying critical trace points.
             """
         messages = [{"role": "user", "content": prompt}]
-        self._max_completion_tokens = self._config.value(
+        self._max_completion_tokens = self._config.int_value(
             "ai_model.custom.max_tokens",
-            expected_type=int,
-            expected_min=MAX_TOKENS_EXPECTED_MIN,
-            expected_max=MAX_TOKENS_EXPECTED_MAX,
-            default=MAX_TOKENS_DEFAULT,
+            MAX_TOKENS_EXPECTED_MIN,
+            MAX_TOKENS_EXPECTED_MAX,
+            MAX_TOKENS_DEFAULT,
         )
         self._logging_utils.debug(__class__, f"system_prompt: {system_prompt}")
         self._logging_utils.debug(

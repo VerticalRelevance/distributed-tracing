@@ -539,17 +539,11 @@ class ModelUtils:
 
     # TODO convert to property
     def get_desired_model_class_name(self):
-        return os.getenv(
-            "AI_MODEL_CLASS_NAME",
-            self._config.value("ai_model.class.name"),
-        )
+        return self._config.str_value("ai_model.class.name", "not found")
 
     # TODO convert to property
     def get_desired_model_module_name(self) -> str:
-        return os.getenv(
-            "AI_MODEL_MODULE_NAME",
-            self._config.value("ai_model.module.name"),
-        )
+        return self._config.str_value("ai_model.module.name", "not found")
 
     # TODO convert to property
     def get_region_name(self) -> str:

@@ -79,15 +79,13 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
         """
         # FUTURE refactor to use a shared utilities module
         # Get the template file name and path from the configuration
-        file_name = self._config.value(
+        file_name = self._config.str_value(
             "formatter.template.name",
-            expected_type=str,
-            default="template name not found",
+            "template name not found",
         )
-        file_path = self._config.value(
+        file_path = self._config.str_value(
             "formatter.template.path",
-            expected_type=str,
-            default="template path not found",
+            "template path not found",
         )
         template_path = (
             f"{file_path}/{file_name if file_name is not None else "notfound.jinja2"}"
