@@ -56,6 +56,13 @@ class ModelObject:
     configuration management, token counting, and error handling.
     """
 
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, configuration: Configuration) -> None:
         """
         Initialize a ModelObject with the given configuration.
