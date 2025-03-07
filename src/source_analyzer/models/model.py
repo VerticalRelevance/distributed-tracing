@@ -140,9 +140,7 @@ class ModelObject:
         """
         return boto3.client(
             "bedrock-runtime",
-            region_name=self._config.value(
-                "aws.region", expected_type=str, default="us-west-2"
-            ),
+            region_name=self._config.str_value("aws.region", "us-west-2"),
         )
 
     @property

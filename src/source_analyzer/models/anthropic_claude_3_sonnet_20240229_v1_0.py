@@ -36,6 +36,7 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             configuration: Configuration object containing model settings.
         """
         super().__init__(configuration=configuration)
+        self._max_completion_tokens = None
 
     def generate_text(self, prompt):
         """
