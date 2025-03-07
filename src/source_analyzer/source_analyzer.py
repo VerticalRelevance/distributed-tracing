@@ -693,7 +693,6 @@ def main():
             if invalid_args
             else "Analyze the source code in the specified file or directory."
         )
-        # TODO refactor usage
         print(
             """
 Arguments:
@@ -704,19 +703,17 @@ Arguments:
             print(
                 """
 Environment variables:
-    LOG_LEVEL_STDOUT:
-        Sets the level of the logger writing to STDOUT. Preferred values are
-        INFO, SUCCESS, or WARNING. All valid level values are listed below.
-        Default is SUCCESS.
+    AWS_REgION:
+        Sets the desired AWS region for connecting to Bedrock. Value should be
+        us-west-2 or us-east-1. Default is us-west-2.
     LOG_LEVEL_STDERR:
         Sets the level of the logger writing to STDOUT. Preferred values are
         TRACE, DEBUG, ERROR, or CRITICAL. All valid level values are listed
         below. Default is DEBUG.
-    USE_ASSISTANT:
-        The script include experimental functional using the OpenAI Assistant
-        beta feature.  A truthy value enables use of the assistant. Values "1",
-        "true", "yes", "on", "y" are considered truthy. If not set or set to
-        any other value, the default OpenAI analysis is used.
+    LOG_LEVEL_STDOUT:
+        Sets the level of the logger writing to STDOUT. Preferred values are
+        TRACE, DEBUG, ERROR, or CRITICAL. All valid level values are listed
+        below. Default is SUCCESS.
 
 Log Levels:
     NOTSET:
