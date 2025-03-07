@@ -59,14 +59,14 @@ class MetaLlama323bInstructV1(ModelObject):
 <|start_header_id|>assistant<|end_header_id|>
 """
         # Format the request payload using the model's native structure.
-        max_gen_len: int = self._config.value(
+        max_gen_len: int = self._config.int_value(
             "ai_model.custom.max_gen_len",
-            expected_type=int,
-            expected_min=MAX_GEN_LEN_EXPECTED_MIN,
-            expected_max=MAX_GEN_LEN_EXPECTED_MAX,
-            default=MAX_GEN_LEN_DEFAULT,
+            MAX_GEN_LEN_EXPECTED_MIN,
+            MAX_GEN_LEN_EXPECTED_MAX,
+            MAX_GEN_LEN_DEFAULT,
         )
         self._logging_utils.debug(__class__, f"max_gen_len: {max_gen_len}")
+        # TODO convert to property
         self._max_completion_tokens = max_gen_len
         native_request = {
             "prompt": formatted_prompt,
@@ -139,6 +139,7 @@ class MetaLlama323bInstructV1(ModelObject):
         self._logging_utils.debug(__class__, "data:")
         self._logging_utils.debug(__class__, data, enable_pformat=True)
 
+        # TODO convert to property
         self.completion_json = {}
         self.completion_json["overall_analysis_summary"] = data.get(
             "overall_analysis_summary"
@@ -149,6 +150,7 @@ class MetaLlama323bInstructV1(ModelObject):
 
         self.increment_prompt_tokens(value=model_response["prompt_token_count"])
         self.increment_completion_tokens(value=model_response["generation_token_count"])
+        # TODO convert to property
         self.stopped_reason = model_response["stop_reason"]
 
         # Return the response text.

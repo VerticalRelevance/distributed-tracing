@@ -36,6 +36,7 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             configuration: Configuration object containing model settings.
         """
         super().__init__(configuration=configuration)
+        self._max_completion_tokens = None
 
     def generate_text(self, prompt):
         """
@@ -64,12 +65,11 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             in Python source code tracing, with emphasis on identifying critical trace points.
             """
         messages = [{"role": "user", "content": prompt}]
-        self._max_completion_tokens = self._config.value(
+        self._max_completion_tokens = self._config.int_value(
             "ai_model.custom.max_tokens",
-            expected_type=int,
-            expected_min=MAX_TOKENS_EXPECTED_MIN,
-            expected_max=MAX_TOKENS_EXPECTED_MAX,
-            default=MAX_TOKENS_DEFAULT,
+            MAX_TOKENS_EXPECTED_MIN,
+            MAX_TOKENS_EXPECTED_MAX,
+            MAX_TOKENS_DEFAULT,
         )
         self._logging_utils.debug(__class__, f"system_prompt: {system_prompt}")
         self._logging_utils.debug(
@@ -149,10 +149,12 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
         data = data[0] if isinstance(data, list) else data
         self._logging_utils.debug(__class__, "data:")
         self._logging_utils.debug(__class__, data)
+        # TODO convert to property
         self.completion_json = data
 
         self.increment_completion_tokens(value=model_response["usage"]["output_tokens"])
         self.increment_prompt_tokens(value=model_response["usage"]["input_tokens"])
+        # TODO convert to property
         self.stopped_reason = model_response["stop_reason"]
 
         self._logging_utils.trace(__class__, "end generate_text")

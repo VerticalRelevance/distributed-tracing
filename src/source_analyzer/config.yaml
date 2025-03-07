@@ -11,8 +11,7 @@ tracing_priorities:
   - State Changes
   - External Resource Interactions
 
-# formatter
-formatter_jinja2:
+formatter:
   class:
     name: Jinja2JsonToMarkdownFormatter
   module:
@@ -21,8 +20,16 @@ formatter_jinja2:
     name: jinja2_json_to_markdown_formatter.jinja2
     path: source_analyzer/formatters
 
-# formatter_jinja2_meta
-formatter:
+formatter_default_jinja2:
+  class:
+    name: Jinja2JsonToMarkdownFormatter
+  module:
+    name: jinja2_json_to_markdown_formatter
+  template:
+    name: jinja2_json_to_markdown_formatter.jinja2
+    path: source_analyzer/formatters
+
+formatter_meta_jinja:
   class:
     name: Jinja2JsonToMarkdownFormatter
   module:
@@ -42,11 +49,11 @@ ai_model:
   retry_delay: 4
   temperature: 0.0
   custom:
-    max_gen_len: 6144
+    max_tokens: 2048
   class:
-    name: MetaLlama323bInstructV1
+    name: AnthropicClaude3Sonnet20240229V1
   module:
-    name: meta_llama3_2_3b_instruct_v1_0
+    name: anthropic_claude_3_sonnet_20240229_v1_0
   model_stop:
     reasons:
       valid:

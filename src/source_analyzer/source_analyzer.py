@@ -460,12 +460,14 @@ class SourceCodeAnalyzer:
             __class__, "start analyze_source_code_for_decision_points"
         )
 
-        tracing_priorities = self._config.value(
-            key_path="tracing_priorities", expected_type=list, default=[]
-        )
-        clarifications = self._config.value(
-            key_path="clarifications", expected_type=list, default=[]
-        )
+        # tracing_priorities = self._config.value(
+        #     key_path="tracing_priorities", expected_type=list, default=[]
+        # )
+        tracing_priorities = self._config.list_value("tracing_priorities", [])
+        # clarifications = self._config.value(
+        #     key_path="clarifications", expected_type=list, default=[]
+        # )
+        clarifications = self._config.list_value("clarifications", [])
 
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements.
@@ -691,7 +693,6 @@ def main():
             if invalid_args
             else "Analyze the source code in the specified file or directory."
         )
-        # TODO refactor usage
         print(
             """
 Arguments:
@@ -702,19 +703,17 @@ Arguments:
             print(
                 """
 Environment variables:
-    LOG_LEVEL_STDOUT:
-        Sets the level of the logger writing to STDOUT. Preferred values are
-        INFO, SUCCESS, or WARNING. All valid level values are listed below.
-        Default is SUCCESS.
+    AWS_REgION:
+        Sets the desired AWS region for connecting to Bedrock. Value should be
+        us-west-2 or us-east-1. Default is us-west-2.
     LOG_LEVEL_STDERR:
         Sets the level of the logger writing to STDOUT. Preferred values are
         TRACE, DEBUG, ERROR, or CRITICAL. All valid level values are listed
         below. Default is DEBUG.
-    USE_ASSISTANT:
-        The script include experimental functional using the OpenAI Assistant
-        beta feature.  A truthy value enables use of the assistant. Values "1",
-        "true", "yes", "on", "y" are considered truthy. If not set or set to
-        any other value, the default OpenAI analysis is used.
+    LOG_LEVEL_STDOUT:
+        Sets the level of the logger writing to STDOUT. Preferred values are
+        TRACE, DEBUG, ERROR, or CRITICAL. All valid level values are listed
+        below. Default is SUCCESS.
 
 Log Levels:
     NOTSET:

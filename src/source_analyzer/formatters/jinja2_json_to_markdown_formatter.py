@@ -10,7 +10,9 @@ from formatters.formatter import FormatterObject
 from configuration import Configuration
 
 
-class Jinja2JsonToMarkdownFormatter(FormatterObject):
+class Jinja2JsonToMarkdownFormatter(
+    FormatterObject
+):  # pylint: disable=too-few-public-methods
     """
     A formatter that converts JSON data to Markdown using Jinja2 templates.
 
@@ -21,28 +23,6 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
     Attributes:
         _instance (Jinja2JsonToMarkdownFormatter): The singleton instance of this class
     """
-
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Creates and returns a new instance of the Jinja2JsonToMarkdownFormatter class.
-
-        This method is responsible for implementing the singleton pattern, ensuring that only one
-        instance of the Configuration class is created.
-
-        Parameters:
-            cls (type): The class object.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments.
-
-        Returns:
-            FormatterFactory: The singleton instance of the Jinja2JsonToMarkdownFormatter class.
-
-        """
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
     def __init__(self, configuration: Configuration):
         """
@@ -79,15 +59,13 @@ class Jinja2JsonToMarkdownFormatter(FormatterObject):
         """
         # FUTURE refactor to use a shared utilities module
         # Get the template file name and path from the configuration
-        file_name = self._config.value(
+        file_name = self._config.str_value(
             "formatter.template.name",
-            expected_type=str,
-            default="template name not found",
+            "template name not found",
         )
-        file_path = self._config.value(
+        file_path = self._config.str_value(
             "formatter.template.path",
-            expected_type=str,
-            default="template path not found",
+            "template path not found",
         )
         template_path = (
             f"{file_path}/{file_name if file_name is not None else "notfound.jinja2"}"

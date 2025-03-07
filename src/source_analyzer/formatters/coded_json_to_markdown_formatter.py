@@ -9,40 +9,48 @@ from formatters.formatter import FormatterObject
 from configuration import Configuration
 
 
-class CodedJsonToMarkdownFormatter(FormatterObject):
-    """
-    A formatter that converts JSON analysis data to structured Markdown reports.
+class CodedJsonToMarkdownFormatter(
+    FormatterObject
+):  # pylint: disable=too-few-public-methods
+    """A formatter class that converts coded JSON analysis data into structured Markdown reports.
 
-    This class implements the singleton pattern to ensure only one instance exists.
-    It processes JSON data containing analysis results and generates a comprehensive
-    Markdown report with sections for overall analysis, priority-based findings,
-    and summary statistics.
+    This class extends FormatterObject to provide specialized formatting capabilities for
+    transforming JSON-formatted analysis data into readable Markdown documentation.
 
     Attributes:
-        _instance (CodedJsonToMarkdownFormatter): The singleton instance of this class
+        _config (Configuration): Configuration settings for the formatter.
+        _logging_utils (LoggingUtils): Utility for debug logging operations.
+
+    Methods:
+        __init__(configuration): Initializes the formatter with configuration settings.
+        format_json(data, variables): Converts JSON analysis data into a Markdown report.
+
+    Example:
+        Create and use the formatter:
+            >>> config = Configuration()
+            >>> formatter = CodedJsonToMarkdownFormatter(config)
+            >>> markdown = formatter.format_json(analysis_data, model_variables)
+
+    Input JSON Structure:
+        The input JSON should contain:
+        - overall_analysis_summary
+        - priorities (list of priority levels)
+        - critical_locations (per priority)
+        - code blocks and recommendations
+
+    Output Format:
+        The generated Markdown includes:
+        - Model information header
+        - Analysis summary
+        - Priority-based findings
+        - Code block analysis
+        - Token usage statistics
+
+    Notes:
+        The formatter requires proper configuration of tracing priorities and expects specific JSON
+        structure for analysis data. It handles missing data gracefully and provides detailed debug
+        logging.
     """
-
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Implements the singleton pattern for the CodedJsonToMarkdownFormatter class.
-
-        This method ensures that only one instance of the CodedJsonToMarkdownFormatter
-        is created throughout the application's lifecycle. Subsequent calls to create
-        an instance will return the existing instance.
-
-        Args:
-            cls (type): The class object being instantiated.
-            *args: Variable length argument list to support flexible instantiation.
-            **kwargs: Arbitrary keyword arguments to support flexible instantiation.
-
-        Returns:
-            CodedJsonToMarkdownFormatter: The singleton instance of the class.
-        """
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
     def __init__(self, configuration: Configuration):
         """
@@ -101,9 +109,7 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
         self._logging_utils.debug(
             __name__, f"priorities: {priorities}", enable_pformat=True
         )
-        tracing_priorities: list = self._config.value(
-            key_path="tracing_priorities", expected_type=list, default=[]
-        )
+        tracing_priorities: list = self._config.list_value("tracing_priorities", [])
         self._logging_utils.debug(
             __class__,
             f"type(self._config('tracing_priorities')): {type(tracing_priorities)}",
@@ -132,7 +138,7 @@ class CodedJsonToMarkdownFormatter(FormatterObject):
                 self._logging_utils.debug(__class__, f"location: {location}")
                 output_strings.append(f"#### Location {location.get('function_name')}")
                 output_strings.append(
-                    f"- **Specific code blocks/lines to trace:**\n```python\n{location.get('code_block')}\n```"
+                    f"- **Specific code blocks/lines to trace:**\n```python\n{location.get('code_block')}\n```"  # pylint: disable=line-too-long
                 )
                 output_strings.append(
                     f"- **Rationale for tracing:** {location.get('rationale')}"

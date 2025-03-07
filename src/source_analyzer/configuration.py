@@ -182,10 +182,6 @@ class Configuration:
         """
         # validate the loaded configuration against a predefined schema
         # FUTURE add configuration validation
-        # required = {'document', 'formatting', 'styles'}
-        # if not all(key in self.config for key in required):
-        #     missing = required - set(self.config.keys())
-        #     raise ValueError(f"Missing required config sections: {missing}")
 
         return True
 
@@ -198,30 +194,37 @@ class Configuration:
         """
         return self._config_content.copy()
 
-    @ParameterizedProperty
-    def value(
-        self,
-        key_path,
-        expected_type: type = str,
-        expected_min=None,
-        expected_max=None,
-        default=None,
-    ) -> str | int | float | bool | list:
+    def _config_getter(self, key_path: str, default_value=None):
+        # pylint: disable=line-too-long
         """
-        Recursively access a nested dictionary using a dot-separated key path.
+        Retrieves a value from a nested configuration dictionary using a dot-notation path.
 
         Args:
-            dictionary (dict): The nested dictionary to search through
-            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
-            default: Value to return if the key is not found (default: None)
+            key_path (str): Period-delimited path to the configuration value (e.g., 'database.host.port').
+            default_value (Any, optional): Value to return if the key_path is not found or if any part of
+                the path is invalid. Defaults to None.
 
         Returns:
-            The value at the specified key path, or the default value if not found
+            Any: The value found at the specified path in the configuration dictionary, or the default_value
+                if the path is not found.
+
+        Examples:
+            Get a deeply nested configuration value:
+                >>> config._config_getter('database.primary.connection.port', default_value=5432)
+
+            Get a top-level configuration value:
+                >>> config._config_getter('app_name', default_value='MyApp')
+
+        Notes:
+            This is an internal helper method used by other configuration getters. It traverses a nested
+            dictionary structure using the provided dot-notation path. If any segment of the path is not
+            found or if any intermediate value is not a dictionary, it returns the default_value.
         """
-        # Split the key path into individual keys
+        # pylint: enable=line-too-long
+
         keys = key_path.split(".")
 
-        # Start with the provided dictionary
+        # Start with the config dictionary
         value = self._config_content
 
         for key in keys:
@@ -233,63 +236,252 @@ class Configuration:
                 value = None
 
         # Return the final value
-        value = default if value is None else value
+        return default_value if value is None else value
 
-        match expected_type.__name__:
-            case "str":
-                if not isinstance(value, str):
-                    raise TypeError(
-                        f"Value '{value}' for {key_path} is invalid. Value must be a string."
-                    )
-                return str(value)
-            case "int":
-                try:
-                    int_value = int(value)
-                except ValueError as ve:
-                    raise TypeError(
-                        f"Type {type(value)} of value '{value}' for {key_path} is invalid. Value must be a valid integer."
-                    ) from ve
-                if expected_min is not None:
-                    if int_value < expected_min:
-                        raise ValueError(
-                            f"Value '{int_value}' for {key_path} is invalid. Value must be greater than or equal to {expected_min}."
-                        )
-                if expected_max is not None:
-                    if int_value > expected_max:
-                        raise ValueError(
-                            f"Value '{int_value}' for {key_path} is invalid. Value must be less than or equal to {expected_max}."
-                        )
+    @ParameterizedProperty
+    def list_value(
+        self,
+        key_path,
+        default_value=None,
+    ) -> list:
+        # pylint: disable=line-too-long
+        """
+        Retrieves a configuration value and ensures it is a list.
 
-                return int_value
-            case "float":
-                try:
-                    float_value = float(value)
-                except ValueError as ve:
-                    raise TypeError(
-                        f"Type {type(value)} of value '{value}' for {key_path} is invalid. Value must be a valid floating point."
-                    ) from ve
-                if expected_min:
-                    if float_value < expected_min:
-                        raise ValueError(
-                            f"Value '{float_value}' for {key_path} is invalid. Value must be greater than or equal to {expected_min}."
-                        )
-                if expected_max:
-                    if float_value > expected_max:
-                        raise ValueError(
-                            f"Value '{float_value}' for {key_path} is invalid. Value must be less than or equal to {expected_max}."
-                        )
-                return float_value
-            case "bool":
-                return value.lower() in ("true", "1", "yes", "on")
-            case "list":
-                return value
-            case _:
-                raise TypeError(
-                    f"Unsupported type {expected_type} for {key_path}. Supported types are str, int, float, and bool."
+        Args:
+            key_path (str): Path to the configuration value in the configuration hierarchy.
+            default_value (Any, optional): Value to return if the key_path is not found. If
+                provided, this value must also be a list. Defaults to None.
+
+        Returns:
+            list: The configuration value as a list.
+
+        Raises:
+            TypeError: If the retrieved value or default value is not a list.
+
+        Examples:
+            Get list of allowed hosts with default:
+                >>> allowed_hosts = config.list_value('security.allowed_hosts',
+                ...                                  default_value=['localhost'])
+
+            Get required list of database replicas:
+                >>> replicas = config.list_value('database.replicas')
+
+        Notes:
+            The method performs type checking to ensure the returned value is a valid list. This validation
+            applies to both the retrieved configuration value and any provided default value.
+        """
+        # pylint: enable=line-too-long
+
+        list_value = self._config_getter(key_path=key_path, default_value=default_value)
+        if not isinstance(list_value, list):
+            raise TypeError(
+                f"Value '{list_value}' for {key_path} is invalid. Value must be a list."
+            )
+
+        return list_value
+
+    @ParameterizedProperty
+    def str_value(
+        self,
+        key_path,
+        default_value=None,
+    ) -> str:
+        # pylint: disable=line-too-long
+        """
+        Retrieves a configuration value and ensures it is a string.
+
+        Args:
+            key_path (str): Path to the configuration value in the configuration hierarchy.
+            default_value (Any, optional): Value to return if the key_path is not found. If provided,
+                this value must also be a string. Defaults to None.
+
+        Returns:
+            str: The configuration value as a string.
+
+        Raises:
+            TypeError: If the retrieved value or default value is not a string.
+
+        Examples:
+            Get API endpoint URL with default:
+                >>> api_url = config.str_value('service.api.endpoint',
+                ...                           default_value='https://api.default.com')
+
+            Get required connection string:
+                >>> conn_str = config.str_value('database.connection_string')
+
+        Notes:
+            The method performs type checking to ensure the returned value is a valid string. This
+            validation applies to both the retrieved configuration value and any provided default value.
+        """
+        # pylint: enable=line-too-long
+
+        str_value = self._config_getter(key_path=key_path, default_value=default_value)
+        if not isinstance(str_value, str):
+            raise TypeError(
+                f"Value '{str_value}' for {key_path} is invalid. Value must be a string."
+            )
+
+        return str_value
+
+    @ParameterizedProperty
+    def int_value(
+        self,
+        key_path,
+        expected_min=None,
+        expected_max=None,
+        default_value=None,
+    ) -> int:
+        # pylint: disable=line-too-long
+        """
+        Retrieves and converts a configuration value to an integer with optional range validation.
+
+        Args:
+            key_path (str): Path to the configuration value in the configuration hierarchy.
+            expected_min (int, optional): Minimum allowed value for the integer. If specified, the value must
+                be greater than or equal to this minimum. Defaults to None.
+            expected_max (int, optional): Maximum allowed value for the integer. If specified, the value must
+                be less than or equal to this maximum. Defaults to None.
+            default_value (Any, optional): Value to return if the key_path is not found. If provided, this
+                value must also be convertible to integer and meet range requirements. Defaults to None.
+
+        Returns:
+            int: The configuration value converted to an integer.
+
+        Raises:
+            TypeError: If the value cannot be converted to an integer.
+            ValueError: If the value is outside the specified range (when expected_min or expected_max are
+                provided).
+
+        Examples:
+            Configure maximum number of retries between 0 and 5:
+                >>> max_retries = config.int_value('app.max_retries', expected_min=0, expected_max=5)
+
+        Notes:
+            The method first attempts to convert the configuration value to an integer.
+            After successful conversion, if either expected_min or expected_max are specified,
+            it validates that the value falls within the acceptable range.
+            The range validation is only performed when the respective boundary values are not None.
+        """
+        # pylint: enable=line-too-long
+
+        int_value = self._config_getter(key_path=key_path, default_value=default_value)
+        try:
+            _ = int(int_value)
+        except ValueError as ve:
+            raise TypeError(
+                f"Type {type(int_value)} of value '{int_value}' for {key_path} is invalid. "
+                f"Value must be a valid integer."
+            ) from ve
+        if expected_min is not None:
+            if int_value < expected_min:
+                raise ValueError(
+                    f"Value '{int_value}' for {key_path} is invalid. "
+                    f"Value must be greater than or equal to {expected_min}."
+                )
+        if expected_max is not None:
+            if int_value > expected_max:
+                raise ValueError(
+                    f"Value '{int_value}' for {key_path} is invalid. "
+                    f"Value must be less than or equal to {expected_max}."
                 )
 
-    @value.setter
-    def value(self, key_path, value):
+        return int_value
+
+    @ParameterizedProperty
+    def float_value(
+        self,
+        key_path,
+        expected_min=None,
+        expected_max=None,
+        default_value=None,
+    ) -> float:
+        """
+        Retrieves and converts a configuration value to a float with optional range validation.
+
+        Args:
+            key_path: Path to the configuration value in the configuration hierarchy.
+            expected_min (float, optional): Minimum allowed value for the float. Defaults to None.
+                If specified, the value must be greater than or equal to this minimum.
+            expected_max (float, optional): Maximum allowed value for the float. Defaults to None.
+                If specified, the value must be less than or equal to this maximum.
+            default_value (optional): Value to return if the key_path is not found. Defaults
+                to None. If provided, this value must also be convertible to float and meet range
+                requirements.
+
+        Returns:
+            float: The configuration value converted to a floating-point number.
+
+        Raises:
+            TypeError: If the value cannot be converted to a float.
+            ValueError: If the value is outside the specified range (when expected_min
+                or expected_max are provided).
+
+        Example:
+            >>> # Configure a timeout value between 0.1 and 30.0 seconds
+            >>> timeout = config.float_value('app.timeout', expected_min=0.1, expected_max=30.0)
+
+        Note:
+            The method first attempts to convert the configuration value to a float.
+            After successful conversion, if either expected_min or expected_max are specified,
+            it validates that the value falls within the acceptable range.
+        """
+        float_value = self._config_getter(
+            key_path=key_path, default_value=default_value
+        )
+        try:
+            float_value = float(float_value)
+        except ValueError as ve:
+            raise TypeError(
+                f"Type {type(float_value)} of value '{float_value}' for {key_path} is invalid. "
+                "Value must be a valid floating point."
+            ) from ve
+        if expected_min:
+            if float_value < expected_min:
+                raise ValueError(
+                    f"Value '{float_value}' for {key_path} is invalid. "
+                    f"Value must be greater than or equal to {expected_min}."
+                )
+        if expected_max:
+            if float_value > expected_max:
+                raise ValueError(
+                    f"Value '{float_value}' for {key_path} is invalid. "
+                    f"Value must be less than or equal to {expected_max}."
+                )
+        return float_value
+
+    @ParameterizedProperty
+    def bool_value(
+        self,
+        key_path,
+        default_value=None,
+    ) -> bool:
+        """
+        Retrieves and converts a configuration value to a boolean based on common truth string
+        representations.
+
+        Args:
+            key_path: Path to the configuration value in the configuration hierarchy.
+            default_value (optional): Value to return if the key_path is not found. Defaults to
+            None.
+
+        Returns:
+            bool: True if the configuration value (case-insensitive) matches any of the following:
+                    - "true"
+                    - "1"
+                    - "yes"
+                    - "on"
+                    False for all other values.
+
+        Note:
+            The method converts the configuration value to lowercase before comparison.
+            If default_value is provided and the key_path is not found, the default_value
+            will be processed through the same boolean conversion logic.
+        """
+        bool_value = self._config_getter(key_path=key_path, default_value=default_value)
+        return bool_value.lower() in ("true", "1", "yes", "on")
+
+    def _config_setter(self, key_path: str, value):
         """
         Recursively set a value in a nested dictionary using a dot-separated key path.
 
@@ -309,3 +501,85 @@ class Configuration:
 
         # Set the value at the last key
         current[keys[-1]] = value
+
+    @str_value.setter
+    def str_value(self, str_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(str_value, key_path)
+
+    @int_value.setter
+    def int_value(self, int_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(int_value, key_path)
+
+    @float_value.setter
+    def float_value(self, float_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(float_value, key_path)
+
+    @bool_value.setter
+    def bool_value(self, bool_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(bool_value, key_path)
+
+    @list_value.setter
+    def list_value(self, list_value: int, key_path: str):
+        """
+        Recursively set a value in a nested dictionary using a dot-separated key path.
+
+        Args:
+            dictionary (dict): The nested dictionary to modify
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+            value: The value to set at the specified key path
+        """
+        self._config_setter(key_path, list_value)
+
+    # @value.setter
+    # def value(self, key_path, value):
+    #     """
+    #     Recursively set a value in a nested dictionary using a dot-separated key path.
+
+    #     Args:
+    #         dictionary (dict): The nested dictionary to modify
+    #         key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
+    #         value: The value to set at the specified key path
+    #     """
+    #     keys = key_path.split(".")
+    #     current = self._config_content
+
+    #     # Traverse through each key in the path, except the last one
+    #     for key in keys[:-1]:
+    #         if key not in current:
+    #             current[key] = {}
+    #         current = current[key]
+
+    #     # Set the value at the last key
+    #     current[keys[-1]] = value

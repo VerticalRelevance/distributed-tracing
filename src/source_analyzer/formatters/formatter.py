@@ -1,3 +1,31 @@
+"""
+This module provides formatting functionality through a factory pattern implementation.
+
+The module contains base classes and factories for handling various formatting operations,
+particularly JSON formatting. It implements a singleton pattern to ensure consistent formatter
+instances across the application.
+
+Classes:
+    FormatterError: Custom exception for handling formatting-related errors.
+    FormatterObject: Base class for formatter implementations with singleton pattern.
+    FormatterFactory: Factory class for dynamically creating formatter instances.
+
+The module supports dynamic loading of formatter implementations and provides a configuration-based
+approach to formatter instantiation. It includes utility integration for logging, JSON operations,
+and generic functionality.
+
+Typical usage example:
+    config = Configuration()
+    factory = FormatterFactory(config)
+    formatter = factory.get_formatter('json_formatter', 'JsonFormatter')
+    formatted_output = formatter.format_json(data)
+
+Attributes:
+    FormatterError (Exception): Base exception class for formatting errors
+    FormatterObject (class): Abstract base formatter class
+    FormatterFactory (class): Factory class for creating formatter instances
+"""
+
 from typing import Dict
 from configuration import Configuration
 from utilities import LoggingUtils, JsonUtils, GenericUtils
@@ -20,6 +48,49 @@ class FormatterError(Exception):
 
 
 class FormatterObject:  # pylint: disable=too-few-public-methods
+    """
+    Base formatter class implementing a singleton pattern for JSON data formatting operations.
+
+    This class serves as an abstract base class for specific formatter implementations. It provides
+    core functionality for JSON formatting while enforcing a singleton pattern to ensure only one
+    instance exists.
+
+    Attributes:
+        _instance (FormatterObject): The singleton instance of the formatter class.
+        _logging_utils (LoggingUtils): Utility instance for logging operations.
+        _json_utils (JsonUtils): Utility instance for JSON-related operations.
+        _generic_utils (GenericUtils): Utility instance for generic operations.
+        _config (Configuration): Configuration instance containing formatter settings.
+
+    Example:
+        class JsonFormatter(FormatterObject):
+            def format_json(self, data, variables=None):
+                # Implementation specific formatting logic
+                return formatted_output
+    """
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Creates and returns a new instance of the Jinja2JsonToMarkdownFormatter class.
+
+        This method is responsible for implementing the singleton pattern, ensuring that only one
+        instance of the Configuration class is created.
+
+        Parameters:
+            cls (type): The class object.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            FormatterFactory: The singleton instance of the Jinja2JsonToMarkdownFormatter class.
+
+        """
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, configuration: Configuration):
         """
         Initialize a new instance of the FormatterObject class.
@@ -66,6 +137,40 @@ class FormatterObject:  # pylint: disable=too-few-public-methods
 
 
 class FormatterFactory:
+    """
+    A singleton factory class for creating and managing formatter instances dynamically.
+
+    This class implements the Singleton pattern to ensure only one formatter factory exists in the
+    application. It provides functionality to dynamically load and instantiate formatter classes
+    based on configuration settings.
+
+    Attributes:
+        _instance (FormatterFactory): The singleton instance of the factory.
+        _generic_utils (GenericUtils): Utility instance for generic operations.
+        _config (Configuration): Configuration instance used for formatter initialization.
+
+    Methods:
+        __new__(cls, *args, **kwargs): Implements the singleton pattern.
+        __init__(configuration): Initializes the factory with configuration.
+        get_formatter(module_name, class_name): Creates formatter instances dynamically.
+
+    Example:
+        Create a formatter factory:
+            >>> config = Configuration()
+            >>> factory = FormatterFactory(config)
+            >>> json_formatter = factory.get_formatter('json_formatter', 'JsonFormatter')
+
+    Notes:
+        The factory uses reflection to dynamically load formatter classes at runtime. All formatter
+        classes should be located in the 'formatters' package and follow the standard naming
+        convention. The singleton pattern ensures consistent configuration across all formatter
+        instances.
+
+    Raises:
+        ImportError: When attempting to load a non-existent formatter module.
+        AttributeError: When the specified formatter class doesn't exist in the module.
+    """
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
