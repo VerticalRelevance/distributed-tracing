@@ -1,9 +1,11 @@
+# pylint: disable=line-too-long
 """
 Module for interacting with Meta's Llama 3.2 3B Instruct model through AWS Bedrock.
 
 This module provides a class for generating text using the Meta Llama 3.2 3B Instruct model,
 handling the specific formatting requirements and response parsing for this model.
 """
+# pylint: enable=line-too-long
 
 import json
 from botocore.exceptions import ClientError
@@ -16,6 +18,7 @@ MAX_GEN_LEN_DEFAULT = 6144
 
 
 class MetaLlama323bInstructV1(ModelObject):
+    # pylint: disable=line-too-long
     """
     Client for interacting with Meta's Llama 3.2 3B Instruct model via AWS Bedrock.
 
@@ -25,17 +28,21 @@ class MetaLlama323bInstructV1(ModelObject):
     Attributes:
         completion_json (dict): Structured data extracted from the model's response.
     """
+    # pylint: enable=line-too-long
 
     def __init__(self, configuration: Configuration):
+        # pylint: disable=line-too-long
         """
         Initialize the Llama 3.2 3B Instruct model client.
 
         Args:
             configuration (Configuration): Configuration object containing model settings.
         """
+        # pylint: enable=line-too-long
         super().__init__(configuration=configuration)
 
     def generate_text(self, prompt):
+        # pylint: disable=line-too-long
         """
         Generate text using the Llama 3.2 3B Instruct model.
 
@@ -48,6 +55,7 @@ class MetaLlama323bInstructV1(ModelObject):
         Raises:
             ModelError: If there's an error invoking the model.
         """
+        # pylint: enable=line-too-long
         self._logging_utils.trace(__class__, "start generate_text")
 
         self._logging_utils.debug(__class__, "prompt:")
@@ -101,6 +109,7 @@ class MetaLlama323bInstructV1(ModelObject):
         self._logging_utils.trace(__class__, "end generate_text")
 
     def _handle_response(self, response):
+        # pylint: disable=line-too-long
         """
         Process the raw response from the model.
 
@@ -110,6 +119,7 @@ class MetaLlama323bInstructV1(ModelObject):
         Args:
             response: The raw response from the model invocation.
         """
+        # pylint: enable=line-too-long
         self._logging_utils.trace(__class__, "start _handle_response")
         # Decode the response body.
         model_response: dict = json.loads(response["body"].read())
@@ -161,30 +171,36 @@ class MetaLlama323bInstructV1(ModelObject):
 
     @property
     def model_id(self) -> str:
+        # pylint: disable=line-too-long
         """
         Get the AWS Bedrock model ID for Llama 3.2 3B Instruct.
 
         Returns:
             str: The model ID.
         """
+        # pylint: enable=line-too-long
         return "us.meta.llama3-2-1b-instruct-v1:0"
 
     @property
     def model_name(self) -> str:
+        # pylint: disable=line-too-long
         """
         Get the human-readable name of the model.
 
         Returns:
             str: The model name.
         """
+        # pylint: enable=line-too-long
         return "Llama 3.2 3B Instruct"
 
     @property
     def model_vendor(self) -> str:
+        # pylint: disable=line-too-long
         """
         Get the vendor name for the model.
 
         Returns:
             str: The model vendor.
         """
+        # pylint: enable=line-too-long
         return "Meta"

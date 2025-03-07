@@ -43,7 +43,6 @@ class SourceCodeNode:  # pylint: disable=too-few-public-methods
         type (str): The type of the code element (root, module, class, function, import, import_from)
         source_location (tuple, optional): Tuple of (line_number, column_offset, end_line_number)
         children (dict): Dictionary of child nodes keyed by their names
-
     """
     # pylint: enable=line-too-long
 
@@ -78,6 +77,7 @@ class SourceCodeNode:  # pylint: disable=too-few-public-methods
 
 
 class SourceCodeTreeBuilder(ast.NodeVisitor):
+    # pylint: disable=line-too-long
     """
     AST visitor that builds a tree representation of Python source code structure.
     Tracks imports, classes, and functions to create a hierarchical view of the code.
@@ -86,6 +86,7 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
         root (SourceCodeNode): The root node of the tree
         current_branch (list): Stack tracking the current position in the tree during traversal
     """
+    # pylint: enable=line-too-long
 
     def __init__(self):
         """
@@ -97,6 +98,7 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
     def _add_module_to_tree(
         self, module_name, node_type="module", source_location=None
     ):
+        # pylint: disable=line-too-long
         """
         Add a module node to the tree, creating intermediate nodes as needed.
 
@@ -108,6 +110,8 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
         Returns:
             SourceCodeNode: The leaf node that was added
         """
+        # pylint: enable=line-too-long
+
         # Split module name into parts
         parts = module_name.split(".")
         current_node = self.current_branch[-1]
@@ -208,6 +212,7 @@ class SourceCodeTreeBuilder(ast.NodeVisitor):
 
 
 class SourceCodeAnalyzer:
+    # pylint: disable=line-too-long
     """
     A class for analyzing Python source code to identify optimal locations for trace statements.
     Uses AST parsing and AI-powered analysis to provide recommendations for code instrumentation.
@@ -218,6 +223,7 @@ class SourceCodeAnalyzer:
         _openai_client (openai.OpenAI): OpenAI API client
         _config (Configuration): Configuration settings
     """
+    # pylint: enable=line-too-long
 
     def __init__(self):
         """
@@ -268,7 +274,7 @@ class SourceCodeAnalyzer:
     def _tree_to_str(self, node, tree_str_parts: list[str], prefix="", is_last=True):
         # pylint: disable=line-too-long
         """
-        Recursively convert a tree node and its children to a string  with branch-like representation.
+        Recursively convert a tree node and its children to a string with branch-like representation.
 
         Args:
             node (SourceCodeNode): The current node to process
@@ -334,18 +340,17 @@ class SourceCodeAnalyzer:
         return tree_builder.root
 
     def get_completion_with_retry(self, prompt: str) -> None:
+        # pylint: disable=line-too-long
         """
         Get an AI completion with automatic retry logic.
 
         Args:
-            messages (list): The messages to send to the AI model
-
-        Returns:
-            str: The AI model's response
+            prompt (str): The prompt to send to the AI model
 
         Raises:
-            Exception: If all retry attempts fail
+            Exception: If all retry attempts fail or if a token limit exception occurs
         """
+        # pylint: enable=line-too-long
         self._logging_utils.trace(__class__, "start get_completion_with_retry")
         self._logging_utils.debug(__class__, f"prompt:\n{prompt}")
         self._logging_utils.debug(
@@ -460,15 +465,10 @@ class SourceCodeAnalyzer:
             __class__, "start analyze_source_code_for_decision_points"
         )
 
-        # tracing_priorities = self._config.value(
-        #     key_path="tracing_priorities", expected_type=list, default=[]
-        # )
         tracing_priorities = self._config.list_value("tracing_priorities", [])
-        # clarifications = self._config.value(
-        #     key_path="clarifications", expected_type=list, default=[]
-        # )
         clarifications = self._config.list_value("clarifications", [])
 
+        # TODO move prompt to config
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements.
 Include every critical locations found. Categorize critical locations based on the following priorities.
@@ -513,15 +513,17 @@ Source Code:
         )
 
     def generate_formatted_output(self, model: ModelObject) -> str:
+        # pylint: disable=line-too-long
         """
-        Generate formatted output based on the provided response.
+        Generate formatted output based on the provided model.
 
         Args:
-            response (str): The response from the model
+            model (ModelObject): The model containing completion data to be formatted
 
         Returns:
-            None
+            str: The formatted output string
         """
+        # pylint: enable=line-too-long
         self._logging_utils.trace(__class__, "start generate_formatted_output")
         self._logging_utils.debug(__class__, "completion_json:")
         self._logging_utils.debug(__class__, model.completion_json, enable_pformat=True)
@@ -696,14 +698,15 @@ def main():
         print(
             """
 Arguments:
- FILE          Path to an input file
- DIRECTORY     Path to an input directory"""
+FILE          Path to an input file
+DIRECTORY     Path to an input directory
+            """
         )
         if not invalid_args:
             print(
                 """
 Environment variables:
-    AWS_REgION:
+    AWS_REGION:
         Sets the desired AWS region for connecting to Bedrock. Value should be
         us-west-2 or us-east-1. Default is us-west-2.
     LOG_LEVEL_STDERR:

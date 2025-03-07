@@ -1,8 +1,12 @@
+# pylint: disable=line-too-long
 """
-Jinja2JsonToMarkdownFormatter module that provides functionality for formatting JSON data
-into Markdown using Jinja2 templates. This module implements a singleton pattern for the formatter
-and provides methods for loading templates and rendering JSON data to Markdown.
+Jinja2JsonToMarkdownFormatter module that provides functionality for formatting JSON data into Markdown using
+Jinja2 templates.
+
+This module implements a singleton pattern for the formatter and provides methods for loading templates and
+rendering JSON data to Markdown.
 """
+# pylint: enable=line-too-long
 
 from typing import Dict
 from jinja2 import Environment
@@ -13,50 +17,61 @@ from configuration import Configuration
 class Jinja2JsonToMarkdownFormatter(
     FormatterObject
 ):  # pylint: disable=too-few-public-methods
+    # pylint: disable=line-too-long
     """
     A formatter that converts JSON data to Markdown using Jinja2 templates.
 
-    This class implements the singleton pattern to ensure only one instance exists.
-    It provides methods for loading Jinja2 templates and formatting JSON data into
-    structured Markdown documents based on those templates.
+    This class implements the singleton pattern to ensure only one instance exists. It provides methods for
+    loading Jinja2 templates and formatting JSON data into structured Markdown documents based on those
+    templates.
 
     Attributes:
         _instance (Jinja2JsonToMarkdownFormatter): The singleton instance of this class
     """
+    # pylint: enable=line-too-long
 
     def __init__(self, configuration: Configuration):
+        # pylint: disable=line-too-long
         """
-        Initializes a new instance of the Jinja2JsonToMarkdownFormatter class.
+        Initialize a new instance of the Jinja2JsonToMarkdownFormatter class.
 
-        This method is called automatically when a new instance of the class is created.
-        It initializes the instance with any necessary attributes or configurations.
+        This method is called automatically when a new instance of the class is created. It initializes the
+        instance with the provided configuration.
 
+        Args:
+            configuration (Configuration): The configuration object for the formatter
         """
+        # pylint: enable=line-too-long
         super().__init__(configuration=configuration)
 
     def _load_template(self, template_path: str) -> str:
+        # pylint: disable=line-too-long
         """
         Load the Jinja2 template from the specified file path.
 
         Args:
-            template_path (str): The path to the Jinja2 template file.
+            template_path (str): The path to the Jinja2 template file
 
         Returns:
-            str: The contents of the Jinja2 template file.
+            str: The contents of the Jinja2 template file
         """
+        # pylint: enable=line-too-long
         with open(template_path, "r", encoding="utf-8") as template_file:
             return template_file.read()
 
     def format_json(self, data: Dict[str, str], variables: Dict[str, str] = None):
+        # pylint: disable=line-too-long
         """
-        Format the source code tree into a Markdown string using the Jinja2 template.
+        Format JSON data into a Markdown string using the Jinja2 template.
 
         Args:
-            source_code_tree (SourceCodeNode): The root node of the source code tree.
+            data (Dict[str, str]): The JSON data to format
+            variables (Dict[str, str], optional): Additional variables to include in the template rendering
 
         Returns:
-            str: The formatted Markdown string.
+            str: The formatted Markdown string
         """
+        # pylint: enable=line-too-long
         # FUTURE refactor to use a shared utilities module
         # Get the template file name and path from the configuration
         file_name = self._config.str_value(
