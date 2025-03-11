@@ -156,6 +156,7 @@ class ModelObject:
             A configured boto3 client for bedrock-runtime with appropriate region settings
         """
         # pylint: enable=line-too-long
+        # TODO refactor into separate Bedrock-specific middle-layer class
         return boto3.client(
             "bedrock-runtime",
             region_name=self._config.str_value("aws.region", "us-west-2"),
