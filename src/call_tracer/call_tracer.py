@@ -11,10 +11,6 @@ from stdlib_list import stdlib_list
 class FunctionCallVisitor(ast.NodeVisitor):
     """AST visitor to collect function calls within a function or method."""
 
-
-class FunctionCallVisitor(ast.NodeVisitor):
-    """AST visitor to collect function calls within a function or method."""
-
     def __init__(self):
         self.calls = []
         self.call_sources = {}  # Maps function calls to their source objects
@@ -165,6 +161,7 @@ class FunctionDefVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
 
+# TODO add configuration to omit some standard calls
 class CallTracer:
     """Main class to trace function calls through Python source files with inheritance detection."""
 
@@ -188,9 +185,7 @@ class CallTracer:
     def _get_standard_library_modules(self) -> Set[str]:
         """Get a set of standard library module names."""
         try:
-            import stdlib_list
-
-            return set(stdlib_list.stdlib_list())
+            return set(stdlib_list())
         except ImportError:
             # Fallback to a basic list if stdlib_list is not available
             return {
