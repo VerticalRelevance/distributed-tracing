@@ -706,18 +706,17 @@ DIRECTORY     Path to an input directory
             print(
                 """
 Environment variables:
-    AWS_REGION:
-        Sets the desired AWS region for connecting to Bedrock. Value should be
-        us-west-2 or us-east-1. Default is us-west-2.
     LOG_LEVEL_STDERR:
-        Sets the level of the logger writing to STDOUT. Preferred values are
-        TRACE, DEBUG, ERROR, or CRITICAL. All valid level values are listed
-        below. Default is DEBUG.
+        Sets the level of the logger writing to the file defined by LOG_FILE_STDERR.
+        Preferred values are TRACE, DEBUG, ERROR, or CRITICAL. All valid level
+        values are listed below. Default is DEBUG.
     LOG_LEVEL_STDOUT:
         Sets the level of the logger writing to STDOUT. Preferred values are
         TRACE, DEBUG, ERROR, or CRITICAL. All valid level values are listed
         below. Default is SUCCESS.
-
+    LOG_FILE_STDERR:
+        Set the name of the file to be written by the STDERR logger.
+        
 Log Levels:
     NOTSET:
         Standard functionality from the Python logging package.
