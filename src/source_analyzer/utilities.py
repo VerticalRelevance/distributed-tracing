@@ -34,6 +34,13 @@ from custom_logger_success import CustomLoggerSuccess  # pylint: disable=unused-
 from custom_logger_trace import CustomLoggerTrace  # pylint: disable=unused-import
 
 
+class MissingEnvironmentVariable(Exception):
+    """Custom exception for missing log stderr filename."""
+
+    def __init__(self, env_var_name):
+        super().__init__(f"Missing environment variable '{env_var_name}'")
+
+
 class CtxMgrUtils:
     """
     A singleton utility class providing context managers for time measurement and
@@ -158,6 +165,9 @@ class CtxMgrUtils:
             return end - start
 
         # pylint: enable=function-redefined
+
+
+LOG_FILE_STDERR = "LOG_FILE_STDERR"
 
 
 class LoggingUtils:
@@ -420,13 +430,16 @@ class LoggingUtils:
             ).upper()
             logger.setLevel(logger_level)
 
-            console_handler = logging.StreamHandler(stream=sys.stderr)
-            console_handler.setLevel(logger_level)
+            file_handler_filename = os.getenv(LOG_FILE_STDERR)
+            if file_handler_filename is None:
+                raise MissingEnvironmentVariable(LOG_FILE_STDERR)
+            file_handler = logging.FileHandler(filename=file_handler_filename, mode="w")
+            file_handler.setLevel(logger_level)
 
             formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-            console_handler.setFormatter(formatter)
 
-            logger.addHandler(console_handler)
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
 
         return logger
 
