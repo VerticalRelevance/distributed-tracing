@@ -35,7 +35,17 @@ pip install -U -r requirements-dev.txt
 cd /path/to/root/distributed-tracing/src
 ```
 
-### Running source_analyzer
+### Running Call Tracer
+1. Set the `PYTHONPATH` environment variable:
+```bash
+export PYTHONPATH=..:.:call_tracer
+```
+2. Run the call tracer:
+```bash
+python call_tracer/main.py (path to file or local repository) > (some location).md 2> (some location).err
+```
+
+### Running Source Analyzer
 1. Set the `PYTHONPATH` environment variable:
 ```bash
 export PYTHONPATH=..:.:source_analyzer
@@ -52,54 +62,43 @@ export OPENAI_API_KEY="sk-proj-xyzzy..."
 python source_analyzer/main.py (path to file or local repository) > (some location).md 2> (some location).err
 ```
 
-### Running call_tracer
-1. Set the `PYTHONPATH` environment variable:
-```bash
-export PYTHONPATH=..:.:call_tracer
-```
-2. Run the source analyzer:
-```bash
-python call_tracer/main.py (path to file or local repository) > (some location).md 2> (some location).err
-```
+## Package Details
+For more information on each package, refer to the following:
+ 
+| Package         | Documentation                            |
+| --------------- | ---------------------------------------- |
+| Call Tracer     | [Package](src/call_tracer/README.md)     |
+| Source Analyzer | [Package](src/source_analyzer/README.md) |
 
-## Package: Source Analyzer
-### Package Details
-* Refer to the [Source Code Analyzer documentation](src/source_analyzer/README.md) for details.
+## General Project Topics
 
-### Source Analyzer: Configuration
-Configuration for the Source Analyzer is stored in `config.yaml` in the `src/source_analyzer` directory. The configuration consists of the following sections:
+### Project Spelling Words
+Some IDEs, such as Visual Studio Code, contain core or plug-in functionality to mark or otherwise
+detect misspelled words in project files. Sometimes, due to the quirkiness of element naming, there
+are words that would otherwise be considered misspelled, that should be considered spelled
+correctly.  
 
-```
-aws
-└── region: The AWS region for use with Bedrock models (required if a Bedrock model is configured below)
+This project contains a file in the root directory named [project-words.txt](project-words.txt).
+The file contains a list of such words that an IDE can use as a dictionary of valid words.
 
-tracing_priorities:
-├── List of tracing priorities. The AI model will be asked to look for these priorities in list order. (required)
+To configure the Visual Studio Code `cSpell` plug-in to use this file as a custom dictionary, 
+add the following to the workspace or folder configuration:
 
-clarifications:
-├── List of additional clarifications given to the model prompt. These are placed into the prompt in the order listed. (optional)
-
-formatter
-├── class
-│   └── name: the Python class to be used for formatting the analyzer output (required)
-├── module
-│   └── name: the Python module containing the class to be used for formatting (required)
-└── any additional configuration as defined by the specific formatter class (reuqirement based on the model)
-
-ai_model
-├── max_llm_retries: the number of times to try calling the AI model in case of error (required)
-├── retry_delay: the number of seconds between retries of calling the AI model in case of error (required)
-├── temperature: the model temperature, between 0.0 and 1.0, inclusive (required)
-├── custom
-│   └── any custom values defined by the specific model
-├── class
-│   └── name: the Python class to be used for calling the AI model
-├── module
-│   └── name: the Python module containing the specific module class
-└── model_stop
-    └── reasons
-        └── valid
-            └── list of valid stop reasons for the model; any other error causes the code to enter into an error state
+```json
+{
+  "settings": {
+    "cSpell.customDictionaries": {
+      "project-words": {
+        "name": "project-words",
+        "path": "${workspaceRoot}/project-words.txt",
+        "description": "Words used in this project",
+        "addWords": true
+      },
+      "custom": true, // Enable the `custom` dictionary
+      "internal-terms": false // Disable the `internal-terms` dictionary
+    }
+  }
+}
 ```
 
 ## Source Analyzer remaining

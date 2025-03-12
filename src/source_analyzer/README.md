@@ -78,3 +78,40 @@ The following environment variables are used for run-time configuration of the t
 | ---------- | ----------------------------------------------- | ---------------------------------- |
 | Formatters | Flexible formatting of model output             | [formatters](formatters/README.md) |
 | Models     | Flexible choice of model from several available | [models](models/README.md)         |
+
+
+## Configuration
+Configuration for the Source Analyzer is stored in `config.yaml` in the `src/source_analyzer` directory. The configuration consists of the following sections:
+
+```
+aws
+└── region: The AWS region for use with Bedrock models (required if a Bedrock model is configured below)
+
+tracing_priorities:
+├── List of tracing priorities. The AI model will be asked to look for these priorities in list order. (required)
+
+clarifications:
+├── List of additional clarifications given to the model prompt. These are placed into the prompt in the order listed. (optional)
+
+formatter
+├── class
+│   └── name: the Python class to be used for formatting the analyzer output (required)
+├── module
+│   └── name: the Python module containing the class to be used for formatting (required)
+└── any additional configuration as defined by the specific formatter class (reuqirement based on the model)
+
+ai_model
+├── max_llm_retries: the number of times to try calling the AI model in case of error (required)
+├── retry_delay: the number of seconds between retries of calling the AI model in case of error (required)
+├── temperature: the model temperature, between 0.0 and 1.0, inclusive (required)
+├── custom
+│   └── any custom values defined by the specific model
+├── class
+│   └── name: the Python class to be used for calling the AI model
+├── module
+│   └── name: the Python module containing the specific module class
+└── model_stop
+    └── reasons
+        └── valid
+            └── list of valid stop reasons for the model; any other error causes the code to enter into an error state
+```
