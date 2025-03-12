@@ -8,6 +8,7 @@ a factory pattern for creating model instances.
 """
 # pylint: enable=line-too-long
 
+import sys
 from typing import Dict, List
 import boto3
 from common.configuration import Configuration
@@ -493,6 +494,8 @@ class ModelFactory:
             An instance of the specified model class
         """
         # pylint: enable=line-too-long
+        print(f"get_model module_name=models.{module_name}", file=sys.stderr)
+        print(f"get_model class_name={class_name}", file=sys.stderr)
         model_class = self._generic_utils.load_class(
             module_name="models." + module_name,
             class_name=class_name,

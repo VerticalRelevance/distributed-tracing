@@ -29,15 +29,18 @@ from contextlib import contextmanager
 from timeit import default_timer
 import json
 from pprint import pformat
+
+import boto3
 from configuration import Configuration
 from custom_logger_success import CustomLoggerSuccess  # pylint: disable=unused-import
 from custom_logger_trace import CustomLoggerTrace  # pylint: disable=unused-import
 
 
+# rename class to add Error/Exception
 class MissingEnvironmentVariable(Exception):
     """Custom exception for missing log stderr filename."""
 
-    def __init__(self, env_var_name):
+    def __init__(self, env_var_name: str):
         super().__init__(f"Missing environment variable '{env_var_name}'")
 
 
@@ -1175,3 +1178,52 @@ class FormatterUtils:
             'formatters.json'
         """
         return self._config.str_value("formatter.module.name", "not found")
+
+
+class Boto3Utils:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Creates and returns a singleton instance of the Boto3Utils class.
+
+        This method ensures that only one instance of the class is created
+        throughout the application, implementing the singleton design pattern.
+
+        Parameters:
+            cls (type): The class being instantiated.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            formatterUtils: The singleton instance of the Boto3Utils class.
+        """
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, configuration: Configuration):
+        """
+        Initializes a new instance of the Boto3Utils class.
+
+        This method sets up the Boto3Utils instance with a configuration object
+        """
+        self._config = configuration
+
+    def get_secret_value(self, secret_name: str, region_name: str) -> str:
+        """
+        Retrieves a secret from AWS Secrets Manager.
+
+        Parameters:
+            secret_name (str): The name of the secret to retrieve.
+            region_name (str): The AWS region where the secret is stored.
+
+        Returns:
+            str: The value of the secret.
+        """
+        session = boto3.session.Session()
+        client = session.client(service_name="secretsmanager", region_name=region_name)
+        response = client.get_secret_value(SecretId=secret_name)
+        return (
+            response["SecretString"] if "SecretString" in response else "{}"
+        )  # pylint: disable=line-too-long

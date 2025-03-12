@@ -51,9 +51,24 @@ ai_model:
   custom:
     max_tokens: 2048
   class:
-    name: AnthropicClaude3Sonnet20240229V1
+    name: OpenAiGpt4oMini
   module:
-    name: anthropic_claude_3_sonnet_20240229_v1_0
+    name: openai_gpt_4o_mini
+  model_stop:
+    reasons:
+      valid:
+        - end_turn
+
+ai_model_gpt_4o_mini:
+  max_llm_retries: 2
+  retry_delay: 4
+  temperature: 0.0
+  custom:
+    max_tokens: 2048
+  class:
+    name: OpenAiGpt4oMini
+  module:
+    name: openai_gpt_4o_mini
   model_stop:
     reasons:
       valid:
