@@ -1,8 +1,10 @@
+# pylint: disable=line-too-long
 """
-CodedJsonToMarkdownFormatter module that provides functionality for formatting JSON analysis data
-into structured Markdown reports. This module implements a singleton pattern for the formatter
-and provides methods for transforming JSON data into readable Markdown documentation.
+CodedJsonToMarkdownFormatter module that provides functionality for formatting JSON analysis data into structured Markdown reports.
+
+This module implements a singleton pattern for the formatter and provides methods for transforming JSON data into readable Markdown documentation.
 """
+# pylint: enable=line-too-long
 
 from typing import Dict
 from formatters.formatter import FormatterObject
@@ -12,89 +14,78 @@ from configuration import Configuration
 class CodedJsonToMarkdownFormatter(
     FormatterObject
 ):  # pylint: disable=too-few-public-methods
-    """A formatter class that converts coded JSON analysis data into structured Markdown reports.
+    # pylint: disable=line-too-long
+    """
+    A formatter class that converts coded JSON analysis data into structured Markdown reports.
 
-    This class extends FormatterObject to provide specialized formatting capabilities for
-    transforming JSON-formatted analysis data into readable Markdown documentation.
+    This class extends FormatterObject to provide specialized formatting capabilities for transforming
+    JSON-formatted analysis data into readable Markdown documentation.
 
     Attributes:
-        _config (Configuration): Configuration settings for the formatter.
-        _logging_utils (LoggingUtils): Utility for debug logging operations.
+        _config: Configuration settings for the formatter.
+        _logging_utils: Utility for debug logging operations.
 
-    Methods:
-        __init__(configuration): Initializes the formatter with configuration settings.
-        format_json(data, variables): Converts JSON analysis data into a Markdown report.
+    The formatter requires proper configuration of tracing priorities and expects specific JSON structure
+    for analysis data. It handles missing data gracefully and provides detailed debug logging.
 
     Example:
         Create and use the formatter:
-            >>> config = Configuration()
-            >>> formatter = CodedJsonToMarkdownFormatter(config)
-            >>> markdown = formatter.format_json(analysis_data, model_variables)
 
-    Input JSON Structure:
-        The input JSON should contain:
+        >>> config = Configuration()
+        >>> formatter = CodedJsonToMarkdownFormatter(config)
+        >>> markdown = formatter.format_json(analysis_data, model_variables)
+
+    The input JSON should contain:
         - overall_analysis_summary
         - priorities (list of priority levels)
         - critical_locations (per priority)
         - code blocks and recommendations
 
-    Output Format:
-        The generated Markdown includes:
+    The generated Markdown includes:
         - Model information header
         - Analysis summary
         - Priority-based findings
         - Code block analysis
         - Token usage statistics
-
-    Notes:
-        The formatter requires proper configuration of tracing priorities and expects specific JSON
-        structure for analysis data. It handles missing data gracefully and provides detailed debug
-        logging.
     """
+    # pylint: enable=line-too-long
 
     def __init__(self, configuration: Configuration):
+        # pylint: disable=line-too-long
         """
-        Initializes the CodedJsonToMarkdownFormatter with the given configuration.
+        Initialize the CodedJsonToMarkdownFormatter with the given configuration.
 
-        Sets up the formatter by calling the parent class's initialization method
-        with the provided configuration object. This ensures that the formatter
-        is properly configured with the necessary settings for processing.
-
-        Args:
-            configuration (Configuration): The configuration object containing
-                settings and parameters for the formatter.
+        Parameters:
+            configuration: The configuration object containing settings and parameters for the formatter.
         """
+        # pylint: enable=line-too-long
         super().__init__(configuration=configuration)
 
     def format_json(
         self, data: Dict[str, str], variables: Dict[str, str] = None
     ) -> str:
+        # pylint: disable=line-too-long
         """
-        Transforms JSON-formatted analysis data into a structured Markdown report.
+        Transform JSON-formatted analysis data into a structured Markdown report.
 
-        This method takes analysis data and variables as input, and generates
-        a comprehensive Markdown-formatted report. The report includes:
-        - A header with model vendor and name
-        - Overall analysis summary
-        - Detailed findings for each tracing priority
-        - Critical locations with specific code blocks, rationales, and trace recommendations
-        - Summary of token usage and stop reason
+        This method takes analysis data and variables as input, and generates a comprehensive
+        Markdown-formatted report that includes model information, analysis summaries, detailed findings
+        for each tracing priority, critical code locations, and token usage statistics.
 
-        Args:
-            data (Dict[str, str]): A dictionary containing analysis data,
-                including priorities, critical locations, and summaries.
-            variables (Dict[str, str], optional): A dictionary of additional
-                variables such as model details, token counts, and stop reason.
-                Defaults to None.
+        Parameters:
+            data: A dictionary containing analysis data, including priorities, critical locations, and summaries.
+            variables: A dictionary of additional variables such as model details, token counts, and stop reason.
+                      Defaults to None.
 
         Returns:
-            str: A markdown-formatted report of the analysis results.
+            A markdown-formatted report of the analysis results.
 
         Note:
             - Requires 'tracing_priorities' to be configured in the configuration.
             - Logs debug information using the internal logging utility.
             - Handles cases where no critical findings exist for a priority.
         """
+        # pylint: enable=line-too-long
         output_strings = []
         output_strings.append("")
         output_strings.append(

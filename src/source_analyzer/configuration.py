@@ -22,6 +22,7 @@ from parameterized_property import ParameterizedProperty
 
 
 class Configuration:
+    # pylint: disable=line-too-long
     """
     A singleton configuration management class for loading and accessing configuration settings.
 
@@ -32,24 +33,18 @@ class Configuration:
     Attributes:
         _instance (Configuration): The single instance of the Configuration class.
         _config_content (Dict[str, Any]): Loaded configuration content.
-
-    Methods:
-        __new__: Ensures only one instance of the class is created.
-        __init__: Initializes the configuration by loading the specified YAML file.
-        safe_load_config: Safely loads a YAML configuration file with extensive error checking.
-        validate_config: Placeholder method for configuration validation.
-        get_value: Retrieves a configuration value with an optional default.
-        set_value: Sets a configuration value.
     """
+    # pylint: enable=line-too-long
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
         """
         Creates and returns a new instance of the Configuration class.
 
-        This method is responsible for implementing the singleton pattern, ensuring that only one
-        instance of the Configuration class is created.
+        This method implements the singleton pattern, ensuring that only one instance of the Configuration
+        class is created.
 
         Parameters:
             cls (type): The class object.
@@ -58,17 +53,34 @@ class Configuration:
 
         Returns:
             Configuration: The singleton instance of the Configuration class.
-
         """
+        # pylint: enable=line-too-long
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, config_file_path: str) -> None:
+        # pylint: disable=line-too-long
+        """
+        Initialize the Configuration instance by loading a configuration file.
+
+        Args:
+            config_file_path (str): Path to the YAML configuration file to load.
+        """
+        # pylint: enable=line-too-long
         self._config_content: Configuration = None
         self.safe_load_config(config_file_path)
 
     def __str__(self):
+        # pylint: disable=line-too-long
+        """
+        Return a string representation of the configuration content.
+
+        Returns:
+            str: A formatted string representation of the configuration content.
+        """
+
+        # pylint: enable=line-too-long
         def dict_to_string(d, prefix: str = ""):
             if isinstance(d, dict):
                 return (
@@ -97,15 +109,14 @@ class Configuration:
         Safely load a configuration YAML file with comprehensive error handling.
 
         Args:
-            file_path (str): Path to the YAML file to load
-
-        Returns:
-            Optional[Dict[str, Any]]: Parsed YAML content as a dictionary if successful, None if failed
+            file_path (str): Path to the YAML file to load.
 
         Raises:
-            FileNotFoundError: If the file doesn't exist
-            PermissionError: If there are insufficient permissions to read the file
-            yaml.YAMLError: For YAML parsing errors
+            FileNotFoundError: If the file doesn't exist.
+            PermissionError: If there are insufficient permissions to read the file.
+            yaml.YAMLError: For YAML parsing errors.
+            ValueError: If the file is empty or doesn't contain valid YAML content.
+            TypeError: If the file content is not a dictionary.
         """
         # pylint: enable=line-too-long
         try:
@@ -177,27 +188,41 @@ class Configuration:
             ) from e
 
     def validate_config(self) -> bool:
+        # pylint: disable=line-too-long
         """
         Validate the loaded configuration against a predefined schema.
+
+        Returns:
+            bool: True if the configuration is valid, False otherwise.
+
+        Note:
+            This is a placeholder method for future implementation of configuration validation.
         """
+        # pylint: enable=line-too-long
         # validate the loaded configuration against a predefined schema
         # FUTURE add configuration validation
 
         return True
 
     def items(self):
+        # pylint: disable=line-too-long
         """
-        Return the configuration items.
+        Return a copy of the configuration items.
 
         Returns:
-            dict_items: The configuration items.
+            dict: A copy of the configuration content.
         """
+        # pylint: enable=line-too-long
         return self._config_content.copy()
 
     def _config_getter(self, key_path: str, default_value=None):
         # pylint: disable=line-too-long
         """
-        Retrieves a value from a nested configuration dictionary using a dot-notation path.
+        Retrieve a value from a nested configuration dictionary using a dot-notation path.
+
+        This is an internal helper method used by other configuration getters. It traverses a nested
+        dictionary structure using the provided dot-notation path. If any segment of the path is not
+        found or if any intermediate value is not a dictionary, it returns the default_value.
 
         Args:
             key_path (str): Period-delimited path to the configuration value (e.g., 'database.host.port').
@@ -215,10 +240,6 @@ class Configuration:
             Get a top-level configuration value:
                 >>> config._config_getter('app_name', default_value='MyApp')
 
-        Notes:
-            This is an internal helper method used by other configuration getters. It traverses a nested
-            dictionary structure using the provided dot-notation path. If any segment of the path is not
-            found or if any intermediate value is not a dictionary, it returns the default_value.
         """
         # pylint: enable=line-too-long
 
@@ -246,11 +267,11 @@ class Configuration:
     ) -> list:
         # pylint: disable=line-too-long
         """
-        Retrieves a configuration value and ensures it is a list.
+        Retrieve a configuration value and ensure it is a list.
 
         Args:
             key_path (str): Path to the configuration value in the configuration hierarchy.
-            default_value (Any, optional): Value to return if the key_path is not found. If
+            default_value (list, optional): Value to return if the key_path is not found. If
                 provided, this value must also be a list. Defaults to None.
 
         Returns:
@@ -260,16 +281,8 @@ class Configuration:
             TypeError: If the retrieved value or default value is not a list.
 
         Examples:
-            Get list of allowed hosts with default:
-                >>> allowed_hosts = config.list_value('security.allowed_hosts',
-                ...                                  default_value=['localhost'])
-
-            Get required list of database replicas:
-                >>> replicas = config.list_value('database.replicas')
-
-        Notes:
-            The method performs type checking to ensure the returned value is a valid list. This validation
-            applies to both the retrieved configuration value and any provided default value.
+            >>> allowed_hosts = config.list_value('security.allowed_hosts', default_value=['localhost'])
+            >>> replicas = config.list_value('database.replicas')
         """
         # pylint: enable=line-too-long
 
@@ -289,11 +302,11 @@ class Configuration:
     ) -> str:
         # pylint: disable=line-too-long
         """
-        Retrieves a configuration value and ensures it is a string.
+        Retrieve a configuration value and ensure it is a string.
 
         Args:
             key_path (str): Path to the configuration value in the configuration hierarchy.
-            default_value (Any, optional): Value to return if the key_path is not found. If provided,
+            default_value (str, optional): Value to return if the key_path is not found. If provided,
                 this value must also be a string. Defaults to None.
 
         Returns:
@@ -303,16 +316,8 @@ class Configuration:
             TypeError: If the retrieved value or default value is not a string.
 
         Examples:
-            Get API endpoint URL with default:
-                >>> api_url = config.str_value('service.api.endpoint',
-                ...                           default_value='https://api.default.com')
-
-            Get required connection string:
-                >>> conn_str = config.str_value('database.connection_string')
-
-        Notes:
-            The method performs type checking to ensure the returned value is a valid string. This
-            validation applies to both the retrieved configuration value and any provided default value.
+            >>> api_url = config.str_value('service.api.endpoint', default_value='https://api.default.com')
+            >>> conn_str = config.str_value('database.connection_string')
         """
         # pylint: enable=line-too-long
 
@@ -334,34 +339,23 @@ class Configuration:
     ) -> int:
         # pylint: disable=line-too-long
         """
-        Retrieves and converts a configuration value to an integer with optional range validation.
+        Retrieve and convert a configuration value to an integer with optional range validation.
 
         Args:
             key_path (str): Path to the configuration value in the configuration hierarchy.
-            expected_min (int, optional): Minimum allowed value for the integer. If specified, the value must
-                be greater than or equal to this minimum. Defaults to None.
-            expected_max (int, optional): Maximum allowed value for the integer. If specified, the value must
-                be less than or equal to this maximum. Defaults to None.
-            default_value (Any, optional): Value to return if the key_path is not found. If provided, this
-                value must also be convertible to integer and meet range requirements. Defaults to None.
+            expected_min (int, optional): Minimum allowed value for the integer. Defaults to None.
+            expected_max (int, optional): Maximum allowed value for the integer. Defaults to None.
+            default_value (int, optional): Value to return if the key_path is not found. Defaults to None.
 
         Returns:
             int: The configuration value converted to an integer.
 
         Raises:
             TypeError: If the value cannot be converted to an integer.
-            ValueError: If the value is outside the specified range (when expected_min or expected_max are
-                provided).
+            ValueError: If the value is outside the specified range.
 
         Examples:
-            Configure maximum number of retries between 0 and 5:
-                >>> max_retries = config.int_value('app.max_retries', expected_min=0, expected_max=5)
-
-        Notes:
-            The method first attempts to convert the configuration value to an integer.
-            After successful conversion, if either expected_min or expected_max are specified,
-            it validates that the value falls within the acceptable range.
-            The range validation is only performed when the respective boundary values are not None.
+            >>> max_retries = config.int_value('app.max_retries', expected_min=0, expected_max=5)
         """
         # pylint: enable=line-too-long
 
@@ -396,36 +390,27 @@ class Configuration:
         expected_max=None,
         default_value=None,
     ) -> float:
+        # pylint: disable=line-too-long
         """
-        Retrieves and converts a configuration value to a float with optional range validation.
+        Retrieve and convert a configuration value to a float with optional range validation.
 
         Args:
-            key_path: Path to the configuration value in the configuration hierarchy.
+            key_path (str): Path to the configuration value in the configuration hierarchy.
             expected_min (float, optional): Minimum allowed value for the float. Defaults to None.
-                If specified, the value must be greater than or equal to this minimum.
             expected_max (float, optional): Maximum allowed value for the float. Defaults to None.
-                If specified, the value must be less than or equal to this maximum.
-            default_value (optional): Value to return if the key_path is not found. Defaults
-                to None. If provided, this value must also be convertible to float and meet range
-                requirements.
+            default_value (float, optional): Value to return if the key_path is not found. Defaults to None.
 
         Returns:
             float: The configuration value converted to a floating-point number.
 
         Raises:
             TypeError: If the value cannot be converted to a float.
-            ValueError: If the value is outside the specified range (when expected_min
-                or expected_max are provided).
+            ValueError: If the value is outside the specified range.
 
-        Example:
-            >>> # Configure a timeout value between 0.1 and 30.0 seconds
+        Examples:
             >>> timeout = config.float_value('app.timeout', expected_min=0.1, expected_max=30.0)
-
-        Note:
-            The method first attempts to convert the configuration value to a float.
-            After successful conversion, if either expected_min or expected_max are specified,
-            it validates that the value falls within the acceptable range.
         """
+        # pylint: enable=line-too-long
         float_value = self._config_getter(
             key_path=key_path, default_value=default_value
         )
@@ -456,40 +441,38 @@ class Configuration:
         key_path,
         default_value=None,
     ) -> bool:
+        # pylint: disable=line-too-long
         """
-        Retrieves and converts a configuration value to a boolean based on common truth string
-        representations.
+        Retrieve and convert a configuration value to a boolean based on common truth string representations.
 
         Args:
-            key_path: Path to the configuration value in the configuration hierarchy.
-            default_value (optional): Value to return if the key_path is not found. Defaults to
-            None.
+            key_path (str): Path to the configuration value in the configuration hierarchy.
+            default_value (Any, optional): Value to return if the key_path is not found. Defaults to None.
 
         Returns:
-            bool: True if the configuration value (case-insensitive) matches any of the following:
-                    - "true"
-                    - "1"
-                    - "yes"
-                    - "on"
-                    False for all other values.
+            bool: True if the value (case-insensitive) is "true", "1", "yes", or "on"; False otherwise.
 
         Note:
             The method converts the configuration value to lowercase before comparison.
-            If default_value is provided and the key_path is not found, the default_value
-            will be processed through the same boolean conversion logic.
         """
+        # pylint: enable=line-too-long
         bool_value = self._config_getter(key_path=key_path, default_value=default_value)
         return bool_value.lower() in ("true", "1", "yes", "on")
 
     def _config_setter(self, key_path: str, value):
+        # pylint: disable=line-too-long
         """
-        Recursively set a value in a nested dictionary using a dot-separated key path.
+        Recursively set a value in the configuration using a dot-separated key path.
+
+        This is an internal helper method used by other configuration setters. It traverses a nested
+        dictionary structure using the provided dot-notation path. If any segment of the path is not
+        found or if any intermediate value is not a dictionary, it returns the default_value.
 
         Args:
-            dictionary (dict): The nested dictionary to modify
-            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
-            value: The value to set at the specified key path
+            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key").
+            value: The value to set at the specified key path.
         """
+        # pylint: enable=line-too-long
         keys = key_path.split(".")
         current = self._config_content
 
@@ -504,82 +487,65 @@ class Configuration:
 
     @str_value.setter
     def str_value(self, str_value: int, key_path: str):
+        # pylint: disable=line-too-long
         """
-        Recursively set a value in a nested dictionary using a dot-separated key path.
+        Set a string value in the configuration using a dot-separated key path.
 
         Args:
-            dictionary (dict): The nested dictionary to modify
-            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
-            value: The value to set at the specified key path
+            str_value (str): The string value to set.
+            key_path (str): Dot-separated path to the desired key (e.g., "app.name").
         """
+        # pylint: enable=line-too-long
         self._config_setter(str_value, key_path)
 
     @int_value.setter
     def int_value(self, int_value: int, key_path: str):
+        # pylint: disable=line-too-long
         """
-        Recursively set a value in a nested dictionary using a dot-separated key path.
+        Set an integer value in the configuration using a dot-separated key path.
 
         Args:
-            dictionary (dict): The nested dictionary to modify
-            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
-            value: The value to set at the specified key path
+            int_value (int): The integer value to set.
+            key_path (str): Dot-separated path to the desired key (e.g., "app.max_connections").
         """
+        # pylint: enable=line-too-long
         self._config_setter(int_value, key_path)
 
     @float_value.setter
     def float_value(self, float_value: int, key_path: str):
+        # pylint: disable=line-too-long
         """
-        Recursively set a value in a nested dictionary using a dot-separated key path.
+        Set a float value in the configuration using a dot-separated key path.
 
         Args:
-            dictionary (dict): The nested dictionary to modify
-            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
-            value: The value to set at the specified key path
+            float_value (float): The float value to set.
+            key_path (str): Dot-separated path to the desired key (e.g., "app.timeout").
         """
+        # pylint: enable=line-too-long
         self._config_setter(float_value, key_path)
 
     @bool_value.setter
     def bool_value(self, bool_value: int, key_path: str):
+        # pylint: disable=line-too-long
         """
-        Recursively set a value in a nested dictionary using a dot-separated key path.
+        Set a boolean value in the configuration using a dot-separated key path.
 
         Args:
-            dictionary (dict): The nested dictionary to modify
-            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
-            value: The value to set at the specified key path
+            bool_value (bool): The boolean value to set.
+            key_path (str): Dot-separated path to the desired key (e.g., "feature.enabled").
         """
+        # pylint: enable=line-too-long
         self._config_setter(bool_value, key_path)
 
     @list_value.setter
     def list_value(self, list_value: int, key_path: str):
+        # pylint: disable=line-too-long
         """
-        Recursively set a value in a nested dictionary using a dot-separated key path.
+        Set a list value in the configuration using a dot-separated key path.
 
         Args:
-            dictionary (dict): The nested dictionary to modify
-            key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
-            value: The value to set at the specified key path
+            list_value (list): The list value to set.
+            key_path (str): Dot-separated path to the desired key (e.g., "app.allowed_hosts").
         """
+        # pylint: enable=line-too-long
         self._config_setter(key_path, list_value)
-
-    # @value.setter
-    # def value(self, key_path, value):
-    #     """
-    #     Recursively set a value in a nested dictionary using a dot-separated key path.
-
-    #     Args:
-    #         dictionary (dict): The nested dictionary to modify
-    #         key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key")
-    #         value: The value to set at the specified key path
-    #     """
-    #     keys = key_path.split(".")
-    #     current = self._config_content
-
-    #     # Traverse through each key in the path, except the last one
-    #     for key in keys[:-1]:
-    #         if key not in current:
-    #             current[key] = {}
-    #         current = current[key]
-
-    #     # Set the value at the last key
-    #     current[keys[-1]] = value
