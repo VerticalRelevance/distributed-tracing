@@ -433,7 +433,7 @@ class LoggingUtils:
             file_handler_filename = os.getenv(LOG_FILE_STDERR)
             if file_handler_filename is None:
                 raise MissingEnvironmentVariable(LOG_FILE_STDERR)
-            file_handler = logging.FileHandler(filename=file_handler_filename, mode="w")
+            file_handler = logging.FileHandler(filename=file_handler_filename, mode="a")
             file_handler.setLevel(logger_level)
 
             formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")

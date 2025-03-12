@@ -24,8 +24,8 @@ Typical usage example:
 # pylint: enable=line-too-long
 
 from typing import Dict
-from configuration import Configuration
-from utilities import LoggingUtils, JsonUtils, GenericUtils
+from common.configuration import Configuration
+from common.utilities import LoggingUtils, JsonUtils, GenericUtils
 
 
 class FormatterError(Exception):

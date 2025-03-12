@@ -8,7 +8,7 @@ This module implements a singleton pattern for the formatter and provides method
 
 from typing import Dict
 from formatters.formatter import FormatterObject
-from configuration import Configuration
+from common.configuration import Configuration
 
 
 class CodedJsonToMarkdownFormatter(

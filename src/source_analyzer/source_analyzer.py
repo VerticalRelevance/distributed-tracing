@@ -12,8 +12,8 @@ from pathlib import Path
 import logging
 import ast
 from pprint import pformat
-from configuration import Configuration
-from utilities import (
+from common.configuration import Configuration
+from common.utilities import (
     LoggingUtils,
     ModelUtils,
     PathUtils,
@@ -716,7 +716,7 @@ Environment variables:
         below. Default is SUCCESS.
     LOG_FILE_STDERR:
         Set the name of the file to be written by the STDERR logger.
-        
+
 Log Levels:
     NOTSET:
         Standard functionality from the Python logging package.

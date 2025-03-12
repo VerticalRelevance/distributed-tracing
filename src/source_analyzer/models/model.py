@@ -10,8 +10,8 @@ a factory pattern for creating model instances.
 
 from typing import Dict, List
 import boto3
-from configuration import Configuration
-from utilities import JsonUtils, LoggingUtils, ModelUtils, GenericUtils
+from common.configuration import Configuration
+from common.utilities import JsonUtils, LoggingUtils, ModelUtils, GenericUtils
 
 MAX_LLM_RETRIES_EXPECTED_MIN = 0
 MAX_LLM_RETRIES_EXPECTED_MAX = 10
