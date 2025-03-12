@@ -9,7 +9,7 @@ handling API requests and responses, and processing the returned data.
 
 import json
 from botocore.exceptions import ClientError, TokenRetrievalError
-from configuration import Configuration
+from common.configuration import Configuration
 from models.model import ModelObject, ModelError
 
 MAX_TOKENS_EXPECTED_MIN = 0

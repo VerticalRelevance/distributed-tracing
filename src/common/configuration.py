@@ -18,7 +18,7 @@ Classes:
 
 from pathlib import Path
 import yaml
-from parameterized_property import ParameterizedProperty
+from common.parameterized_property import ParameterizedProperty
 
 
 class Configuration:

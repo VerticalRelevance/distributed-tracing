@@ -38,7 +38,7 @@ cd /path/to/root/distributed-tracing/src
 ### Running Call Tracer
 1. Set the `PYTHONPATH` environment variable:
 ```bash
-export PYTHONPATH=..:.:call_tracer
+export PYTHONPATH=common:.:call_tracer
 ```
 2. Run the call tracer:
 ```bash
@@ -48,7 +48,7 @@ python call_tracer/main.py (path to file or local repository) > (some location).
 ### Running Source Analyzer
 1. Set the `PYTHONPATH` environment variable:
 ```bash
-export PYTHONPATH=..:.:source_analyzer
+export PYTHONPATH=common:.:source_analyzer
 ```
 2. Set up configuration file (see [source_analyzer_configuration](#source-analyzer-configuration))
 3. Create any model-specific environment variables.

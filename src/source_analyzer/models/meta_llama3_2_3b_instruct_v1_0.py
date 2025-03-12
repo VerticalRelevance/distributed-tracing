@@ -10,7 +10,7 @@ handling the specific formatting requirements and response parsing for this mode
 import json
 from botocore.exceptions import ClientError
 from models.model import ModelObject, ModelError
-from configuration import Configuration
+from common.configuration import Configuration
 
 MAX_GEN_LEN_EXPECTED_MIN = 0
 MAX_GEN_LEN_EXPECTED_MAX = 204800

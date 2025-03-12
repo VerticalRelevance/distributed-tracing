@@ -11,7 +11,7 @@ rendering JSON data to Markdown.
 from typing import Dict
 from jinja2 import Environment
 from formatters.formatter import FormatterObject
-from configuration import Configuration
+from common.configuration import Configuration
 
 
 class Jinja2JsonToMarkdownFormatter(
