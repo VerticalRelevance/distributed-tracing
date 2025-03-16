@@ -16,9 +16,8 @@ import hashlib
 import logging
 from typing import Dict, List, Optional, Any
 
-from renderers.renderer import RendererFactory, RendererUtils
+from call_tracer.renderers.renderer import RendererFactory, RendererUtils
 from common.configuration import Configuration
-from common.utilities import LoggingUtils
 
 # TODO write stderr to LOG_FILE_STDERR
 # Configure logging
