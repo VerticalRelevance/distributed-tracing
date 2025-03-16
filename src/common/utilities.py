@@ -29,9 +29,9 @@ from contextlib import contextmanager
 from timeit import default_timer
 import json
 from pprint import pformat
-from configuration import Configuration
-from custom_logger_success import CustomLoggerSuccess  # pylint: disable=unused-import
-from custom_logger_trace import CustomLoggerTrace  # pylint: disable=unused-import
+from common.configuration import Configuration
+from common.custom_logger_success import CustomLoggerSuccess  # pylint: disable=unused-import
+from common.custom_logger_trace import CustomLoggerTrace  # pylint: disable=unused-import
 
 
 class MissingEnvironmentVariable(Exception):
