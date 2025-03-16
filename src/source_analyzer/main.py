@@ -27,7 +27,7 @@ from common.utilities import (
 from source_analyzer.models import model
 from source_analyzer.models.model import (
     EXCEPTION_LEVEL_ERROR,
-    ModelError,
+    ModelException,
     ModelFactory,
     ModelObject,
     ModelMaxTokenLimitException,
@@ -377,7 +377,7 @@ class SourceCodeAnalyzer:
             try:
                 self._model.generate_text(prompt=prompt)
                 break
-            except ModelError as me:
+            except ModelException as me:
                 self._logging_utils.error(
                     __class__,
                     f"Cannot generate text from model '{self._model.model_name}'."
@@ -428,14 +428,14 @@ class SourceCodeAnalyzer:
                 __class__,
                 f"Invalid stop reason '{self._model.stopped_reason}'",
             )
-            raise ModelError(
+            raise ModelException(
                 f"Invalid stop reason '{self._model.stopped_reason}'",
                 model.EXCEPTION_LEVEL_ERROR,
             )
 
             # except ModelMaxTokenLimitException as mmtle:
             #     raise Exception from mmtle  # pylint: disable=broad-exception-raised)
-            # except ModelError as me:  # pylint: disable=broad-exception-raised
+            # except ModelException as me:  # pylint: disable=broad-exception-raised
             #     self._logging_utils.error(
             #         __class__,
             #         f"Cannot generate text from model '{self._model.model_name}'."

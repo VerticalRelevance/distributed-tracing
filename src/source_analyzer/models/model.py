@@ -28,8 +28,7 @@ TEMPERATURE_EXPECTED_MIN = 0.0
 TEMPERATURE_EXPECTED_MAX = 1.0
 TEMPERATURE_DEFAULT = 0.0
 
-# TODO clean up ModelError naming and inheritance
-class ModelError(Exception):
+class ModelException(Exception):
     # pylint: disable=line-too-long
     """Base exception class for model-related errors.
 
@@ -37,7 +36,7 @@ class ModelError(Exception):
     """
     # pylint: enable=line-too-long
 
-    def __init__(self, message: str, level: int):
+    def __init__(self, message: str, level: int=EXCEPTION_LEVEL_ERROR):
         self._level: int = level
         self._message: str = message
         super().__init__(self._message)
@@ -46,7 +45,7 @@ class ModelError(Exception):
     def level(self):
         return self._level
 
-class ModelMaxTokenLimitException(ModelError):
+class ModelMaxTokenLimitException(ModelException):
     # pylint: disable=line-too-long
     """Exception raised when the model's token limit is exceeded.
 
@@ -131,7 +130,7 @@ class ModelObject:
             The maximum number of retries configured for LLM API calls
 
         Raises:
-            ModelError: If the configuration value is invalid or outside the expected range
+            ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
         if self._max_llm_retries is None:
@@ -143,13 +142,13 @@ class ModelObject:
                     MAX_LLM_RETRIES_DEFAULT,
                 )
             except TypeError as te:
-                raise ModelError(
+                raise ModelException(
                     "Type for max LLM retries is invalid. "
                     "Value must be a valid integer between "
                     f"{MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
-                raise ModelError(
+                raise ModelException(
                     "Value for max LLM retries is invalid. "
                     "Value must be a valid integer between "
                     f"{MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
@@ -308,7 +307,7 @@ class ModelObject:
             The retry delay in seconds
 
         Raises:
-            ModelError: If the configuration value is invalid or outside the expected range
+            ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
         if not self._retry_delay:
@@ -320,12 +319,12 @@ class ModelObject:
                     RETRY_DELAY_DEFAULT,
                 )
             except TypeError as te:
-                raise ModelError(
+                raise ModelException(
                     f"Type for retry delay is invalid. Value must be a valid integer between "
                     f"{RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
-                raise ModelError(
+                raise ModelException(
                     "Value for retry delay is invalid. "
                     "Value must be a valid integer between "
                     f"{RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
@@ -345,7 +344,7 @@ class ModelObject:
             The temperature value for model randomness
 
         Raises:
-            ModelError: If the configuration value is invalid or outside the expected range
+            ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
         if not self._temperature:
@@ -357,12 +356,12 @@ class ModelObject:
                     TEMPERATURE_DEFAULT,
                 )
             except TypeError as te:
-                raise ModelError(
+                raise ModelException(
                     "Type for temperature is invalid. Value must be a valid floating point "
                     f"between {TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
-                raise ModelError(
+                raise ModelException(
                     "Value for temperature is invalid. "
                     "Value must be a valid floating point between "
                     f"{TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
@@ -385,11 +384,11 @@ class ModelObject:
                     [],
                 )
             except TypeError as te:
-                raise ModelError(
+                raise ModelException(
                     "Type for model stop max tokens reasons is invalid. Value must be a valid list."
                 ) from te
             except ValueError as ve:
-                raise ModelError(
+                raise ModelException(
                     "Value for model stop max tokens reasons is invalid. Value must be a valid list."
                 ) from ve
 
@@ -419,7 +418,7 @@ class ModelObject:
             A list of valid stop reason strings
 
         Raises:
-            ModelError: If the configuration value is invalid
+            ModelException: If the configuration value is invalid
         """
         # pylint: enable=line-too-long
         if self._stop_valid_reasons is None:
@@ -429,11 +428,11 @@ class ModelObject:
                     [],
                 )
             except TypeError as te:
-                raise ModelError(
+                raise ModelException(
                     "Type for model stop valid reasons is invalid. Value must be a valid list."
                 ) from te
             except ValueError as ve:
-                raise ModelError(
+                raise ModelException(
                     "Value for model stop valid reasons is invalid. Value must be a valid list."
                 ) from ve
 

@@ -11,7 +11,7 @@ import json
 from botocore.exceptions import ClientError, TokenRetrievalError
 from common.configuration import Configuration
 from source_analyzer.models import model
-from source_analyzer.models.model import ModelObject, ModelError, EXCEPTION_LEVEL_ERROR
+from source_analyzer.models.model import ModelObject, ModelException
 
 MAX_TOKENS_EXPECTED_MIN = 0
 MAX_TOKENS_EXPECTED_MAX = 134144
@@ -57,7 +57,7 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             prompt (str): The text prompt to send to the model.
 
         Raises:
-            ModelError: If there's an error with token retrieval or model invocation.
+            ModelException: If there's an error with token retrieval or model invocation.
 
         Returns:
             None: Results are stored in instance attributes.
@@ -104,14 +104,14 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             self._logging_utils.debug(__class__, f"tre: {str(tre)}")
             self._logging_utils.debug(__class__, "tre structure:")
             self._logging_utils.debug(__class__, tre.__dict__)
-            raise ModelError(f"TokenRetrievalError error: {str(tre)}", model.EXCEPTION_LEVEL_ERROR) from tre
+            raise ModelException(f"TokenRetrievalError error: {str(tre)}", model.EXCEPTION_LEVEL_ERROR) from tre
         except ClientError as ce:
             error_code = ce.response["Error"]["Code"]
             self._logging_utils.trace(
                 __class__,
                 f"end generate_text with Bedrock invoke_model error ({error_code}): {str(ce)}",
             )
-            raise ModelError(
+            raise ModelException(
                 f"Bedrock invoke_model error ({error_code}): {str(ce)}", model.EXCEPTION_LEVEL_WARN
             ) from ce
 

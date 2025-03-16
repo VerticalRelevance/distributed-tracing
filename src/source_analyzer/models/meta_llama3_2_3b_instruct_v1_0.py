@@ -9,7 +9,7 @@ handling the specific formatting requirements and response parsing for this mode
 
 import json
 from botocore.exceptions import ClientError
-from models.model import ModelObject, ModelError
+from source_analyzer.models.model import ModelObject, ModelException
 from common.configuration import Configuration
 
 MAX_GEN_LEN_EXPECTED_MIN = 0
@@ -53,7 +53,7 @@ class MetaLlama323bInstructV1(ModelObject):
             prompt (str): The input prompt to send to the model.
 
         Raises:
-            ModelError: If there's an error invoking the model.
+            ModelException: If there's an error invoking the model.
         """
         # pylint: enable=line-too-long
         self._logging_utils.trace(__class__, "start generate_text")
@@ -100,7 +100,7 @@ class MetaLlama323bInstructV1(ModelObject):
                 __class__,
                 f"end generate_text with Bedrock invoke_model error ({error_code}): {str(ce)}",
             )
-            raise ModelError(
+            raise ModelException(
                 f"Bedrock invoke_model error ({error_code}): {str(ce)}"
             ) from ce
 
