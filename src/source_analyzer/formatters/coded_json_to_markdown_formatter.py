@@ -120,13 +120,13 @@ class CodedJsonToMarkdownFormatter(
                 for element in priorities
                 if element["priority"] == tracing_priority
             ][0].get("critical_locations")
-            self._logging_utils.debug(__class__, f"locations: {locations}")
-            self._logging_utils.debug(__class__, f"len(locations): {len(locations)}")
+            self._logging_utils.debug(__class__.__name__, f"locations: {locations}")
+            self._logging_utils.debug(__class__.__name__, f"len(locations): {len(locations)}")
             if len(locations) == 0:
                 output_strings.append("No critical findings for this priority.")
                 continue
             for location in locations:
-                self._logging_utils.debug(__class__, f"location: {location}")
+                self._logging_utils.debug(__class__.__name__, f"location: {location}")
                 output_strings.append(f"#### Location {location.get('function_name')}")
                 output_strings.append(
                     f"- **Specific code blocks/lines to trace:**\n```python\n{location.get('code_block')}\n```"  # pylint: disable=line-too-long

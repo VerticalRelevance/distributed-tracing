@@ -401,7 +401,7 @@ class LoggingUtils:
         logger: logging.Logger = logging.getLogger(f"{name}.stdout")
         if not logger.handlers:
             logger_level = os.getenv("LOG_LEVEL_STDOUT", "SUCCESS").upper()
-            self.debug(__class__, f"setting stdout logger level to {logger_level}")
+            self.debug(__class__.__name__, f"setting stdout logger level to {logger_level}")
             logger.setLevel(logger_level)
             console_handler: logging.Handler = logging.StreamHandler(stream=sys.stdout)
             console_handler.setLevel(logger_level)
@@ -628,11 +628,11 @@ class PathUtils:
         Returns:
             str: The contents of the file as a string.
         """
-        LoggingUtils().trace(__class__, "start get_source_code")
+        LoggingUtils().trace(__class__.__name__, "start get_source_code")
         with open(source_path, "r", encoding="utf-8") as file:
             source_code = file.read()
 
-        LoggingUtils().trace(__class__, "end get_source_code")
+        LoggingUtils().trace(__class__.__name__, "end get_source_code")
         return source_code
 
 
@@ -1031,13 +1031,13 @@ class JsonUtils:
 
     def extract_code_blocks(self, text: str, block_type: str) -> list | str:
         """Extract all json blocks from the given input."""
-        self._logging_utils.debug(__class__, "start extract_code_blocks")
-        self._logging_utils.debug(__class__, "end extract_code_blocks")
+        self._logging_utils.debug(__class__.__name__, "start extract_code_blocks")
+        self._logging_utils.debug(__class__.__name__, "end extract_code_blocks")
         return re.findall(rf"```{block_type}\s*(.*?)\s*```", text, re.DOTALL)
 
     def extract_json(self, text: str) -> list | str:
         """Extract the first json block from the given input."""
-        self._logging_utils.debug(__class__, "start extract_json")
+        self._logging_utils.debug(__class__.__name__, "start extract_json")
         json_blocks = self.extract_code_blocks(text, "json")
         if json_blocks:
             self._logging_utils.debug(
@@ -1049,10 +1049,10 @@ class JsonUtils:
                 f"{json_blocks[0] if isinstance(json_blocks, list) else json_blocks}",
                 enable_pformat=True,
             )
-            self._logging_utils.debug(__class__, "end extract_json")
+            self._logging_utils.debug(__class__.__name__, "end extract_json")
             return json_blocks[0] if isinstance(json_blocks, list) else json_blocks
-        self._logging_utils.warning(__class__, "No json blocks found")
-        self._logging_utils.debug(__class__, "end extract_json empty")
+        self._logging_utils.warning(__class__.__name__, "No json blocks found")
+        self._logging_utils.debug(__class__.__name__, "end extract_json empty")
         return "{}"
 
 

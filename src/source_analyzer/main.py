@@ -257,10 +257,10 @@ class SourceCodeAnalyzer:
 
         self._total_tokens: dict = {"completion": 0, "prompt": 0}
 
-        self._logging_utils.debug(__class__, f"Model: {self._model.model_id}")
-        self._logging_utils.debug(__class__, f"_config: {pformat(self._config)}")
-        self._logging_utils.info(__class__, "Configuration:")
-        self._logging_utils.info(__class__, pformat(str(self._config)))
+        self._logging_utils.debug(__class__.__name__, f"Model: {self._model.model_id}")
+        self._logging_utils.debug(__class__.__name__, f"_config: {pformat(self._config)}")
+        self._logging_utils.info(__class__.__name__, "Configuration:")
+        self._logging_utils.info(__class__.__name__, pformat(str(self._config)))
 
     def tree_dumps(self, node: SourceCodeNode) -> str:
         """
@@ -293,8 +293,8 @@ class SourceCodeAnalyzer:
         """
         # pylint: enable=line-too-long
 
-        self._logging_utils.trace(__class__, "start _tree_to_str")
-        self._logging_utils.debug(__class__, f"_tree_to_str type(node): {type(node)}")
+        self._logging_utils.trace(__class__.__name__, "start _tree_to_str")
+        self._logging_utils.debug(__class__.__name__, f"_tree_to_str type(node): {type(node)}")
 
         # Prepare line number and type string
         location_info = (
@@ -337,7 +337,7 @@ class SourceCodeAnalyzer:
             parsed_ast = ast.parse(source_code)
             tree_builder.visit(parsed_ast)
         except SyntaxError as e:
-            self._logging_utils.error(__class__, f"Error parsing source code: {e}")
+            self._logging_utils.error(__class__.__name__, f"Error parsing source code: {e}")
             return None
 
         self._logging_utils.debug(
@@ -357,8 +357,8 @@ class SourceCodeAnalyzer:
             Exception: If all retry attempts fail or if a token limit exception occurs
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__, "start get_completion_with_retry")
-        self._logging_utils.debug(__class__, f"prompt:\n{prompt}")
+        self._logging_utils.trace(__class__.__name__, "start get_completion_with_retry")
+        self._logging_utils.debug(__class__.__name__, f"prompt:\n{prompt}")
         self._logging_utils.debug(
             __class__,
             f"max_llm_tries: {self._model.max_llm_tries}, "
@@ -402,7 +402,7 @@ class SourceCodeAnalyzer:
             #     )
             #     break_llm_loop = True
 
-        self._logging_utils.info(__class__, "LLM response received")
+        self._logging_utils.info(__class__.__name__, "LLM response received")
         self._logging_utils.debug(
             __class__,
             f"LLM Prompt Tokens: {self._model.prompt_tokens}, "
@@ -411,7 +411,7 @@ class SourceCodeAnalyzer:
         )
 
         # CLEANUP
-        # self._logging_utils.debug(__class__, "break_llm_loop is True")
+        # self._logging_utils.debug(__class__.__name__, "break_llm_loop is True")
         self._logging_utils.debug(
             __class__, f"total tokens after loop: {self._total_tokens}"
         )
@@ -443,7 +443,7 @@ class SourceCodeAnalyzer:
             #     )
             #     sys.exit(1)
             # except Exception as e:  # pylint: disable=broad-exception-caught
-            #     self._logging_utils.error(__class__, f"LLM call failed: {str(e)}")
+            #     self._logging_utils.error(__class__.__name__, f"LLM call failed: {str(e)}")
             #     if attempt < self._model.max_llm_tries - 1:
             #         self._logging_utils.info(
             #             __class__,
@@ -475,11 +475,11 @@ class SourceCodeAnalyzer:
                 "total_completion_tokens": self._total_tokens["completion"],
             }
         )
-        if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
-            self._logging_utils.debug(__class__, "total tokens:")
-            self._logging_utils.debug(__class__, tokens_output)
+        if self._logging_utils.is_stderr_logger_level(__class__.__name__, logging.DEBUG):
+            self._logging_utils.debug(__class__.__name__, "total tokens:")
+            self._logging_utils.debug(__class__.__name__, tokens_output)
 
-        self._logging_utils.trace(__class__, "end get_completion_with_retry")
+        self._logging_utils.trace(__class__.__name__, "end get_completion_with_retry")
 
     def analyze_source_code_for_decision_points(self, source_code) -> None:
         """
@@ -532,11 +532,11 @@ Source Code:
 ```
 """
 
-        self._logging_utils.info(__class__, "Analyzing code")
+        self._logging_utils.info(__class__.__name__, "Analyzing code")
         self.get_completion_with_retry(
             prompt=prompt,
         )
-        self._logging_utils.info(__class__, "Code analysis complete")
+        self._logging_utils.info(__class__.__name__, "Code analysis complete")
 
         self._logging_utils.trace(
             __class__, "end analyze_source_code_for_decision_points"
@@ -554,9 +554,9 @@ Source Code:
             str: The formatted output string
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__, "start generate_formatted_output")
-        self._logging_utils.debug(__class__, "completion_json:")
-        self._logging_utils.debug(__class__, model.completion_json, enable_pformat=True)
+        self._logging_utils.trace(__class__.__name__, "start generate_formatted_output")
+        self._logging_utils.debug(__class__.__name__, "completion_json:")
+        self._logging_utils.debug(__class__.__name__, model.completion_json, enable_pformat=True)
 
         formatter_inputs = {}
         formatter_inputs["model_vendor"] = model.model_vendor
@@ -569,7 +569,7 @@ Source Code:
             data=model.completion_json, variables=formatter_inputs
         )
 
-        self._logging_utils.debug(__class__, "end generate_formatted_output")
+        self._logging_utils.debug(__class__.__name__, "end generate_formatted_output")
         return formatted_output
 
     def process_file(
@@ -584,17 +584,17 @@ Source Code:
         Returns:
             bool: True if processing succeeded, None otherwise
         """
-        self._logging_utils.trace(__class__, "start process_file")
-        self._logging_utils.debug(__class__, f"input_source_path: {input_source_path}")
+        self._logging_utils.trace(__class__.__name__, "start process_file")
+        self._logging_utils.debug(__class__.__name__, f"input_source_path: {input_source_path}")
 
         # Load the source file
         try:
             full_code = self._path_utils.get_ascii_file_contents(
                 source_path=input_source_path
             )
-            self._logging_utils.debug(__class__, f"full_code len: {len(full_code)}")
+            self._logging_utils.debug(__class__.__name__, f"full_code len: {len(full_code)}")
             if len(full_code) == 0:
-                self._logging_utils.warning(__class__, "Source file is empty")
+                self._logging_utils.warning(__class__.__name__, "Source file is empty")
                 return
 
             results = []
@@ -609,9 +609,9 @@ Source Code:
             # )
         except Exception as e:  # pylint: disable=broad-exception-caught
             e_msg = f"Failed to load source file '{input_source_path}': {str(e)}"
-            self._logging_utils.error(__class__, e_msg, exc_info=True)
+            self._logging_utils.error(__class__.__name__, e_msg, exc_info=True)
 
-            self._logging_utils.trace(__class__, "end process_file (file error)")
+            self._logging_utils.trace(__class__.__name__, "end process_file (file error)")
             return f"# {e_msg}" if display_results else e_msg
 
         # Analyze the code
@@ -619,11 +619,11 @@ Source Code:
             self.analyze_source_code_for_decision_points(full_code)
         except Exception as e:  # pylint: disable=broad-exception-caught
             e_msg = f"Failed to analyze source code: {str(e)}"
-            self._logging_utils.error(__class__, e_msg, exc_info=True)
-            self._logging_utils.trace(__class__, "end process_file (analyzer error)")
+            self._logging_utils.error(__class__.__name__, e_msg, exc_info=True)
+            self._logging_utils.trace(__class__.__name__, "end process_file (analyzer error)")
             return f"# {e_msg}" if display_results else e_msg
 
-        self._logging_utils.info(__class__, "Analysis complete")
+        self._logging_utils.info(__class__.__name__, "Analysis complete")
 
         # Format the output
         try:
@@ -632,21 +632,21 @@ Source Code:
             self._logging_utils.error(
                 __class__, f"Failed to format output: {str(e)}", exc_info=True
             )
-            self._logging_utils.trace(__class__, "end process_file (formatter error)")
+            self._logging_utils.trace(__class__.__name__, "end process_file (formatter error)")
             raise FormatterError("Failed to format output") from e  # type: ignore
 
-        self._logging_utils.debug(__class__, formatted_output)
+        self._logging_utils.debug(__class__.__name__, formatted_output)
         results.append(formatted_output)
 
         results_str = "\n".join(results)
 
         # Write the formatted output to the console or return them to the caller
         if display_results:
-            self._logging_utils.success(__class__, results_str)
-            self._logging_utils.trace(__class__, "end process_file display results")
+            self._logging_utils.success(__class__.__name__, results_str)
+            self._logging_utils.trace(__class__.__name__, "end process_file display results")
             return
 
-        self._logging_utils.trace(__class__, "end process_file return results")
+        self._logging_utils.trace(__class__.__name__, "end process_file return results")
         return results_str
 
     def process_directory(self, source_path: str) -> None:
@@ -659,9 +659,9 @@ Source Code:
         Returns:
             None
         """
-        self._logging_utils.trace(__class__, "start process_directory")
-        self._logging_utils.debug(__class__, f"source_path: {source_path}")
-        self._logging_utils.info(__class__, f"Process directory '{source_path}'")
+        self._logging_utils.trace(__class__.__name__, "start process_directory")
+        self._logging_utils.debug(__class__.__name__, f"source_path: {source_path}")
+        self._logging_utils.info(__class__.__name__, f"Process directory '{source_path}'")
 
         if not Path(source_path).exists():
             self._logging_utils.error(
@@ -681,18 +681,18 @@ Source Code:
             return
 
         for root, dirs, files in Path(source_path).walk():
-            self._logging_utils.debug(__class__, f"root: {root}")
-            self._logging_utils.debug(__class__, f"dirs: {dirs}")
-            self._logging_utils.debug(__class__, f"files: {files}", enable_pformat=True)
+            self._logging_utils.debug(__class__.__name__, f"root: {root}")
+            self._logging_utils.debug(__class__.__name__, f"dirs: {dirs}")
+            self._logging_utils.debug(__class__.__name__, f"files: {files}", enable_pformat=True)
             for file in files:
-                self._logging_utils.debug(__class__, f"file: {file}")
+                self._logging_utils.debug(__class__.__name__, f"file: {file}")
                 if Path(file).suffix == ".py":
-                    self._logging_utils.debug(__class__, "Path(file)")
-                    self._logging_utils.debug(__class__, Path(file))
+                    self._logging_utils.debug(__class__.__name__, "Path(file)")
+                    self._logging_utils.debug(__class__.__name__, Path(file))
                     source_path = f"{root}/{file}"
                     self.process_file(source_path, display_results=True)
 
-        self._logging_utils.trace(__class__, "end process_directory")
+        self._logging_utils.trace(__class__.__name__, "end process_directory")
 
 
 def main():

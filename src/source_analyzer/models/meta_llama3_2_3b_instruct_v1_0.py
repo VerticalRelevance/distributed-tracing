@@ -56,10 +56,10 @@ class MetaLlama323bInstructV1(ModelObject):
             ModelException: If there's an error invoking the model.
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__, "start generate_text")
+        self._logging_utils.trace(__class__.__name__, "start generate_text")
 
-        self._logging_utils.debug(__class__, "prompt:")
-        self._logging_utils.debug(__class__, prompt)
+        self._logging_utils.debug(__class__.__name__, "prompt:")
+        self._logging_utils.debug(__class__.__name__, prompt)
         formatted_prompt = f"""
 <|begin_of_text|><|start_header_id|>user<|end_header_id|>
 {prompt}
@@ -73,7 +73,7 @@ class MetaLlama323bInstructV1(ModelObject):
             MAX_GEN_LEN_EXPECTED_MAX,
             MAX_GEN_LEN_DEFAULT,
         )
-        self._logging_utils.debug(__class__, f"max_gen_len: {max_gen_len}")
+        self._logging_utils.debug(__class__.__name__, f"max_gen_len: {max_gen_len}")
         # TODO convert to property
         self._max_completion_tokens = max_gen_len
         native_request = {
@@ -81,8 +81,8 @@ class MetaLlama323bInstructV1(ModelObject):
             "max_gen_len": max_gen_len,
             "temperature": self.temperature,
         }
-        self._logging_utils.debug(__class__, "native_request:")
-        self._logging_utils.debug(__class__, native_request, enable_pformat=True)
+        self._logging_utils.debug(__class__.__name__, "native_request:")
+        self._logging_utils.debug(__class__.__name__, native_request, enable_pformat=True)
 
         # Convert the native request to JSON.
         request = json.dumps(native_request)
@@ -92,8 +92,8 @@ class MetaLlama323bInstructV1(ModelObject):
             client = self.model_client
             # Invoke the model with the request.
             response = client.invoke_model(modelId=self.model_id, body=request)
-            self._logging_utils.debug(__class__, "response:")
-            self._logging_utils.debug(__class__, response, enable_pformat=True)
+            self._logging_utils.debug(__class__.__name__, "response:")
+            self._logging_utils.debug(__class__.__name__, response, enable_pformat=True)
         except ClientError as ce:
             error_code = ce.response["Error"]["Code"]
             self._logging_utils.trace(
@@ -106,7 +106,7 @@ class MetaLlama323bInstructV1(ModelObject):
 
         # return self._handle_response(response=response)
         self._handle_response(response=response)
-        self._logging_utils.trace(__class__, "end generate_text")
+        self._logging_utils.trace(__class__.__name__, "end generate_text")
 
     def _handle_response(self, response):
         # pylint: disable=line-too-long
@@ -120,13 +120,13 @@ class MetaLlama323bInstructV1(ModelObject):
             response: The raw response from the model invocation.
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__, "start _handle_response")
+        self._logging_utils.trace(__class__.__name__, "start _handle_response")
         # Decode the response body.
         model_response: dict = json.loads(response["body"].read())
-        self._logging_utils.debug(__class__, "model_response keys")
-        self._logging_utils.debug(__class__, model_response.keys(), enable_pformat=True)
-        self._logging_utils.debug(__class__, "model_response")
-        self._logging_utils.debug(__class__, model_response, enable_pformat=True)
+        self._logging_utils.debug(__class__.__name__, "model_response keys")
+        self._logging_utils.debug(__class__.__name__, model_response.keys(), enable_pformat=True)
+        self._logging_utils.debug(__class__.__name__, "model_response")
+        self._logging_utils.debug(__class__.__name__, model_response, enable_pformat=True)
 
         # Extract and return the response text.
         response_text = model_response["generation"]
@@ -141,13 +141,13 @@ class MetaLlama323bInstructV1(ModelObject):
         self._logging_utils.debug(
             __class__, f"Extracted code blocks len: {len(extracted_json)}"
         )
-        self._logging_utils.debug(__class__, "Extracted json:")
-        self._logging_utils.debug(__class__, extracted_json, enable_pformat=True)
+        self._logging_utils.debug(__class__.__name__, "Extracted json:")
+        self._logging_utils.debug(__class__.__name__, extracted_json, enable_pformat=True)
 
         data = self._json_utils.json_loads(json_string=extracted_json)
         data: dict = data[0] if isinstance(data, list) else data
-        self._logging_utils.debug(__class__, "data:")
-        self._logging_utils.debug(__class__, data, enable_pformat=True)
+        self._logging_utils.debug(__class__.__name__, "data:")
+        self._logging_utils.debug(__class__.__name__, data, enable_pformat=True)
 
         # TODO convert to property
         self.completion_json = {}
@@ -167,7 +167,7 @@ class MetaLlama323bInstructV1(ModelObject):
         self._logging_utils.debug(
             __class__, f"response text: {response_text}", enable_pformat=True
         )
-        self._logging_utils.trace(__class__, "end _handle_response")
+        self._logging_utils.trace(__class__.__name__, "end _handle_response")
 
     @property
     def model_id(self) -> str:
