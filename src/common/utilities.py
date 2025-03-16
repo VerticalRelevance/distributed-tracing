@@ -18,6 +18,8 @@ Classes:
     GenericUtils: General utility methods for serialization and environment handling
 """
 
+# TODO break up into separate modules
+
 import sys
 import os
 import logging

@@ -1,4 +1,6 @@
 import argparse
+import json
+import sys
 import webbrowser
 import threading
 import time
@@ -36,10 +38,9 @@ async def generate_node_content(node: Dict[str, Any]) -> str:
     return details
 
 
-# Define the FastHtmlRenderer class
 class FastHtmlRenderer(RendererObject):
     def __init__(
-        self, configuration: Configuration, data: Dict[str, Any] = None, *args, **kwargs
+        self, configuration: Configuration, data: Dict[str, Any]
     ):
         """Initialize the renderer with either a JSON data file path or a data dictionary."""
         # self.data_file = data_file
@@ -104,7 +105,7 @@ class FastHtmlRenderer(RendererObject):
         # self.run(host=host, port=port, open_browser=True)
         # self.run(open_browser=True)
 
-    async def index(self, request: Request) -> HTMLResponse:
+    async def index(self, request: Request) -> HTMLResponse:    # pylint: disable=unused-argument
         """Render the main index page with the tree view."""
         return HTMLResponse(self.render_page())
 
@@ -197,7 +198,8 @@ class FastHtmlRenderer(RendererObject):
 
         # Only add the htmx attributes if the node is selectable
         htmx_attrs = (
-            f'hx-get="/node/{node_id}" hx-target="#popup-content" hx-swap="innerHTML" onclick="showPopup()"'
+            f'hx-get="/node/{node_id}" hx-target="#popup-content" hx-swap="innerHTML" '
+            'onclick="showPopup()"'
             if is_selectable
             else ""
         )
@@ -281,7 +283,7 @@ class FastHtmlRenderer(RendererObject):
                 document.addEventListener('click', function(e) {{
                     const node = e.target.closest('.node.selectable');
                     if (node) {{
-                        document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+                        document.querySelectorAll('.node').forEach(n => n.classList.remove('selected')); # pylint: disable=line-too-long
                         node.classList.add('selected');
                     }}
                 }});
@@ -306,11 +308,22 @@ class FastHtmlRenderer(RendererObject):
 
 
 def main():
+    def load_data(self) -> Dict[str, Any]:
+        """Load the JSON data from the specified file."""
+        try:
+            with open(self.data_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            print(f"Error loading JSON data: {e}")
+            sys.exit(1)
+
     parser = argparse.ArgumentParser(description="FastHTML Call Tracer Visualizer")
     parser.add_argument("json_file", help="Path to the JSON call tracer file")
     args = parser.parse_args()
+    main_data = load_data(args.json_file)
 
-    renderer = FastHtmlRenderer(args.json_file)
+    main_configuration = Configuration(config_file_path="call_tracer/config.yaml")
+    renderer: RendererObject = FastHtmlRenderer(configuration=main_configuration, data=main_data)
     renderer.run(open_browser=True)
 
 

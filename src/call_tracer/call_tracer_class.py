@@ -100,7 +100,7 @@ class CallTracer:
             self._index_classes_in_file(tree, file_path)
 
             return tree
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error(f"Error parsing file {file_path}: {e}")
             return None
 
@@ -200,7 +200,7 @@ class CallTracer:
                                                 stmt.value.func.value, ast.Name
                                             ):
                                                 attrs[attr_name] = (
-                                                    f"{stmt.value.func.value.id}.{stmt.value.func.attr}"
+                                                    f"{stmt.value.func.value.id}.{stmt.value.func.attr}"    # pylint: disable=line-too-long
                                                 )
 
                 class_attrs[class_name] = attrs
@@ -595,16 +595,17 @@ class CallTracer:
                                                         result["file_path"] = (
                                                             file_path_abs
                                                         )
-                                                        # Keep the qualified_name as "self.attr.method"
+                                                        # Keep the qualified_name as
+                                                        # "self.attr.method"
                                                         result["found"] = True
 
                                                         # Add function calls from this method
                                                         if (
-                                                            f"{file_path_abs}:{attr_type}.{method_name}"
+                                                            f"{file_path_abs}:{attr_type}.{method_name}"    # pylint: disable=line-too-long
                                                             not in self.visited_functions
                                                         ):
                                                             self.visited_functions.add(
-                                                                f"{file_path_abs}:{attr_type}.{method_name}"
+                                                                f"{file_path_abs}:{attr_type}.{method_name}"    # pylint: disable=line-too-long
                                                             )
                                                             result["calls"] = (
                                                                 self._trace_function_calls(
@@ -695,7 +696,7 @@ class CallTracer:
                                                         not in self.visited_functions
                                                     ):
                                                         self.visited_functions.add(
-                                                            f"{file_path_abs}:{node.name}.{method_name}"
+                                                            f"{file_path_abs}:{node.name}.{method_name}"    # pylint: disable=line-too-long
                                                         )
                                                         result["calls"] = (
                                                             self._trace_function_calls(
@@ -1116,4 +1117,3 @@ class CallTracer:
             data=data,
         )
         renderer.render()
-

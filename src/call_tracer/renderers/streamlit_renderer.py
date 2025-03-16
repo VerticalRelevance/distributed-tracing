@@ -1,7 +1,7 @@
-import streamlit as st
-import json
 import sys
-from typing import Dict, Any, Callable
+import json
+from typing import Dict, Any
+import streamlit as st
 
 
 class StreamlitRenderer:
@@ -24,9 +24,9 @@ class StreamlitRenderer:
     def _load_json(self) -> Dict[str, Any]:
         """Load the JSON data from the file."""
         try:
-            with open(self.json_file_path, "r") as f:
+            with open(self.json_file_path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             st.error(f"Error loading JSON file: {e}")
             return {}
 
@@ -49,7 +49,8 @@ class StreamlitRenderer:
         # Find the node in the data
         for key, value in self.data.items():
             if key == node_id:
-                return f"# {key}\n\n**File Path:** {value.get('file_path', 'N/A')}\n\n**Name:** {value.get('name', 'N/A')}"
+                return (f"# {key}\n\n**File Path:** {value.get('file_path', 'N/A')}"
+                "\n\n**Name:** {value.get('name', 'N/A')}")
 
             # Check in calls list
             if "calls" in value:
@@ -165,6 +166,6 @@ if __name__ == "__main__":
         st.error("Please provide a JSON file path as a command line argument.")
         st.stop()
 
-    json_file_path = sys.argv[1]
-    app = StreamlitRenderer(json_file_path)
+    main_json_file_path = sys.argv[1]
+    app = StreamlitRenderer(main_json_file_path)
     app.render()

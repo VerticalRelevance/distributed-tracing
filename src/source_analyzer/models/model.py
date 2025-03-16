@@ -16,9 +16,9 @@ from common.utilities import JsonUtils, LoggingUtils, ModelUtils, GenericUtils
 EXCEPTION_LEVEL_WARN = 10
 EXCEPTION_LEVEL_ERROR = 20
 
-max_llm_tries_EXPECTED_MIN = 0
-max_llm_tries_EXPECTED_MAX = 10
-max_llm_tries_DEFAULT = 3
+MAX_LLM_TRIES_EXPECTED_MIN = 0
+MAX_LLM_TRIES_EXPECTED_MAX = 10
+MAX_LLM_TRIES_DEFAULT = 3
 
 RETRY_DELAY_EXPECTED_MIN = 0
 RETRY_DELAY_EXPECTED_MAX = 30
@@ -137,21 +137,21 @@ class ModelObject:
             try:
                 self._max_llm_tries = self._config.int_value(
                     "ai_model.max_llm_tries",
-                    max_llm_tries_EXPECTED_MIN,
-                    max_llm_tries_EXPECTED_MAX,
-                    max_llm_tries_DEFAULT,
+                    MAX_LLM_TRIES_EXPECTED_MIN,
+                    MAX_LLM_TRIES_EXPECTED_MAX,
+                    MAX_LLM_TRIES_DEFAULT,
                 )
             except TypeError as te:
                 raise ModelException(
                     "Type for max LLM retries is invalid. "
                     "Value must be a valid integer between "
-                    f"{max_llm_tries_EXPECTED_MIN} and {max_llm_tries_EXPECTED_MAX}."
+                    f"{MAX_LLM_TRIES_EXPECTED_MIN} and {MAX_LLM_TRIES_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
                 raise ModelException(
                     "Value for max LLM retries is invalid. "
                     "Value must be a valid integer between "
-                    f"{max_llm_tries_EXPECTED_MIN} and {max_llm_tries_EXPECTED_MAX}."
+                    f"{MAX_LLM_TRIES_EXPECTED_MIN} and {MAX_LLM_TRIES_EXPECTED_MAX}."
                 ) from ve
 
         return self._max_llm_tries
@@ -395,7 +395,8 @@ class ModelObject:
                 ) from te
             except ValueError as ve:
                 raise ModelException(
-                    "Value for model stop max tokens reasons is invalid. Value must be a valid list."
+                    "Value for model stop max tokens reasons is invalid. "
+                    "Value must be a valid list."
                 ) from ve
 
         return self._stop_max_tokens_reasons

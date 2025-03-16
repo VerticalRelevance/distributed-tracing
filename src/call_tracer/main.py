@@ -6,7 +6,8 @@ from call_tracer.call_tracer_class import CallTracer
 if __name__ == "__main__":
     if len(sys.argv) < 4:
         print(
-            "Usage: python call_tracer.py <source_file> <entry_point> <search_path1> [<search_path2> ...]"
+            "Usage: python call_tracer.py <source_file> <entry_point> <search_path1> "
+            "[<search_path2> ...]"
         )
         sys.exit(1)
 
@@ -16,6 +17,10 @@ if __name__ == "__main__":
     entry_point_arg = sys.argv[2]
     search_paths_arg = sys.argv[3:]
 
-    tracer = CallTracer(configuration=main_configuration, source_file=source_file_arg, search_paths=search_paths_arg)
+    tracer = CallTracer(
+        configuration=main_configuration,
+        source_file=source_file_arg,
+        search_paths=search_paths_arg,
+    )
     trace_data: Dict[str, Any] = tracer.trace(entry_point_arg)
     tracer.display_trace(data=trace_data)

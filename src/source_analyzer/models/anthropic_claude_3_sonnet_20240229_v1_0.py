@@ -104,7 +104,10 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             self._logging_utils.debug(__class__.__name__, f"tre: {str(tre)}")
             self._logging_utils.debug(__class__.__name__, "tre structure:")
             self._logging_utils.debug(__class__.__name__, tre.__dict__)
-            raise ModelException(f"TokenRetrievalError error: {str(tre)}", model.EXCEPTION_LEVEL_ERROR) from tre
+            raise ModelException(
+                f"TokenRetrievalError error: {str(tre)}",
+                model.EXCEPTION_LEVEL_ERROR,
+            ) from tre
         except ClientError as ce:
             error_code = ce.response["Error"]["Code"]
             self._logging_utils.trace(

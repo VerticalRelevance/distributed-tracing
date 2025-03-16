@@ -231,7 +231,7 @@ Source Code:
             __class__, "end analyze_source_code_for_decision_points"
         )
 
-    def generate_formatted_output(self, model: ModelObject) -> str:
+    def generate_formatted_output(self) -> str:
         # pylint: disable=line-too-long
         """
         Generate formatted output based on the provided model.
@@ -245,22 +245,24 @@ Source Code:
         # pylint: enable=line-too-long
         self._logging_utils.trace(__class__.__name__, "start generate_formatted_output")
         self._logging_utils.debug(__class__.__name__, "completion_json:")
-        self._logging_utils.debug(__class__.__name__, model.completion_json, enable_pformat=True)
+        self._logging_utils.debug(
+            __class__.__name__, self._model.completion_json, enable_pformat=True)
 
         formatter_inputs = {}
-        formatter_inputs["model_vendor"] = model.model_vendor
-        formatter_inputs["model_name"] = model.model_name
+        formatter_inputs["model_vendor"] = self._model.model_vendor
+        formatter_inputs["model_name"] = self._model.model_name
         formatter_inputs["total_prompt_tokens"] = self._total_tokens["prompt"]
         formatter_inputs["total_completion_tokens"] = self._total_tokens["completion"]
         formatter_inputs["stopped_reason"] = self._model.stopped_reason
 
         formatted_output = self._formatter.format_json(
-            data=model.completion_json, variables=formatter_inputs
+            data=self._model.completion_json, variables=formatter_inputs
         )
 
         self._logging_utils.debug(__class__.__name__, "end generate_formatted_output")
         return formatted_output
 
+    # pylint: disable=inconsistent-return-statements
     def process_file(
         self, input_source_path: str, display_results: bool = False
     ) -> str | None:
@@ -310,7 +312,7 @@ Source Code:
 
         # Format the output
         try:
-            formatted_output = self.generate_formatted_output(model=self._model)
+            formatted_output = self.generate_formatted_output()
         except Exception as e:  # pylint: disable=broad-exception-caught
             self._logging_utils.error(
                 __class__, f"Failed to format output: {str(e)}", exc_info=True
@@ -331,6 +333,7 @@ Source Code:
 
         self._logging_utils.trace(__class__.__name__, "end process_file return results")
         return results_str
+        # pylint: enable=inconsistent-return-statements
 
     def process_directory(self, source_path: str) -> None:
         """
@@ -376,4 +379,3 @@ Source Code:
                     self.process_file(source_path, display_results=True)
 
         self._logging_utils.trace(__class__.__name__, "end process_directory")
-
