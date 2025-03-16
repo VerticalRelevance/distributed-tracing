@@ -44,13 +44,12 @@ formatter_coded:
   module:
     name: coded_json_to_markdown_formatter
 
-# TODO rename max_llm_retries to max_llm_tries
 ai_model:
-  max_llm_retries: 1
+  max_llm_tries: 1
   retry_delay: 4
   temperature: 0.0
   custom:
-    max_tokens: 3072
+    max_tokens: 1024
   class:
     name: AnthropicClaude3Sonnet20240229V1
   module:
@@ -67,7 +66,7 @@ ai_model_keep_anthropic_claude3_sonnet:
   # This section is not used, but is a holding area for
   # specific model configuration
   #
-  max_llm_retries: 2
+  max_llm_tries: 2
   retry_delay: 4
   temperature: 0.0
   custom:
@@ -86,7 +85,7 @@ ai_model_keep_meta_llama:
   # This section is not used, but is a holding area for
   # specific model configuration
   #
-  max_llm_retries: 2
+  max_llm_tries: 2
   retry_delay: 4
   temperature: 0.0
   custom:

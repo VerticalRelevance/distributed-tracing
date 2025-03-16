@@ -361,17 +361,17 @@ class SourceCodeAnalyzer:
         self._logging_utils.debug(__class__, f"prompt:\n{prompt}")
         self._logging_utils.debug(
             __class__,
-            f"max_llm_retries: {self._model.max_llm_retries}, "
+            f"max_llm_tries: {self._model.max_llm_tries}, "
             f"retry_delay: {self._model.retry_delay}, "
             f"temperature: {self._model.temperature}",
         )
 
         self._total_tokens = {"completion": 0, "prompt": 0}
         # break_llm_loop = False
-        for attempt in range(self._model.max_llm_retries):
+        for attempt in range(self._model.max_llm_tries):
             self._logging_utils.debug_info(
                 __class__,
-                f"Get completion attempt: (attempt {attempt + 1}/{self._model.max_llm_retries})",  # pylint: disable=line-too-long
+                f"Get completion attempt: (attempt {attempt + 1}/{self._model.max_llm_tries})",  # pylint: disable=line-too-long
             )
 
             try:
@@ -387,10 +387,10 @@ class SourceCodeAnalyzer:
                     raise Exception from me
                 # if self._model.stopped_reason not in [self._model.stop_valid_reasons, self._model.stop_max_tokens_reasons]:
                 #     raise Exception from me  # pylint: disable=broad-exception-raised
-                # if attempt >= self._model.max_llm_retries - 1:
+                # if attempt >= self._model.max_llm_tries - 1:
                 #     raise Exception from me  # pylint: disable=broad-exception-raised
 
-            if attempt < self._model.max_llm_retries - 1:
+            if attempt < self._model.max_llm_tries - 1:
                 self._logging_utils.debug_info(
                     __class__,
                     f"Retrying in {self._model.retry_delay} seconds...",
@@ -444,7 +444,7 @@ class SourceCodeAnalyzer:
             #     sys.exit(1)
             # except Exception as e:  # pylint: disable=broad-exception-caught
             #     self._logging_utils.error(__class__, f"LLM call failed: {str(e)}")
-            #     if attempt < self._model.max_llm_retries - 1:
+            #     if attempt < self._model.max_llm_tries - 1:
             #         self._logging_utils.info(
             #             __class__,
             #             f"Retrying again in {self._model.retry_delay} seconds...",

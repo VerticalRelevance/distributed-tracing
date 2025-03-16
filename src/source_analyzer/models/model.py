@@ -16,9 +16,9 @@ from common.utilities import JsonUtils, LoggingUtils, ModelUtils, GenericUtils
 EXCEPTION_LEVEL_WARN = 10
 EXCEPTION_LEVEL_ERROR = 20
 
-MAX_LLM_RETRIES_EXPECTED_MIN = 0
-MAX_LLM_RETRIES_EXPECTED_MAX = 10
-MAX_LLM_RETRIES_DEFAULT = 3
+max_llm_tries_EXPECTED_MIN = 0
+max_llm_tries_EXPECTED_MAX = 10
+max_llm_tries_DEFAULT = 3
 
 RETRY_DELAY_EXPECTED_MIN = 0
 RETRY_DELAY_EXPECTED_MAX = 30
@@ -96,7 +96,7 @@ class ModelObject:
         self._config = configuration
         self._logging_utils = LoggingUtils()
         self._model_utils = ModelUtils(configuration=configuration)
-        self._max_llm_retries = None
+        self._max_llm_tries = None
         self._retry_delay = None
         self._temperature = None
         self._completion_tokens = 0
@@ -122,7 +122,7 @@ class ModelObject:
         raise NotImplementedError("Subclasses must implement this method")
 
     @property
-    def max_llm_retries(self) -> int:
+    def max_llm_tries(self) -> int:
         # pylint: disable=line-too-long
         """Get the maximum number of retries for LLM API calls.
 
@@ -133,28 +133,28 @@ class ModelObject:
             ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
-        if self._max_llm_retries is None:
+        if self._max_llm_tries is None:
             try:
-                self._max_llm_retries = self._config.int_value(
-                    "ai_model.max_llm_retries",
-                    MAX_LLM_RETRIES_EXPECTED_MIN,
-                    MAX_LLM_RETRIES_EXPECTED_MAX,
-                    MAX_LLM_RETRIES_DEFAULT,
+                self._max_llm_tries = self._config.int_value(
+                    "ai_model.max_llm_tries",
+                    max_llm_tries_EXPECTED_MIN,
+                    max_llm_tries_EXPECTED_MAX,
+                    max_llm_tries_DEFAULT,
                 )
             except TypeError as te:
                 raise ModelException(
                     "Type for max LLM retries is invalid. "
                     "Value must be a valid integer between "
-                    f"{MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
+                    f"{max_llm_tries_EXPECTED_MIN} and {max_llm_tries_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
                 raise ModelException(
                     "Value for max LLM retries is invalid. "
                     "Value must be a valid integer between "
-                    f"{MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
+                    f"{max_llm_tries_EXPECTED_MIN} and {max_llm_tries_EXPECTED_MAX}."
                 ) from ve
 
-        return self._max_llm_retries
+        return self._max_llm_tries
 
     @property
     def model_client(self) -> boto3.client:
