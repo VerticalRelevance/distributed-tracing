@@ -1,15 +1,9 @@
-import ast
-import json
-import sys
 import argparse
-import os
-import asyncio
 import webbrowser
 import threading
 import time
-from typing import Dict, Any, List, Optional
-from pathlib import Path
-
+from typing import Dict, Any, Optional
+import logging
 from fastcore.foundation import *
 from starlette.applications import Starlette
 from starlette.routing import Route, Mount
@@ -24,27 +18,21 @@ from source_analyzer.main import SourceCodeAnalyzer
 
 STATIC_FILES_LOCATION = "call_tracer/renderers/fasthtml_renderer/static"
 
+logger = logging.getLogger(__name__)
 
 async def generate_node_content(node: Dict[str, Any]) -> str:
     """Generate sample markdown content for a node.
     This function waits for 5 seconds to simulate a time-consuming operation."""
 
     # Generate detailed markdown content
-    print(f"call process_file with '{node.get('file_path')}")
+    logger.debug(f"call process_file with '{node.get('file_path')}")
     try:
         details = SourceCodeAnalyzer().process_file(input_source_path=node.get("file_path"))
-    except Exception as e:
-        print(str(e))
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error(str(e))
         details = str(e)
-    # CLEANUP
-    # except MissingEnvironmentVariable as meve:
-    #     print(str(mmtle))
-    #     details = str(meve)
-    # except ModelMaxTokenLimitException as mmtle:
-    #     print(str(mmtle))
-    #     details = str(mmtle)
 
-    print(f"call process_file finished details len: {len(details)}")
+    logger.debug(f"call process_file finished details len: {len(details)}")
     return details
 
 
@@ -115,12 +103,6 @@ class FastHtmlRenderer(RendererObject):
         webbrowser.open(url)
         # self.run(host=host, port=port, open_browser=True)
         # self.run(open_browser=True)
-
-    @classmethod
-    def render_class(cls, data: Dict[str, Any], host="127.0.0.1", port=8000):
-        """Class method to create an instance with data, run it, and open the browser."""
-        renderer = cls(data=data)
-        renderer.run(host=host, port=port, open_browser=True)
 
     async def index(self, request: Request) -> HTMLResponse:
         """Render the main index page with the tree view."""

@@ -6,8 +6,6 @@ and leverage AI-powered analysis for trace point recommendations.
 """
 # pylint: enable=line-too-long
 
-# TODO separate main from SourceCodeTracer class
-
 import time
 from pathlib import Path
 import logging
@@ -60,8 +58,8 @@ class SourceCodeAnalyzer:
 
         model_utils = ModelUtils(configuration=self._config)
         self._model: ModelObject = ModelFactory(configuration=self._config).get_model(
-            module_name=model_utils.get_desired_model_module_name(),
-            class_name=model_utils.get_desired_model_class_name(),
+            module_name=model_utils.desired_model_module_name,
+            class_name=model_utils.desired_model_class_name,
         )
 
         formatter_utils = FormatterUtils(configuration=self._config)
@@ -111,18 +109,14 @@ class SourceCodeAnalyzer:
             try:
                 self._model.generate_text(prompt=prompt)
                 break
-            except ModelException as me:
+            except ModelException as me:    # pylint: disable=broad-exception-caught
                 self._logging_utils.error(
                     __class__,
                     f"Cannot generate text from model '{self._model.model_name}'."
                     f"Reason: {me}",
                 )
                 if me.level == EXCEPTION_LEVEL_ERROR:
-                    raise Exception from me
-                # if self._model.stopped_reason not in [self._model.stop_valid_reasons, self._model.stop_max_tokens_reasons]:
-                #     raise Exception from me  # pylint: disable=broad-exception-raised
-                # if attempt >= self._model.max_llm_tries - 1:
-                #     raise Exception from me  # pylint: disable=broad-exception-raised
+                    raise Exception from me # pylint: disable=broad-exception-raised)
 
             if attempt < self._model.max_llm_tries - 1:
                 self._logging_utils.debug_info(
@@ -130,11 +124,6 @@ class SourceCodeAnalyzer:
                     f"Retrying in {self._model.retry_delay} seconds...",
                 )
                 time.sleep(self._model.retry_delay)
-            # else:
-            #     self._logging_utils.debug(
-            #         __class__, "setting break_llm_loop to True"
-            #     )
-            #     break_llm_loop = True
 
         self._logging_utils.info(__class__.__name__, "LLM response received")
         self._logging_utils.debug(
@@ -144,8 +133,6 @@ class SourceCodeAnalyzer:
             f"Stopped Reason: {self._model.stopped_reason}",
         )
 
-        # CLEANUP
-        # self._logging_utils.debug(__class__.__name__, "break_llm_loop is True")
         self._logging_utils.debug(
             __class__, f"total tokens after loop: {self._total_tokens}"
         )
@@ -166,38 +153,6 @@ class SourceCodeAnalyzer:
                 f"Invalid stop reason '{self._model.stopped_reason}'",
                 model.EXCEPTION_LEVEL_ERROR,
             )
-
-            # except ModelMaxTokenLimitException as mmtle:
-            #     raise Exception from mmtle  # pylint: disable=broad-exception-raised)
-            # except ModelException as me:  # pylint: disable=broad-exception-raised
-            #     self._logging_utils.error(
-            #         __class__,
-            #         f"Cannot generate text from model '{self._model.model_name}'."
-            #         f"Reason: {me}",
-            #     )
-            #     sys.exit(1)
-            # except Exception as e:  # pylint: disable=broad-exception-caught
-            #     self._logging_utils.error(__class__.__name__, f"LLM call failed: {str(e)}")
-            #     if attempt < self._model.max_llm_tries - 1:
-            #         self._logging_utils.info(
-            #             __class__,
-            #             f"Retrying again in {self._model.retry_delay} seconds...",
-            #         )
-            #         time.sleep(self._model.retry_delay)
-            #     else:
-            #         self._logging_utils.error(
-            #             __class__, "Max retries reached again. Giving up."
-            #         )
-            #         self._logging_utils.debug(
-            #             __class__, f"end get_completion_with_retry with exception: {e}"
-            #         )
-            #         # CLEANUP
-            #         # raise e
-            #         raise ModelMaxTokenLimitException(
-            #             max_token_limit=self._model.max_completion_tokens,
-            #             prompt_tokens=self._model.prompt_tokens,
-            #             completion_tokens=self._model.completion_tokens,
-            #         ) from e
 
         # Update token counts
         self._total_tokens["prompt"] += self._model.prompt_tokens
@@ -232,7 +187,7 @@ class SourceCodeAnalyzer:
         tracing_priorities = self._config.list_value("tracing_priorities", [])
         clarifications = self._config.list_value("clarifications", [])
 
-        # TODO move prompt to config
+        # FUTURE move prompt to config
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements.
 Include every critical locations found. Categorize critical locations based on the following priorities.
@@ -335,12 +290,6 @@ Source Code:
             results.append(f"# Source File: {Path(input_source_path).name}")
             results.append(f"Full file path: '{input_source_path}'")
             results.append("")
-            # self._logging_utils.success(
-            #     __class__, f"\n# Source File: {Path(input_source_path).name}"
-            # )
-            # self._logging_utils.success(
-            #     __class__, f"Full file path: '{input_source_path}'"
-            # )
         except Exception as e:  # pylint: disable=broad-exception-caught
             e_msg = f"Failed to load source file '{input_source_path}': {str(e)}"
             self._logging_utils.error(__class__.__name__, e_msg, exc_info=True)

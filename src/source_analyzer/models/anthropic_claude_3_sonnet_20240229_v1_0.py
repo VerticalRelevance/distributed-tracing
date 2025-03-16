@@ -74,7 +74,7 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             in Python source code tracing, with emphasis on identifying critical trace points.
             """
         messages = [{"role": "user", "content": prompt}]
-        self._max_completion_tokens = self._config.int_value(
+        self.max_completion_tokens = self._config.int_value(
             "ai_model.custom.max_tokens",
             MAX_TOKENS_EXPECTED_MIN,
             MAX_TOKENS_EXPECTED_MAX,
@@ -82,12 +82,12 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
         )
         self._logging_utils.debug(__class__.__name__, f"system_prompt: {system_prompt}")
         self._logging_utils.debug(
-            __class__, f"max_tokens: {self._max_completion_tokens}"
+            __class__, f"max_tokens: {self.max_completion_tokens}"
         )
         request = json.dumps(
             {
                 "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": self._max_completion_tokens,
+                "max_tokens": self.max_completion_tokens,
                 "system": system_prompt,
                 "messages": messages,
             }
@@ -160,12 +160,10 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
         data = data[0] if isinstance(data, list) else data
         self._logging_utils.debug(__class__.__name__, "data:")
         self._logging_utils.debug(__class__.__name__, data)
-        # TODO convert to property
         self.completion_json = data
 
         self.increment_completion_tokens(value=model_response["usage"]["output_tokens"])
         self.increment_prompt_tokens(value=model_response["usage"]["input_tokens"])
-        # TODO convert to property
         self.stopped_reason = model_response["stop_reason"]
 
         self._logging_utils.trace(__class__.__name__, "end generate_text")

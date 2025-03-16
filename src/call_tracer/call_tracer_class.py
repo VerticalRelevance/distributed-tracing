@@ -8,7 +8,6 @@ files within a specified search path.
 """
 
 # TODO add check for required env vars
-# TODO separate main from CallTracer class
 
 
 import ast

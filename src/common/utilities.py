@@ -840,8 +840,8 @@ class ModelUtils:
         """
         self._config: Configuration = configuration
 
-    # TODO convert to property
-    def get_desired_model_class_name(self):
+    @property
+    def desired_model_class_name(self):
         # pylint: disable=line-too-long
         """
         Retrieves the configured AI model class name from the configuration.
@@ -855,8 +855,8 @@ class ModelUtils:
         # pylint: enable=line-too-long
         return self._config.str_value("ai_model.class.name", "not found")
 
-    # TODO convert to property
-    def get_desired_model_module_name(self) -> str:
+    @property
+    def desired_model_module_name(self) -> str:
         # pylint: disable=line-too-long
         """
         Retrieves the configured AI model module name from the configuration.
@@ -870,8 +870,8 @@ class ModelUtils:
         # pylint: enable=line-too-long
         return self._config.str_value("ai_model.module.name", "not found")
 
-    # TODO convert to property
-    def get_region_name(self) -> str:
+    @property
+    def region_name(self) -> str:
         """
         Retrieves the AWS region name.
 
@@ -887,7 +887,8 @@ class ModelUtils:
             # Returns 'us-west-2' if AWS_REGION is not set, or uses the env value
         """
         return os.getenv(
-            "AWS_REGION", self._config.get_value("aws").get("region", "us-west-2")
+            # "AWS_REGION", self._config.str_value("aws").get("region", "us-west-2")
+            "AWS_REGION", self._config.str_value("aws.region", "us-west-2")
         )
 
 

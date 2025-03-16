@@ -165,10 +165,12 @@ class ModelObject:
             A configured boto3 client for bedrock-runtime with appropriate region settings
         """
         # pylint: enable=line-too-long
-        # TODO refactor into separate Bedrock-specific middle-layer class
+        # FUTURE refactor into separate Bedrock-specific middle-layer class
         return boto3.client(
             "bedrock-runtime",
-            region_name=self._config.str_value("aws.region", "us-west-2"),
+            # region_name=self._config.str_value("aws.region", "us-west-2"),
+            region_name=self._model_utils.region_name,
+            config=boto3.session.Config(read_timeout=300, retries={"max_attempts": 3}),
         )
 
     @property
@@ -255,6 +257,10 @@ class ModelObject:
         """
         # pylint: enable=line-too-long
         return self._max_completion_tokens
+
+    @max_completion_tokens.setter
+    def max_completion_tokens(self, value: int):
+        self._max_completion_tokens = value
 
     @property
     def model_id(self) -> str:
