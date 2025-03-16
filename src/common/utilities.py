@@ -39,7 +39,10 @@ class MissingEnvironmentVariable(Exception):
 
     def __init__(self, env_var_name):
         super().__init__(f"Missing environment variable '{env_var_name}'")
+        self._env_var_name = env_var_name
 
+    def __str__(self):
+        return f"Missing environment variable '{self._env_var_name}'"
 
 class CtxMgrUtils:
     """
