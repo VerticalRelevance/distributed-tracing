@@ -1,938 +1,1138 @@
+"""
+Module for tracing function calls in Python source code.
+
+This module provides functionality to trace function calls in Python source code,
+starting from an entry point and recursively following the call chain. It can handle
+calls to functions within the same file, imported functions, and functions in external
+files within a specified search path.
+"""
+
+# TODO add check for required env vars
+
 import ast
 import os
 import sys
-import argparse
-import builtins
-import json
-from typing import Dict, List, Set, Tuple, Optional
-from stdlib_list import stdlib_list
+import hashlib
+import logging
+from typing import Dict, List, Optional, Any
+
+from renderers.renderer import RendererFactory, RendererUtils
+from common.configuration import Configuration
+from common.utilities import LoggingUtils
+
+# TODO write stderr to LOG_FILE_STDERR
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
-class FunctionCallVisitor(ast.NodeVisitor):
-    """AST visitor to collect function calls within a function or method."""
+class CallTracer:
+    """
+    A class for tracing function calls in Python source code.
 
-    def __init__(self):
-        self.calls = []
-        self.call_sources = {}  # Maps function calls to their source objects
-        self.variable_sources = {}  # Maps variables to their source modules
+    This class analyzes Python source code to build a tree of function calls,
+    starting from a specified entry point. It can trace calls within the same file,
+    imported functions, and functions in external files within a specified search path.
+    """
 
-    def visit_Assign(self, node):
+    def __init__(self, configuration: Configuration, source_file: str, search_paths: List[str]):
         """
-        Visit an assignment node to track variable assignments from module
-        function calls.
-
-        This method identifies assignments where a variable is assigned the
-        result of a function call from a module (e.g., var = module.function()).
-        It maps the variable name to the module name in the variable_sources
-        dictionary for later reference.
+        Initialize the CallTracer with a source file and search paths.
 
         Args:
-            node (ast.Assign): The assignment node to visit.
+            source_file: Full path to the source file to analyze
+            search_paths: List of paths to search for external modules
         """
-        # Track variable assignments
-        if isinstance(node.value, ast.Call) and isinstance(
-            node.value.func, ast.Attribute
-        ):
-            if isinstance(node.value.func.value, ast.Name):
-                # Case like: var = module.function()
-                module_name = node.value.func.value.id
-                for target in node.targets:
-                    if isinstance(target, ast.Name):
-                        self.variable_sources[target.id] = module_name
-        self.generic_visit(node)
+        self._config = configuration
+        self.source_file = os.path.abspath(source_file)
+        self.search_paths = [os.path.abspath(path) for path in search_paths]
+        self.visited_files = set()
+        self.visited_functions = set()
+        self.module_cache = {}  # Cache for parsed modules
+        self.import_map = {}  # Maps imported names to their modules
+        self.class_attribute_map = {}  # Maps class attributes to their types
+        self.class_file_map = {}  # Maps class names to their file paths
+        logger.info(f"Initialized CallTracer with source file: {self.source_file}")
+        logger.info(f"Search paths: {self.search_paths}")
 
-    def visit_AnnAssign(self, node):
-        # Track annotated assignments
-        if (
-            node.value
-            and isinstance(node.value, ast.Call)
-            and isinstance(node.value.func, ast.Attribute)
-        ):
-            if isinstance(node.value.func.value, ast.Name):
-                # Case like: var: Type = module.function()
-                module_name = node.value.func.value.id
-                if isinstance(node.target, ast.Name):
-                    self.variable_sources[node.target.id] = module_name
-        self.generic_visit(node)
+    def _generate_id(self, data: Dict) -> str:
+        """
+        Generate a unique ID for a dictionary using MD5 hash.
 
-    def visit_Call(self, node):
-        # Get the name of the function being called
-        if isinstance(node.func, ast.Name):
-            # Direct function call: function_name()
-            self.calls.append(node.func.id)
-            self.call_sources[node.func.id] = None
-        elif isinstance(node.func, ast.Attribute):
-            # Method call: object.method()
-            if isinstance(node.func.value, ast.Name):
-                # Store the object name as the source
-                self.calls.append(node.func.attr)
-                self.call_sources[node.func.attr] = node.func.value.id
+        Args:
+            data: Dictionary to hash
 
-                # Check if we know the source module of this object
-                if node.func.value.id in self.variable_sources:
-                    # This links the method call to the original module
-                    self.call_sources[node.func.attr] = self.variable_sources[
-                        node.func.value.id
-                    ]
-            else:
-                self.calls.append(node.func.attr)
-                self.call_sources[node.func.attr] = None
+        Returns:
+            MD5 hash of the dictionary as a string
+        """
+        # Create a copy to avoid modifying the original
+        data_copy = data.copy()
+        # Remove the id field if it exists to avoid circular reference
+        if "id" in data_copy:
+            del data_copy["id"]
 
-        # Continue visiting child nodes
-        self.generic_visit(node)
+        # Convert dictionary to string and hash
+        data_str = str(sorted(data_copy.items()))
+        return hashlib.md5(data_str.encode()).hexdigest()
 
+    def _parse_file(self, file_path: str) -> ast.Module:
+        """
+        Parse a Python file into an AST.
 
-class ModuleVisitor(ast.NodeVisitor):
-    """AST visitor to collect module imports."""
+        Args:
+            file_path: Path to the file to parse
 
-    def __init__(self):
-        self.imports = {}  # Dict[str, str] mapping imported name to module path
-        self.import_aliases = (
-            {}
-        )  # Dict[str, str] mapping aliases to original module names
-        self.all_imports = []  # List of all imported modules
-
-    def visit_Import(self, node):
-        for alias in node.names:
-            # Regular import: import module
-            if alias.asname:
-                self.imports[alias.asname] = alias.name
-                self.import_aliases[alias.asname] = alias.name
-            else:
-                self.imports[alias.name] = alias.name
-
-            # Add to all_imports
-            self.all_imports.append(alias.name)
-
-    def visit_ImportFrom(self, node):
-        module_path = node.module or ""
-        for alias in node.names:
-            # From import: from module import name
-            if alias.asname:
-                self.imports[alias.asname] = f"{module_path}.{alias.name}"
-                self.import_aliases[alias.asname] = module_path
-            else:
-                self.imports[alias.name] = f"{module_path}.{alias.name}"
-                self.import_aliases[alias.name] = module_path
-
-            # Add to all_imports
-            if module_path:
-                self.all_imports.append(module_path)
-
-
-class FunctionDefVisitor(ast.NodeVisitor):
-    """AST visitor to collect all function and method definitions in a file with inheritance info."""
-
-    def __init__(self):
-        self.functions = {}  # Dict[str, ast.FunctionDef]
-        self.classes = {}  # Dict[str, Dict[str, ast.FunctionDef]]
-        self.class_hierarchy = (
-            {}
-        )  # Dict[str, List[str]] mapping class names to their base classes
-        self.imports = {}  # Will be populated with import info
-        self.import_aliases = {}  # Will be populated with import aliases
-        self.all_imports = []  # Will be populated with all imported modules
-
-    def visit_FunctionDef(self, node):
-        # Store function definition
-        self.functions[node.name] = node
-        self.generic_visit(node)
-
-    def visit_ClassDef(self, node):
-        # Create dict for this class's methods
-        class_methods = {}
-
-        # Store all method definitions within this class
-        for item in node.body:
-            if isinstance(item, ast.FunctionDef):
-                class_methods[item.name] = item
-
-        # Store the class's base classes
-        base_classes = []
-        for base in node.bases:
-            if isinstance(base, ast.Name):
-                base_classes.append(base.id)
-            elif isinstance(base, ast.Attribute):
-                # Handle cases like module.ClassName
-                base_classes.append(base.attr)
-
-        self.class_hierarchy[node.name] = base_classes
-        self.classes[node.name] = class_methods
-        self.generic_visit(node)
-
-
-# TODO add configuration to omit some standard calls
-class CallTracer:
-    """Main class to trace function calls through Python source files with inheritance detection."""
-
-    def __init__(self, base_directory: str, json_output: bool = False):
-        self.base_directory = base_directory
-        self.file_cache = {}  # Dict[str, Dict] to cache parsed files
-        self.visited_calls = (
-            set()
-        )  # Set[Tuple[str, str]] to track visited (file, function) pairs
-        self.class_methods_cache = (
-            {}
-        )  # Dict[str, Set[str]] to cache methods available in each class
-        self.module_map = {}  # Dict[str, str] to map file paths to module names
-        self.standard_library_modules = self._get_standard_library_modules()
-        self.builtin_functions = set(dir(builtins))  # Get all built-in function names
-        self.imported_libraries = set()  # Set to track all imported libraries
-        self.json_output = json_output
-        self.call_tree = {}  # For JSON output
-        self.current_node = None  # For tracking current position in call tree
-
-    def _get_standard_library_modules(self) -> Set[str]:
-        """Get a set of standard library module names."""
-        try:
-            return set(stdlib_list())
-        except ImportError:
-            # Fallback to a basic list if stdlib_list is not available
-            return {
-                "os",
-                "sys",
-                "math",
-                "re",
-                "datetime",
-                "time",
-                "json",
-                "csv",
-                "random",
-                "collections",
-                "itertools",
-                "functools",
-                "pathlib",
-                "shutil",
-                "subprocess",
-                "argparse",
-                "logging",
-                "unittest",
-                "typing",
-                "io",
-                "pickle",
-                "socket",
-                "threading",
-                "multiprocessing",
-            }
-
-    def get_module_name(self, file_path: str) -> str:
-        """Determine the module name for a file path."""
-        if file_path in self.module_map:
-            return self.module_map[file_path]
-
-        # Convert file path to module path
-        rel_path = os.path.relpath(file_path, self.base_directory)
-        if rel_path.startswith(".."):
-            # File is outside base directory, use filename as module
-            module_name = os.path.splitext(os.path.basename(file_path))[0]
-        else:
-            # Replace directory separators with dots and remove .py extension
-            module_name = os.path.splitext(rel_path)[0].replace(os.path.sep, ".")
-
-        self.module_map[file_path] = module_name
-        return module_name
-
-    def parse_file(self, file_path: str) -> Tuple[Dict, Dict, Dict, Dict, Dict, List]:
-        """Parse a Python file and extract all function/method definitions and class hierarchies."""
-        if file_path in self.file_cache:
-            return self.file_cache[file_path]
+        Returns:
+            AST of the parsed file
+        """
+        if file_path in self.module_cache:
+            return self.module_cache[file_path]
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 source = f.read()
 
-            tree = ast.parse(source)
+            tree = ast.parse(source, filename=file_path)
+            self.module_cache[file_path] = tree
 
-            # Collect all imports
-            import_visitor = ModuleVisitor()
-            import_visitor.visit(tree)
+            # Index all classes in this file
+            self._index_classes_in_file(tree, file_path)
 
-            # Collect all function and method definitions
-            visitor = FunctionDefVisitor()
-            visitor.visit(tree)
-            visitor.imports = import_visitor.imports
-            visitor.import_aliases = import_visitor.import_aliases
-            visitor.all_imports = import_visitor.all_imports
-
-            # Add to imported libraries
-            for imp in import_visitor.all_imports:
-                self.imported_libraries.add(imp)
-
-            # Store in cache
-            result = (
-                visitor.functions,
-                visitor.classes,
-                visitor.class_hierarchy,
-                visitor.imports,
-                visitor.import_aliases,
-                visitor.all_imports,
-            )
-            self.file_cache[file_path] = result
-            return result
-
+            return tree
         except Exception as e:
-            print(f"Error parsing {file_path}: {e}")
-            return {}, {}, {}, {}, {}, []
+            logger.error(f"Error parsing file {file_path}: {e}")
+            return None
 
-    def get_qualified_name(self, file_path: str, name: str) -> str:
-        """Get the fully qualified name for a function or method."""
-        module_name = self.get_module_name(file_path)
+    def _index_classes_in_file(self, tree: ast.Module, file_path: str) -> None:
+        """
+        Index all classes in a file for quick lookup.
 
-        if "." in name:
-            # It's a method call (ClassName.method_name)
-            class_name, method_name = name.split(".", 1)
-            return f"{module_name}.{class_name}.{method_name}"
-        else:
-            # It's a function call
-            return f"{module_name}.{name}"
+        Args:
+            tree: AST of a Python module
+            file_path: Path to the file being analyzed
+        """
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                self.class_file_map[node.name] = file_path
 
-    def get_all_methods_for_class(self, file_path: str, class_name: str) -> Set[str]:
-        """Get all methods available in a class, including inherited ones."""
-        cache_key = f"{file_path}:{class_name}"
-        if cache_key in self.class_methods_cache:
-            return self.class_methods_cache[cache_key]
+    def _find_imports(self, tree: ast.Module) -> Dict[str, str]:
+        """
+        Find all imports in an AST and map them to their module paths.
 
-        functions, classes, class_hierarchy, imports, _, _ = self.parse_file(file_path)
+        Args:
+            tree: AST of a Python module
 
-        # If class doesn't exist in this file
-        if class_name not in classes:
-            return set()
+        Returns:
+            Dictionary mapping imported names to their module paths
+        """
+        imports = {}
 
-        # Start with methods defined directly in the class
-        methods = set(classes[class_name].keys())
+        class ImportVisitor(ast.NodeVisitor):
+            def visit_Import(self, node):
+                for name in node.names:
+                    alias = name.asname if name.asname else name.name
+                    imports[alias] = name.name
+                self.generic_visit(node)
 
-        # Add methods from base classes
-        base_classes = class_hierarchy.get(class_name, [])
-        for base in base_classes:
-            # Check if base class is in the same file
-            if base in classes:
-                methods.update(self.get_all_methods_for_class(file_path, base))
-            else:
-                # Check if base class is imported
-                if base in imports:
-                    # Try to resolve the import
-                    imported_path = imports[base]
-                    base_file = self.find_file_for_import(
-                        imported_path, os.path.dirname(file_path)
-                    )
-                    if base_file:
-                        methods.update(self.get_all_methods_for_class(base_file, base))
-                else:
-                    # Search for base class in other files
-                    base_file = self.find_file_for_class(
-                        base, os.path.dirname(file_path)
-                    )
-                    if base_file:
-                        methods.update(self.get_all_methods_for_class(base_file, base))
+            def visit_ImportFrom(self, node):
+                if node.module:
+                    for name in node.names:
+                        alias = name.asname if name.asname else name.name
+                        if node.level == 0:  # absolute import
+                            imports[alias] = f"{node.module}.{name.name}"
+                        else:  # relative import
+                            # Handle relative imports based on the current file's package
+                            imports[alias] = f"relative.{node.module}.{name.name}"
+                self.generic_visit(node)
 
-        # Cache and return
-        self.class_methods_cache[cache_key] = methods
-        return methods
+        ImportVisitor().visit(tree)
+        logger.debug(f"Found imports: {imports}")
+        return imports
 
-    def is_inherited_method(
-        self, file_path: str, class_name: str, method_name: str
-    ) -> Tuple[bool, Optional[str], Optional[str]]:
-        """Check if a method is inherited and return source class and file if it is."""
-        functions, classes, class_hierarchy, imports, _, _ = self.parse_file(file_path)
+    def _analyze_class_attributes(
+        self, tree: ast.Module, file_path: str
+    ) -> Dict[str, Dict[str, str]]:
+        """
+        Analyze class attributes to determine their types.
 
-        # If method is defined directly in the class, it's not inherited
-        if class_name in classes and method_name in classes[class_name]:
-            return False, None, None
+        Args:
+            tree: AST of a Python module
+            file_path: Path to the file being analyzed
 
-        # Check base classes
-        base_classes = class_hierarchy.get(class_name, [])
-        for base in base_classes:
-            # Check if base class is in the same file
-            if base in classes and method_name in classes[base]:
-                return True, base, file_path
+        Returns:
+            Dictionary mapping class names to dictionaries of attribute names and their types
+        """
+        class_attrs = {}
 
-            # Check if base is imported
-            base_file = file_path
-            if base in imports:
-                imported_path = imports[base]
-                base_file = self.find_file_for_import(
-                    imported_path, os.path.dirname(file_path)
-                )
+        class ClassAttributeVisitor(ast.NodeVisitor):
+            def visit_ClassDef(self, node):
+                class_name = node.name
+                attrs = {}
 
-            if not base_file or base not in classes:
-                base_file = self.find_file_for_class(base, os.path.dirname(file_path))
+                # Find __init__ method to analyze attribute assignments
+                init_method = None
+                for item in node.body:
+                    if isinstance(item, ast.FunctionDef) and item.name == "__init__":
+                        init_method = item
+                        break
 
-            if not base_file:
-                continue
+                if init_method:
+                    # Analyze attribute assignments in __init__
+                    for stmt in init_method.body:
+                        if isinstance(stmt, ast.Assign):
+                            for target in stmt.targets:
+                                if (
+                                    isinstance(target, ast.Attribute)
+                                    and isinstance(target.value, ast.Name)
+                                    and target.value.id == "self"
+                                ):
+                                    attr_name = target.attr
 
-            # Check if method is in this base class
-            _, base_classes, _, _, _, _ = self.parse_file(base_file)
-            if base in base_classes and method_name in base_classes[base]:
-                return True, base, base_file
+                                    # Try to determine the type of the attribute
+                                    if isinstance(stmt.value, ast.Call):
+                                        if isinstance(stmt.value.func, ast.Name):
+                                            # Case: self.attr = ClassName()
+                                            attrs[attr_name] = stmt.value.func.id
+                                        elif isinstance(stmt.value.func, ast.Attribute):
+                                            # Case: self.attr = module.ClassName()
+                                            if isinstance(
+                                                stmt.value.func.value, ast.Name
+                                            ):
+                                                attrs[attr_name] = (
+                                                    f"{stmt.value.func.value.id}.{stmt.value.func.attr}"
+                                                )
 
-            # If not found in direct parent, check if it's in a grandparent
-            is_inherited, source_class, source_file = self.is_inherited_method(
-                base_file, base, method_name
-            )
-            if is_inherited:
-                qualified_source = f"{base}.{source_class}" if source_class else base
-                return True, qualified_source, source_file
+                class_attrs[class_name] = attrs
+                self.generic_visit(node)
 
-        return False, None, None
+        ClassAttributeVisitor().visit(tree)
 
-    def find_file_for_import(
-        self, import_path: str, starting_dir: str
-    ) -> Optional[str]:
-        """Find the file that contains a particular import."""
-        # Split the import path
-        parts = import_path.split(".")
+        # Store in the global map with file path as context
+        for class_name, attrs in class_attrs.items():
+            self.class_attribute_map[f"{file_path}:{class_name}"] = attrs
 
-        # Try to find the module in Python's standard paths
-        try:
-            # This assumes the module can be imported
-            module_name = parts[0]
-            try:
-                # Try to find the module in the current directory first
-                potential_file = os.path.join(starting_dir, f"{module_name}.py")
-                if os.path.isfile(potential_file):
-                    return potential_file
+        return class_attrs
 
-                # Check subdirectories
-                for root, dirs, files in os.walk(self.base_directory):
-                    for file in files:
-                        if file == f"{module_name}.py":
-                            return os.path.join(root, file)
-            except Exception:
-                pass
-        except Exception:
-            pass
+    def _find_module_path(self, module_name: str) -> Optional[str]:
+        """
+        Find the file path for a module name.
 
+        Args:
+            module_name: Name of the module to find
+
+        Returns:
+            File path of the module if found, None otherwise
+        """
+        # Handle relative imports
+        if module_name.startswith("relative."):
+            parts = module_name.split(".")
+            current_dir = os.path.dirname(self.source_file)
+            # Navigate up the directory tree based on the number of dots
+            level = 1  # Default for relative imports starting with "relative."
+            for _ in range(level):
+                current_dir = os.path.dirname(current_dir)
+
+            # Reconstruct the module path
+            module_path = os.path.join(current_dir, *parts[1:-1])
+            module_file = os.path.join(module_path, f"{parts[-1]}.py")
+
+            if os.path.exists(module_file):
+                return module_file
+            return None
+
+        # Handle absolute imports
+        module_path = module_name.replace(".", os.path.sep)
+
+        # Check in search paths
+        for search_path in self.search_paths:
+            # Try as a direct module file
+            potential_path = os.path.join(search_path, f"{module_path}.py")
+            if os.path.exists(potential_path):
+                return potential_path
+
+            # Try as a directory with __init__.py
+            potential_dir = os.path.join(search_path, module_path)
+            potential_init = os.path.join(potential_dir, "__init__.py")
+            if os.path.exists(potential_init):
+                return potential_init
+
+        logger.warning(f"Could not find module path for {module_name}")
         return None
 
-    def find_function_in_file(
-        self, file_path: str, function_name: str
-    ) -> Tuple[Optional[ast.FunctionDef], Optional[str]]:
+    def _find_function_in_tree(
+        self, tree: ast.Module, function_name: str
+    ) -> Optional[ast.FunctionDef]:
         """
-        Find a function definition in a file.
-        Returns (function_def, source_file) tuple.
+        Find a function definition in an AST.
+
+        Args:
+            tree: AST of a Python module
+            function_name: Name of the function to find
+
+        Returns:
+            Function definition node if found, None otherwise
         """
-        functions, classes, _, _, _, _ = self.parse_file(file_path)
-
-        # Check if it's a direct function
-        if function_name in functions:
-            return functions[function_name], file_path
-
-        # Check if it's a method (format: ClassName.method_name)
+        # If function_name contains a class name (e.g., "ClassName.method_name")
         if "." in function_name:
             class_name, method_name = function_name.split(".", 1)
-            if class_name in classes and method_name in classes[class_name]:
-                return classes[class_name][method_name], file_path
 
-            # Check if it's an inherited method
-            is_inherited, source_class, source_file = self.is_inherited_method(
-                file_path, class_name, method_name
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ClassDef) and node.name == class_name:
+                    for item in node.body:
+                        if (
+                            isinstance(item, ast.FunctionDef)
+                            and item.name == method_name
+                        ):
+                            return item
+        else:
+            # Look for standalone function
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef) and node.name == function_name:
+                    return node
+
+        return None
+
+    def _find_class_in_tree(
+        self, tree: ast.Module, class_name: str
+    ) -> Optional[ast.ClassDef]:
+        """
+        Find a class definition in an AST.
+
+        Args:
+            tree: AST of a Python module
+            class_name: Name of the class to find
+
+        Returns:
+            Class definition node if found, None otherwise
+        """
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == class_name:
+                return node
+        return None
+
+    def _extract_function_calls(
+        self, func_node: ast.FunctionDef
+    ) -> List[Dict[str, Any]]:
+        """
+        Extract all function calls from a function definition.
+
+        Args:
+            func_node: Function definition node
+
+        Returns:
+            List of dictionaries containing information about each function call
+        """
+        calls = []
+
+        class CallVisitor(ast.NodeVisitor):
+            def visit_Call(self, node):
+                call_info = {
+                    "lineno": node.lineno,
+                    "col_offset": node.col_offset,
+                }
+
+                # Handle different types of function calls
+                if isinstance(node.func, ast.Name):
+                    # Simple function call: func()
+                    call_info["name"] = node.func.id
+                    call_info["type"] = "direct"
+                    calls.append(call_info)
+                elif isinstance(node.func, ast.Attribute):
+                    # Attribute call: obj.method() or module.func()
+                    if isinstance(node.func.value, ast.Name):
+                        if node.func.value.id == "self":
+                            # Self method call: self.method()
+                            call_info["name"] = node.func.attr
+                            call_info["type"] = "self"
+                            calls.append(call_info)
+                        else:
+                            # Module or object method call: module.func() or obj.method()
+                            call_info["name"] = f"{node.func.value.id}.{node.func.attr}"
+                            call_info["type"] = "attribute"
+                            calls.append(call_info)
+                    elif isinstance(node.func.value, ast.Attribute):
+                        # Handle nested attributes like self.attr.method()
+                        if (
+                            isinstance(node.func.value.value, ast.Name)
+                            and node.func.value.value.id == "self"
+                        ):
+                            # Self attribute method call: self.attr.method()
+                            call_info["name"] = (
+                                f"{node.func.value.attr}.{node.func.attr}"
+                            )
+                            call_info["type"] = "self_attribute"
+                            calls.append(call_info)
+                        else:
+                            # Nested attribute call: module.submodule.func()
+                            # Recursively build the full name
+                            parts = []
+                            current = node.func
+                            while isinstance(current, ast.Attribute):
+                                parts.insert(0, current.attr)
+                                current = current.value
+                            if isinstance(current, ast.Name):
+                                parts.insert(0, current.id)
+                                call_info["name"] = ".".join(parts)
+                                call_info["type"] = "nested_attribute"
+                                calls.append(call_info)
+
+                self.generic_visit(node)
+
+        CallVisitor().visit(func_node)
+        return calls
+
+    def _resolve_function_call(
+        self,
+        call_info: Dict[str, Any],
+        current_file: str,
+        current_class: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Resolve a function call to its definition.
+
+        Args:
+            call_info: Dictionary containing information about the function call
+            current_file: Path to the file containing the call
+            current_class: Name of the class containing the call (if applicable)
+
+        Returns:
+            Dictionary with information about the resolved function
+        """
+        call_type = call_info["type"]
+        call_name = call_info["name"]
+
+        logger.info(f"Resolving function call: {call_name} (type: {call_type})")
+
+        # Initialize result with call information
+        result = {
+            "name": call_name,
+            "type": call_type,
+            "lineno": call_info["lineno"],
+            "col_offset": call_info["col_offset"],
+            "calls": [],
+            "file_path": None,
+            "qualified_name": None,
+            "found": False,
+        }
+
+        # Handle self method calls
+        if call_type == "self" and current_class:
+            # Look for the method in the current class
+            tree = self._parse_file(current_file)
+            class_node = self._find_class_in_tree(tree, current_class)
+
+            if class_node:
+                for node in class_node.body:
+                    if isinstance(node, ast.FunctionDef) and node.name == call_name:
+                        result["file_path"] = current_file
+                        result["qualified_name"] = f"{current_class}.{call_name}"
+                        result["found"] = True
+
+                        # Add function calls from this method
+                        if (
+                            f"{current_file}:{current_class}.{call_name}"
+                            not in self.visited_functions
+                        ):
+                            self.visited_functions.add(
+                                f"{current_file}:{current_class}.{call_name}"
+                            )
+                            result["calls"] = self._trace_function_calls(
+                                node, current_file, current_class
+                            )
+                        break
+
+        # Handle self attribute method calls (self.attr.method())
+        elif call_type == "self_attribute" and current_class:
+            # Set the qualified name to include "self."
+            result["qualified_name"] = f"self.{call_name}"
+
+            # First, analyze class attributes to find the type of the attribute
+            tree = self._parse_file(current_file)
+            self._analyze_class_attributes(tree, current_file)
+
+            # Get the attribute and method name
+            attr_name, method_name = call_name.split(".", 1)
+
+            # Look up the attribute type in our class attribute map
+            class_attrs = self.class_attribute_map.get(
+                f"{current_file}:{current_class}", {}
             )
-            if is_inherited and source_class and source_file:
-                if "." in source_class:
-                    # Handle multi-level inheritance
-                    parts = source_class.split(".")
-                    current_file = source_file
-                    current_class = parts[-1]  # Get the last class in the chain
+            attr_type = class_attrs.get(attr_name)
 
-                    _, source_classes, _, _, _, _ = self.parse_file(current_file)
-                    if (
-                        current_class in source_classes
-                        and method_name in source_classes[current_class]
-                    ):
-                        return source_classes[current_class][method_name], current_file
+            if attr_type:
+                logger.info(f"Found attribute type for {attr_name}: {attr_type}")
+
+                # If the attribute type is an imported class
+                imports = self._find_imports(tree)
+                if "." in attr_type and attr_type.split(".")[0] in imports:
+                    module_name = imports[attr_type.split(".")[0]]
+                    class_name = attr_type.split(".")[1]
+                    module_path = self._find_module_path(module_name)
+
+                    if module_path:
+                        module_tree = self._parse_file(module_path)
+                        if module_tree:
+                            class_node = self._find_class_in_tree(
+                                module_tree, class_name
+                            )
+                            if class_node:
+                                for node in class_node.body:
+                                    if (
+                                        isinstance(node, ast.FunctionDef)
+                                        and node.name == method_name
+                                    ):
+                                        result["file_path"] = module_path
+                                        # Keep the qualified_name as "self.attr.method"
+                                        result["found"] = True
+
+                                        # Add function calls from this method
+                                        if (
+                                            f"{module_path}:{class_name}.{method_name}"
+                                            not in self.visited_functions
+                                        ):
+                                            self.visited_functions.add(
+                                                f"{module_path}:{class_name}.{method_name}"
+                                            )
+                                            result["calls"] = (
+                                                self._trace_function_calls(
+                                                    node, module_path, class_name
+                                                )
+                                            )
+                                        break
                 else:
-                    # Simple inheritance from a direct parent
-                    _, source_classes, _, _, _, _ = self.parse_file(source_file)
+                    # Check if the class is defined in the current file
+                    class_node = self._find_class_in_tree(tree, attr_type)
+                    if class_node:
+                        for node in class_node.body:
+                            if (
+                                isinstance(node, ast.FunctionDef)
+                                and node.name == method_name
+                            ):
+                                result["file_path"] = current_file
+                                # Keep the qualified_name as "self.attr.method"
+                                result["found"] = True
+
+                                # Add function calls from this method
+                                if (
+                                    f"{current_file}:{attr_type}.{method_name}"
+                                    not in self.visited_functions
+                                ):
+                                    self.visited_functions.add(
+                                        f"{current_file}:{attr_type}.{method_name}"
+                                    )
+                                    result["calls"] = self._trace_function_calls(
+                                        node, current_file, attr_type
+                                    )
+                                break
+                    else:
+                        # Search for the class in all files
+                        # First check if we've already indexed this class
+                        if attr_type in self.class_file_map:
+                            class_file = self.class_file_map[attr_type]
+                            class_tree = self._parse_file(class_file)
+                            class_node = self._find_class_in_tree(class_tree, attr_type)
+
+                            if class_node:
+                                for node in class_node.body:
+                                    if (
+                                        isinstance(node, ast.FunctionDef)
+                                        and node.name == method_name
+                                    ):
+                                        result["file_path"] = class_file
+                                        # Keep the qualified_name as "self.attr.method"
+                                        result["found"] = True
+
+                                        # Add function calls from this method
+                                        if (
+                                            f"{class_file}:{attr_type}.{method_name}"
+                                            not in self.visited_functions
+                                        ):
+                                            self.visited_functions.add(
+                                                f"{class_file}:{attr_type}.{method_name}"
+                                            )
+                                            result["calls"] = (
+                                                self._trace_function_calls(
+                                                    node, class_file, attr_type
+                                                )
+                                            )
+                                        break
+                        else:
+                            # Search in all files in search paths
+                            for search_path in self.search_paths:
+                                for root, _, files in os.walk(search_path):
+                                    for file in files:
+                                        if file.endswith(".py"):
+                                            file_path = os.path.join(root, file)
+                                            file_path_abs = os.path.abspath(file_path)
+
+                                            # Skip already visited files
+                                            if file_path_abs in self.visited_files:
+                                                continue
+
+                                            self.visited_files.add(file_path_abs)
+
+                                            # Parse the file
+                                            tree = self._parse_file(file_path_abs)
+                                            if not tree:
+                                                continue
+
+                                            # Look for the class
+                                            class_node = self._find_class_in_tree(
+                                                tree, attr_type
+                                            )
+                                            if class_node:
+                                                self.class_file_map[attr_type] = (
+                                                    file_path_abs
+                                                )
+                                                for node in class_node.body:
+                                                    if (
+                                                        isinstance(
+                                                            node, ast.FunctionDef
+                                                        )
+                                                        and node.name == method_name
+                                                    ):
+                                                        result["file_path"] = (
+                                                            file_path_abs
+                                                        )
+                                                        # Keep the qualified_name as "self.attr.method"
+                                                        result["found"] = True
+
+                                                        # Add function calls from this method
+                                                        if (
+                                                            f"{file_path_abs}:{attr_type}.{method_name}"
+                                                            not in self.visited_functions
+                                                        ):
+                                                            self.visited_functions.add(
+                                                                f"{file_path_abs}:{attr_type}.{method_name}"
+                                                            )
+                                                            result["calls"] = (
+                                                                self._trace_function_calls(
+                                                                    node,
+                                                                    file_path_abs,
+                                                                    attr_type,
+                                                                )
+                                                            )
+                                                        break
+                                                if result["found"]:
+                                                    break
+                                        if result["found"]:
+                                            break
+                                    if result["found"]:
+                                        break
+                                if result["found"]:
+                                    break
+            else:
+                # If we can't determine the attribute type, search for any method with this name
+                logger.warning(
+                    f"Could not determine type of attribute {attr_name} in class {current_class}"
+                )
+
+                # First, check if the method is in the same file
+                # This is a common case for utility classes
+                tree = self._parse_file(current_file)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.ClassDef):
+                        for item in node.body:
+                            if (
+                                isinstance(item, ast.FunctionDef)
+                                and item.name == method_name
+                            ):
+                                result["file_path"] = current_file
+                                # Keep the qualified_name as "self.attr.method"
+                                result["found"] = True
+
+                                # Add function calls from this method
+                                if (
+                                    f"{current_file}:{node.name}.{method_name}"
+                                    not in self.visited_functions
+                                ):
+                                    self.visited_functions.add(
+                                        f"{current_file}:{node.name}.{method_name}"
+                                    )
+                                    result["calls"] = self._trace_function_calls(
+                                        item, current_file, node.name
+                                    )
+                                break
+                        if result["found"]:
+                            break
+
+                # If not found in the current file, search in all files
+                if not result["found"]:
+                    for search_path in self.search_paths:
+                        for root, _, files in os.walk(search_path):
+                            for file in files:
+                                if file.endswith(".py"):
+                                    file_path = os.path.join(root, file)
+                                    file_path_abs = os.path.abspath(file_path)
+
+                                    # Skip already visited files
+                                    if file_path_abs in self.visited_files:
+                                        continue
+
+                                    self.visited_files.add(file_path_abs)
+
+                                    # Parse the file
+                                    tree = self._parse_file(file_path_abs)
+                                    if not tree:
+                                        continue
+
+                                    # Look for any class with the method
+                                    for node in ast.walk(tree):
+                                        if isinstance(node, ast.ClassDef):
+                                            for item in node.body:
+                                                if (
+                                                    isinstance(item, ast.FunctionDef)
+                                                    and item.name == method_name
+                                                ):
+                                                    result["file_path"] = file_path_abs
+                                                    # Keep the qualified_name as "self.attr.method"
+                                                    result["found"] = True
+
+                                                    # Add function calls from this method
+                                                    if (
+                                                        f"{file_path_abs}:{node.name}.{method_name}"
+                                                        not in self.visited_functions
+                                                    ):
+                                                        self.visited_functions.add(
+                                                            f"{file_path_abs}:{node.name}.{method_name}"
+                                                        )
+                                                        result["calls"] = (
+                                                            self._trace_function_calls(
+                                                                item,
+                                                                file_path_abs,
+                                                                node.name,
+                                                            )
+                                                        )
+                                                    break
+                                            if result["found"]:
+                                                break
+                                    if result["found"]:
+                                        break
+                            if result["found"]:
+                                break
+                        if result["found"]:
+                            break
+
+        # Handle direct function calls
+        elif call_type == "direct":
+            # First, check if it's a function in the current file
+            tree = self._parse_file(current_file)
+            func_node = self._find_function_in_tree(tree, call_name)
+
+            if func_node:
+                result["file_path"] = current_file
+                result["qualified_name"] = call_name
+                result["found"] = True
+
+                # Add function calls from this function
+                if f"{current_file}:{call_name}" not in self.visited_functions:
+                    self.visited_functions.add(f"{current_file}:{call_name}")
+                    result["calls"] = self._trace_function_calls(
+                        func_node, current_file
+                    )
+            else:
+                # Check if it's an imported function
+                imports = self._find_imports(tree)
+                if call_name in imports:
+                    module_name = imports[call_name]
+                    module_path = self._find_module_path(module_name)
+
+                    if module_path:
+                        module_tree = self._parse_file(module_path)
+                        if module_tree:
+                            imported_func = self._find_function_in_tree(
+                                module_tree, call_name
+                            )
+                            if imported_func:
+                                result["file_path"] = module_path
+                                result["qualified_name"] = f"{module_name}.{call_name}"
+                                result["found"] = True
+
+                                # Add function calls from this function
+                                if (
+                                    f"{module_path}:{call_name}"
+                                    not in self.visited_functions
+                                ):
+                                    self.visited_functions.add(
+                                        f"{module_path}:{call_name}"
+                                    )
+                                    result["calls"] = self._trace_function_calls(
+                                        imported_func, module_path
+                                    )
+                else:
+                    # Search in all files in search paths
+                    for func_info in self._search_function_in_paths(call_name):
+                        result["file_path"] = func_info["file_path"]
+                        result["qualified_name"] = func_info["qualified_name"]
+                        result["found"] = True
+                        result["calls"] = func_info["calls"]
+                        break
+
+        # Handle attribute calls (module.func or obj.method)
+        elif call_type == "attribute" or call_type == "nested_attribute":
+            parts = call_name.split(".")
+            module_or_obj = parts[0]
+
+            # Check if it's an imported module
+            tree = self._parse_file(current_file)
+            imports = self._find_imports(tree)
+
+            if module_or_obj in imports:
+                module_name = imports[module_or_obj]
+                # If it's a module, find the module path
+                module_path = self._find_module_path(module_name)
+
+                if module_path:
+                    # If it's a module.function call
+                    if len(parts) == 2:
+                        func_name = parts[1]
+                        module_tree = self._parse_file(module_path)
+                        if module_tree:
+                            func_node = self._find_function_in_tree(
+                                module_tree, func_name
+                            )
+                            if func_node:
+                                result["file_path"] = module_path
+                                result["qualified_name"] = f"{module_name}.{func_name}"
+                                result["found"] = True
+
+                                # Add function calls from this function
+                                if (
+                                    f"{module_path}:{func_name}"
+                                    not in self.visited_functions
+                                ):
+                                    self.visited_functions.add(
+                                        f"{module_path}:{func_name}"
+                                    )
+                                    result["calls"] = self._trace_function_calls(
+                                        func_node, module_path
+                                    )
+                    # If it's a module.class.method call
+                    elif len(parts) == 3:
+                        class_name = parts[1]
+                        method_name = parts[2]
+                        module_tree = self._parse_file(module_path)
+                        if module_tree:
+                            class_node = self._find_class_in_tree(
+                                module_tree, class_name
+                            )
+                            if class_node:
+                                for node in class_node.body:
+                                    if (
+                                        isinstance(node, ast.FunctionDef)
+                                        and node.name == method_name
+                                    ):
+                                        result["file_path"] = module_path
+                                        result["qualified_name"] = (
+                                            f"{module_name}.{class_name}.{method_name}"
+                                        )
+                                        result["found"] = True
+
+                                        # Add function calls from this method
+                                        if (
+                                            f"{module_path}:{class_name}.{method_name}"
+                                            not in self.visited_functions
+                                        ):
+                                            self.visited_functions.add(
+                                                f"{module_path}:{class_name}.{method_name}"
+                                            )
+                                            result["calls"] = (
+                                                self._trace_function_calls(
+                                                    node, module_path, class_name
+                                                )
+                                            )
+                                        break
+            else:
+                # It might be a class instance method call
+                # This is complex and would require type inference
+                # For now, we'll just mark it as not found
+                pass
+
+        # Generate ID for this result
+        result["id"] = self._generate_id(result)
+        return result
+
+    def _search_function_in_paths(self, function_name: str) -> List[Dict[str, Any]]:
+        """
+        Search for a function in all files in the search paths.
+
+        Args:
+            function_name: Name of the function to search for
+
+        Returns:
+            List of dictionaries with information about matching functions
+        """
+        results = []
+
+        # Skip the original source file to avoid circular references
+        source_file_abs = os.path.abspath(self.source_file)
+
+        for search_path in self.search_paths:
+            for root, _, files in os.walk(search_path):
+                for file in files:
+                    if file.endswith(".py"):
+                        file_path = os.path.join(root, file)
+                        file_path_abs = os.path.abspath(file_path)
+
+                        # Skip the original source file
+                        if file_path_abs == source_file_abs:
+                            continue
+
+                        # Skip already visited files
+                        if file_path_abs in self.visited_files:
+                            continue
+
+                        self.visited_files.add(file_path_abs)
+
+                        # Parse the file
+                        tree = self._parse_file(file_path_abs)
+                        if not tree:
+                            continue
+
+                        # Look for standalone function
+                        func_node = self._find_function_in_tree(tree, function_name)
+                        if func_node:
+                            result = {
+                                "file_path": file_path_abs,
+                                "qualified_name": function_name,
+                                "calls": [],
+                            }
+
+                            # Add function calls from this function
+                            if (
+                                f"{file_path_abs}:{function_name}"
+                                not in self.visited_functions
+                            ):
+                                self.visited_functions.add(
+                                    f"{file_path_abs}:{function_name}"
+                                )
+                                result["calls"] = self._trace_function_calls(
+                                    func_node, file_path_abs
+                                )
+
+                            results.append(result)
+                            continue
+
+                        # Look for class methods
+                        for node in ast.walk(tree):
+                            if isinstance(node, ast.ClassDef):
+                                for item in node.body:
+                                    if (
+                                        isinstance(item, ast.FunctionDef)
+                                        and item.name == function_name
+                                    ):
+                                        result = {
+                                            "file_path": file_path_abs,
+                                            "qualified_name": f"{node.name}.{function_name}",
+                                            "calls": [],
+                                        }
+
+                                        # Add function calls from this method
+                                        if (
+                                            f"{file_path_abs}:{node.name}.{function_name}"
+                                            not in self.visited_functions
+                                        ):
+                                            self.visited_functions.add(
+                                                f"{file_path_abs}:{node.name}.{function_name}"
+                                            )
+                                            result["calls"] = (
+                                                self._trace_function_calls(
+                                                    item, file_path_abs, node.name
+                                                )
+                                            )
+
+                                        results.append(result)
+
+        return results
+
+    def _trace_function_calls(
+        self,
+        func_node: ast.FunctionDef,
+        file_path: str,
+        class_name: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Trace all function calls within a function.
+
+        Args:
+            func_node: Function definition node
+            file_path: Path to the file containing the function
+            class_name: Name of the class containing the function (if applicable)
+
+        Returns:
+            List of dictionaries with information about each function call
+        """
+        # Extract all function calls
+        calls = self._extract_function_calls(func_node)
+
+        # Resolve each call
+        resolved_calls = []
+        for call in calls:
+            resolved = self._resolve_function_call(call, file_path, class_name)
+            resolved_calls.append(resolved)
+
+        return resolved_calls
+
+    def _analyze_class_init(self, file_path: str, class_name: str) -> None:
+        """
+        Analyze a class's __init__ method to find attribute assignments.
+
+        Args:
+            file_path: Path to the file containing the class
+            class_name: Name of the class to analyze
+        """
+        tree = self._parse_file(file_path)
+        if not tree:
+            return
+
+        class_node = self._find_class_in_tree(tree, class_name)
+        if not class_node:
+            return
+
+        # Find __init__ method
+        init_method = None
+        for node in class_node.body:
+            if isinstance(node, ast.FunctionDef) and node.name == "__init__":
+                init_method = node
+                break
+
+        if not init_method:
+            return
+
+        # Analyze attribute assignments
+        class_attrs = {}
+        for stmt in init_method.body:
+            if isinstance(stmt, ast.Assign):
+                for target in stmt.targets:
                     if (
-                        source_class in source_classes
-                        and method_name in source_classes[source_class]
+                        isinstance(target, ast.Attribute)
+                        and isinstance(target.value, ast.Name)
+                        and target.value.id == "self"
                     ):
-                        return source_classes[source_class][method_name], source_file
+                        attr_name = target.attr
 
-        return None, None
+                        # Try to determine the type of the attribute
+                        if isinstance(stmt.value, ast.Call):
+                            if isinstance(stmt.value.func, ast.Name):
+                                # Case: self.attr = ClassName()
+                                class_attrs[attr_name] = stmt.value.func.id
+                            elif isinstance(stmt.value.func, ast.Attribute):
+                                # Case: self.attr = module.ClassName()
+                                if isinstance(stmt.value.func.value, ast.Name):
+                                    class_attrs[attr_name] = (
+                                        f"{stmt.value.func.value.id}.{stmt.value.func.attr}"
+                                    )
 
-    def find_file_for_class(self, class_name: str, starting_dir: str) -> Optional[str]:
-        """Search for a file that contains the specified class."""
-        for root, _, files in os.walk(starting_dir):
-            for file in files:
-                if file.endswith(".py"):
-                    file_path = os.path.join(root, file)
-                    _, classes, _, _, _, _ = self.parse_file(file_path)
+        # Store in the global map
+        self.class_attribute_map[f"{file_path}:{class_name}"] = class_attrs
 
-                    if class_name in classes:
-                        return file_path
+    def trace(self, entry_point: str) -> Dict[str, Any]:
+        """
+        Trace function calls starting from an entry point.
 
-        return None
+        Args:
+            entry_point: Name of the function or method to start tracing from
 
-    def find_file_for_function(
-        self, function_name: str, starting_dir: str
-    ) -> Optional[str]:
-        """Search for a file that contains the specified function."""
-        for root, _, files in os.walk(starting_dir):
-            for file in files:
-                if file.endswith(".py"):
-                    file_path = os.path.join(root, file)
-                    functions, classes, _, _, _, _ = self.parse_file(file_path)
+        Returns:
+            Dictionary with the call tree
+        """
+        logger.info(f"Starting trace from entry point: {entry_point}")
 
-                    # Check direct functions
-                    if function_name in functions:
-                        return file_path
+        # Reset visited sets
+        self.visited_files = set([self.source_file])
+        self.visited_functions = set()
+        self.class_attribute_map = {}
+        self.class_file_map = {}
 
-                    # Check if it's a method (format: ClassName.method_name)
-                    if "." in function_name:
-                        class_name, method_name = function_name.split(".", 1)
-                        if class_name in classes and method_name in classes[class_name]:
-                            return file_path
+        # Parse the source file
+        tree = self._parse_file(self.source_file)
+        if not tree:
+            logger.error(f"Failed to parse source file: {self.source_file}")
+            return {"error": f"Failed to parse source file: {self.source_file}"}
 
-                        # Check if it's an inherited method
-                        is_inherited, _, _ = self.is_inherited_method(
-                            file_path, class_name, method_name
-                        )
-                        if is_inherited:
-                            return file_path
+        # Find the entry point function
+        func_node = None
+        class_name = None
 
-        return None
+        # Check if entry_point is a method (Class.method)
+        if "." in entry_point:
+            class_name, method_name = entry_point.split(".", 1)
+            class_node = self._find_class_in_tree(tree, class_name)
 
-    def extract_calls_from_function(
-        self, function_def: ast.FunctionDef
-    ) -> Tuple[List[str], Dict[str, str]]:
-        """Extract all function calls from a function definition."""
-        visitor = FunctionCallVisitor()
-        visitor.visit(function_def)
-        return visitor.calls, visitor.call_sources
+            if class_node:
+                # Analyze class attributes
+                self._analyze_class_init(self.source_file, class_name)
 
-    def get_package_for_import(
-        self, import_name: str, imports: Dict[str, str], import_aliases: Dict[str, str]
-    ) -> str:
-        """Determine the package name for an imported object."""
-        if import_name in imports:
-            # Direct import
-            return imports[import_name].split(".")[0]
-        elif import_name in import_aliases:
-            # Aliased import
-            return import_aliases[import_name]
-        return ""
+                for node in class_node.body:
+                    if isinstance(node, ast.FunctionDef) and node.name == method_name:
+                        func_node = node
+                        break
+        else:
+            # Look for standalone function
+            func_node = self._find_function_in_tree(tree, entry_point)
 
-    def trace_calls(self, file_path: str, function_name: str, indent: int = 0) -> Dict:
-        """Recursively trace function calls starting from the specified function."""
-        # Create a unique key for this file+function pair
-        key = (file_path, function_name)
+        if not func_node:
+            logger.error(f"Entry point {entry_point} not found in {self.source_file}")
+            return {
+                "error": f"Entry point {entry_point} not found in {self.source_file}"
+            }
 
-        # Initialize node for JSON output
-        node = {
-            "name": function_name,
-            "qualified_name": self.get_qualified_name(file_path, function_name),
-            "file": file_path,
+        # Create the root node
+        root = {
+            "name": entry_point,
+            "type": "entry_point",
+            "file_path": self.source_file,
+            "qualified_name": entry_point,
             "calls": [],
         }
 
-        # Skip if we've already processed this function
-        if key in self.visited_calls:
-            node["status"] = "already_traced"
-            if not self.json_output:
-                qualified_name = self.get_qualified_name(file_path, function_name)
-                print(f"{' ' * indent}↳ {qualified_name} (already traced)")
-            return node
+        # Add the entry point to visited functions
+        qualified_name = f"{class_name}.{method_name}" if class_name else entry_point
+        self.visited_functions.add(f"{self.source_file}:{qualified_name}")
 
-        self.visited_calls.add(key)
-
-        # Get the qualified name
-        qualified_name = self.get_qualified_name(file_path, function_name)
-
-        # Check if it's a method and if it's inherited
-        is_inherited_method = False
-        inheritance_info = None
-        source_file = None
-        class_name = None
-
-        if "." in function_name:
-            class_name, method_name = function_name.split(".", 1)
-            is_inherited, source_class, source_file_path = self.is_inherited_method(
-                file_path, class_name, method_name
-            )
-
-            if is_inherited and source_class:
-                is_inherited_method = True
-                inheritance_info = source_class
-                source_file = source_file_path
-                node["inherited"] = True
-                node["inherited_from"] = source_class
-                node["source_file"] = source_file_path
-
-        # Find the function definition
-        function_def, func_source_file = self.find_function_in_file(
-            file_path, function_name
-        )
-        if func_source_file and func_source_file != file_path:
-            source_file = func_source_file
-            qualified_name = self.get_qualified_name(source_file, function_name)
-            node["source_file"] = func_source_file
-            node["qualified_name"] = qualified_name
-
-        if not function_def:
-            if is_inherited_method:
-                inherited_qualified = self.get_qualified_name(
-                    source_file or file_path, inheritance_info
-                )
-                node["status"] = "not_found"
-                node["inherited_qualified"] = inherited_qualified
-                if not self.json_output:
-                    print(
-                        f"{' ' * indent}↳ {qualified_name} (inherited from {inherited_qualified}, definition not found)"
-                    )
-            else:
-                node["status"] = "not_found"
-                if not self.json_output:
-                    print(f"{' ' * indent}↳ {qualified_name} (definition not found)")
-            return node
-
-        # Print function with inheritance information if applicable
-        if is_inherited_method:
-            inherited_qualified = self.get_qualified_name(
-                source_file or file_path, inheritance_info
-            )
-            node["inherited_qualified"] = inherited_qualified
-            if not self.json_output:
-                print(
-                    f"{' ' * indent}→ {qualified_name} (inherited from {inherited_qualified})"
-                )
-        else:
-            if not self.json_output:
-                print(f"{' ' * indent}→ {qualified_name}")
-
-        # Extract all function calls within this function
-        calls, call_sources = self.extract_calls_from_function(function_def)
-
-        # The file where the function is actually defined
-        actual_file = source_file or file_path
-
-        # Get imports for this file
-        _, classes, _, imports, import_aliases, _ = self.parse_file(actual_file)
-
-        for call in calls:
-            call_node = {"name": call}
-
-            # Check if this is a built-in function
-            if call in self.builtin_functions:
-                # Check if it's also from an imported library
-                source_obj = call_sources.get(call)
-                if source_obj and (
-                    source_obj in imports or source_obj in import_aliases
-                ):
-                    # It's both built-in and imported, show the import source
-                    package_name = ""
-                    if source_obj in import_aliases:
-                        package_name = import_aliases[source_obj]
-                    elif source_obj in imports:
-                        package_name = imports[source_obj].split(".")[0]
-
-                    if package_name:
-                        call_node["type"] = "imported"
-                        call_node["package"] = package_name
-                        node["calls"].append(call_node)
-                        if not self.json_output:
-                            print(
-                                f"{' ' * (indent + 2)}↳ {call} (imported from {package_name})"
-                            )
-                        continue
-
-                # Otherwise, just show as built-in
-                call_node["type"] = "built-in"
-                node["calls"].append(call_node)
-                if not self.json_output:
-                    print(f"{' ' * (indent + 2)}↳ {call} (built-in)")
-                continue
-
-            # For method calls within a class, we need to qualify them
-            if "." in function_name and not "." in call:
-                # This is a method call within the same class
-                current_class_name = function_name.split(".")[0]
-                qualified_call = f"{current_class_name}.{call}"
-
-                # Check if it exists as a method
-                call_def, _ = self.find_function_in_file(actual_file, qualified_call)
-                if call_def:
-                    child_node = self.trace_calls(
-                        actual_file, qualified_call, indent + 2
-                    )
-                    node["calls"].append(child_node)
-                    continue
-
-            # Check if the call exists in the current file
-            call_def, call_source = self.find_function_in_file(actual_file, call)
-            if call_def:
-                # If it's a method but not qualified with class name, add the class name
-                if (
-                    not "." in call and call in classes.get(class_name, {})
-                    if class_name
-                    else False
-                ):
-                    qualified_call = f"{class_name}.{call}"
-                    child_node = self.trace_calls(
-                        call_source or actual_file, qualified_call, indent + 2
-                    )
-                    node["calls"].append(child_node)
-                else:
-                    child_node = self.trace_calls(
-                        call_source or actual_file, call, indent + 2
-                    )
-                    node["calls"].append(child_node)
-            else:
-                # Check if this is a call on an imported object
-                source_obj = call_sources.get(call)
-                library_info = ""
-                package_name = ""
-
-                # Check if the source object is a built-in module
-                if source_obj in self.standard_library_modules:
-                    # Check if the method is a built-in function
-                    try:
-                        module = __import__(source_obj)
-                        if hasattr(module, call) and callable(getattr(module, call)):
-                            call_node["type"] = "imported"
-                            call_node["package"] = source_obj
-                            node["calls"].append(call_node)
-                            if not self.json_output:
-                                print(
-                                    f"{' ' * (indent + 2)}↳ {source_obj}.{call} (imported from {source_obj})"
-                                )
-                            continue
-                    except ImportError:
-                        pass
-
-                # Check if the source object is from an imported module
-                if source_obj:
-                    # First check if it's directly an imported module
-                    if source_obj in import_aliases:
-                        package_name = import_aliases[source_obj]
-                        library_info = f" (imported from {package_name})"
-                        call_node["type"] = "imported"
-                        call_node["package"] = package_name
-                    elif source_obj in imports:
-                        package_name = imports[source_obj].split(".")[0]
-                        library_info = f" (imported from {package_name})"
-                        call_node["type"] = "imported"
-                        call_node["package"] = package_name
-                    else:
-                        # Check if it's a variable that was assigned from an imported module
-                        # This is a simplified approach - in a real solution we would need to track variable assignments
-                        for var_name, var_source in call_sources.items():
-                            if var_name == source_obj and var_source in imports:
-                                package_name = imports[var_source].split(".")[0]
-                                library_info = f" (imported from {package_name})"
-                                call_node["type"] = "imported"
-                                call_node["package"] = package_name
-                                break
-                            elif (
-                                var_name == source_obj and var_source in import_aliases
-                            ):
-                                package_name = import_aliases[var_source]
-                                library_info = f" (imported from {package_name})"
-                                call_node["type"] = "imported"
-                                call_node["package"] = package_name
-                                break
-
-                    # If it's a standard library module
-                    if not package_name and source_obj in self.standard_library_modules:
-                        package_name = source_obj
-                        library_info = f" (imported from {package_name})"
-                        call_node["type"] = "imported"
-                        call_node["package"] = package_name
-
-                # Search for the call in other files in the same directory
-                call_file = self.find_file_for_function(
-                    call, os.path.dirname(actual_file)
-                )
-
-                if call_file:
-                    # Check if this is a method in another class
-                    for cls_name, methods in classes.items():
-                        if call in methods:
-                            qualified_call = f"{cls_name}.{call}"
-                            qualified_name = self.get_qualified_name(
-                                call_file, qualified_call
-                            )
-                            call_node["qualified_name"] = qualified_name
-                            call_node["file"] = call_file
-                            call_node["type"] = "external"
-                            if library_info:
-                                call_node["library_info"] = library_info
-                            if not self.json_output:
-                                print(
-                                    f"{' ' * (indent + 2)}↳ {qualified_name} (in {os.path.basename(call_file)}){library_info}"
-                                )
-                            child_node = self.trace_calls(
-                                call_file, qualified_call, indent + 4
-                            )
-                            node["calls"].append(child_node)
-                            break
-                    else:
-                        qualified_call = self.get_qualified_name(call_file, call)
-                        call_node["qualified_name"] = qualified_call
-                        call_node["file"] = call_file
-                        call_node["type"] = "external"
-                        if library_info:
-                            call_node["library_info"] = library_info
-                        if not self.json_output:
-                            print(
-                                f"{' ' * (indent + 2)}↳ {qualified_call} (in {os.path.basename(call_file)}){library_info}"
-                            )
-                        child_node = self.trace_calls(call_file, call, indent + 4)
-                        node["calls"].append(child_node)
-                else:
-                    # Check if this is a method call on an object
-                    if source_obj:
-                        # Try to determine the class of the object
-                        obj_class = None
-
-                        # Check if it's a method call on self
-                        if source_obj == "self" and class_name:
-                            obj_class = class_name
-
-                        # Check for methods on imported objects
-                        if not library_info and source_obj in call_sources:
-                            # Check if the object itself was created from an imported module
-                            obj_source = call_sources.get(source_obj)
-                            if obj_source in imports:
-                                package_name = imports[obj_source].split(".")[0]
-                                library_info = f" (imported from {package_name})"
-                                call_node["type"] = "imported"
-                                call_node["package"] = package_name
-                            elif obj_source in import_aliases:
-                                package_name = import_aliases[obj_source]
-                                library_info = f" (imported from {package_name})"
-                                call_node["type"] = "imported"
-                                call_node["package"] = package_name
-
-                        # Format the call with package name if available
-                        if package_name and package_name != source_obj:
-                            if obj_class:
-                                call_node["type"] = "external"
-                                call_node["status"] = "unresolved"
-                                call_node["source_obj"] = source_obj
-                                call_node["obj_class"] = obj_class
-                                call_node["package"] = package_name
-                                if not self.json_output:
-                                    print(
-                                        f"{' ' * (indent + 2)}↳ {package_name}.{obj_class}.{call} (external/unresolved){library_info}"
-                                    )
-                            else:
-                                # Fix: Don't duplicate the function name
-                                call_node["type"] = "external"
-                                call_node["status"] = "unresolved"
-                                call_node["source_obj"] = source_obj
-                                call_node["package"] = package_name
-                                if not self.json_output:
-                                    print(
-                                        f"{' ' * (indent + 2)}↳ {package_name}.{source_obj}.{call} (external/unresolved)"
-                                    )
-                        else:
-                            if obj_class:
-                                call_node["type"] = "external"
-                                call_node["status"] = "unresolved"
-                                call_node["obj_class"] = obj_class
-                                if library_info:
-                                    call_node["library_info"] = library_info
-                                if not self.json_output:
-                                    print(
-                                        f"{' ' * (indent + 2)}↳ {obj_class}.{call} (external/unresolved){library_info}"
-                                    )
-                            else:
-                                call_node["type"] = "external"
-                                call_node["status"] = "unresolved"
-                                call_node["source_obj"] = source_obj
-                                if library_info:
-                                    call_node["library_info"] = library_info
-                                if not self.json_output:
-                                    print(
-                                        f"{' ' * (indent + 2)}↳ {source_obj}.{call} (external/unresolved){library_info}"
-                                    )
-
-                    else:
-                        # Try to find if this is a direct import
-                        if call in imports:
-                            import_path = imports[call]
-                            # Fix: Don't include the function name twice
-                            call_node["type"] = "external"
-                            call_node["status"] = "unresolved"
-                            call_node["import_path"] = import_path
-                            if not self.json_output:
-                                print(
-                                    f"{' ' * (indent + 2)}↳ {import_path} (external/unresolved)"
-                                )
-                        else:
-                            call_node["type"] = "external"
-                            call_node["status"] = "unresolved"
-                            if library_info:
-                                call_node["library_info"] = library_info
-                            if not self.json_output:
-                                print(
-                                    f"{' ' * (indent + 2)}↳ {call} (external/unresolved){library_info}"
-                                )
-
-                    node["calls"].append(call_node)
-
-        return node
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description="Trace function calls in Python source files"
-    )
-    parser.add_argument("source_file", help="Path to the Python source file")
-    parser.add_argument(
-        "function_name",
-        help="Name of the function to trace (use ClassName.method_name for methods)",
-    )
-    parser.add_argument("--json", action="store_true", help="Output results as JSON")
-
-    args = parser.parse_args()
-
-    source_file = os.path.abspath(args.source_file)
-    function_name = args.function_name
-
-    # Check if the source file exists
-    if not os.path.isfile(source_file):
-        print(f"Error: Source file '{source_file}' not found")
-        sys.exit(1)
-
-    # Initialize call tracer
-    tracer = CallTracer(os.path.dirname(source_file), json_output=args.json)
-
-    if not args.json:
-        print(f"Tracing calls from '{function_name}' in {source_file}...")
-        print("-" * 60)
-
-    # Start tracing
-    call_tree = tracer.trace_calls(source_file, function_name)
-
-    if not args.json:
-        print("-" * 60)
-        print(
-            f"Call tracing complete. Traced {len(tracer.visited_calls)} unique function calls."
+        # Trace function calls from the entry point
+        root["calls"] = self._trace_function_calls(
+            func_node, self.source_file, class_name
         )
 
-        # Print all imported libraries found during tracing
-        if tracer.imported_libraries:
-            print("\nImported libraries found during tracing:")
-            for lib in sorted(tracer.imported_libraries):
-                print(f"- {lib}")
-    else:
-        # Create the final JSON output
-        result = {
-            "source_file": source_file,
-            "function_name": function_name,
-            "unique_calls_count": len(tracer.visited_calls),
-            "imported_libraries": sorted(list(tracer.imported_libraries)),
-            "call_tree": call_tree,
-        }
-        print(json.dumps(result, indent=2))
+        # Generate ID for the root
+        root["id"] = self._generate_id(root)
+
+        logger.info(f"Trace completed for entry point: {entry_point}")
+        return root
+
+    def display_trace(self, data: Dict[str, Any]) -> None:
+        """
+        Display the call tree in a human-readable format.
+
+        Args:
+            trace_result: Dictionary with the call tree
+        """
+        renderer_utils = RendererUtils(configuration=self._config)
+        renderer = RendererFactory(configuration=self._config).get_renderer(
+            module_name=renderer_utils.desired_renderer_module_name,
+            class_name=renderer_utils.desired_renderer_class_name,
+            data=data,
+        )
+        renderer.render()
 
 
 if __name__ == "__main__":
-    """
-    python python_function_call_tracer_v12.py path/to/source.py function_name|ClassName.method_name
-    # For JSON output:
-    python python_function_call_tracer_v12.py path/to/source.py function_name|ClassName.method_name --json
-    """
-    main()
+    # Example usage
+    if len(sys.argv) < 4:
+        print(
+            "Usage: python call_tracer.py <source_file> <entry_point> <search_path1> [<search_path2> ...]"
+        )
+        sys.exit(1)
+
+    configuration = Configuration("call_tracer/config.yaml")
+
+    source_file_arg = sys.argv[1]
+    entry_point_arg = sys.argv[2]
+    search_paths_arg = sys.argv[3:]
+
+    tracer = CallTracer(configuration=configuration, source_file=source_file_arg, search_paths=search_paths_arg)
+    trace_data: Dict[str, Any] = tracer.trace(entry_point_arg)
+    tracer.display_trace(data=trace_data)
