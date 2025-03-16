@@ -13,6 +13,9 @@ import boto3
 from common.configuration import Configuration
 from common.utilities import JsonUtils, LoggingUtils, ModelUtils, GenericUtils
 
+EXCEPTION_LEVEL_WARN = 10
+EXCEPTION_LEVEL_ERROR = 20
+
 MAX_LLM_RETRIES_EXPECTED_MIN = 0
 MAX_LLM_RETRIES_EXPECTED_MAX = 10
 MAX_LLM_RETRIES_DEFAULT = 3
@@ -25,7 +28,7 @@ TEMPERATURE_EXPECTED_MIN = 0.0
 TEMPERATURE_EXPECTED_MAX = 1.0
 TEMPERATURE_DEFAULT = 0.0
 
-
+# TODO clean up ModelError naming and inheritance
 class ModelError(Exception):
     # pylint: disable=line-too-long
     """Base exception class for model-related errors.
@@ -34,10 +37,14 @@ class ModelError(Exception):
     """
     # pylint: enable=line-too-long
 
-    def __init__(self, message: str):
-        self.message = message
-        super().__init__(self.message)
+    def __init__(self, message: str, level: int):
+        self._level: int = level
+        self._message: str = message
+        super().__init__(self._message)
 
+    @property
+    def level(self):
+        return self._level
 
 class ModelMaxTokenLimitException(ModelError):
     # pylint: disable=line-too-long
@@ -53,12 +60,14 @@ class ModelMaxTokenLimitException(ModelError):
         self._max_token_limit = max_token_limit
         self._prompt_tokens = prompt_tokens
         self._completion_tokens = completion_tokens
-        self.message = (
+        self._message = (
             f"Max tokens limit of {max_token_limit} exceeded. "
             f"Number of prompt tokens: {prompt_tokens}, completion tokens: {completion_tokens}"
         )
-        super().__init__(self.message)
+        super().__init__(message=self._message, level=EXCEPTION_LEVEL_WARN)
 
+    def __str__(self):
+        return self._message
 
 class ModelObject:
     # pylint: disable=line-too-long
@@ -98,8 +107,9 @@ class ModelObject:
         self._json_utils = JsonUtils()
         self._stopped_reason = None
         self._stop_valid_reasons = None
+        self._stop_max_tokens_reasons = None
 
-    def generate_text(self, prompt: str):
+    def generate_text(self, prompt: str) -> str:
         # pylint: disable=line-too-long
         """Generate text based on the provided prompt.
 
@@ -360,6 +370,44 @@ class ModelObject:
         return self._temperature
 
     @property
+    def stop_max_tokens_reasons(self) -> int:
+        # pylint: disable=line-too-long
+        """Get the maximum number of stop reasons allowed for the model.
+
+        Returns:
+            The maximum number of stop reasons
+        """
+        # pylint: enable=line-too-long
+        if self._stop_max_tokens_reasons is None:
+            try:
+                self._stop_max_tokens_reasons = self._config.list_value(
+                    "ai_model.model_stop.reasons.max_tokens",
+                    [],
+                )
+            except TypeError as te:
+                raise ModelError(
+                    "Type for model stop max tokens reasons is invalid. Value must be a valid list."
+                ) from te
+            except ValueError as ve:
+                raise ModelError(
+                    "Value for model stop max tokens reasons is invalid. Value must be a valid list."
+                ) from ve
+
+        return self._stop_max_tokens_reasons
+
+    @stop_max_tokens_reasons.setter
+    def stop_max_tokens_reasons(self, stop_max_reasons: int) -> None:
+        # pylint: disable=line-too-long
+        """Set the maximum number of stop reasons allowed for the model.
+
+        Args:
+            stop_max_reasons: The maximum number of stop reasons
+        """
+        # pylint: enable=line-too-long
+        self._stop_max_tokens_reasons = stop_max_reasons
+
+
+    @property
     def stop_valid_reasons(self) -> List[str]:
         # pylint: disable=line-too-long
         """Get the list of valid stop reasons for the model.
@@ -494,7 +542,7 @@ class ModelFactory:
         """
         # pylint: enable=line-too-long
         model_class = self._generic_utils.load_class(
-            module_name="models." + module_name,
+            module_name="source_analyzer.models." + module_name,
             class_name=class_name,
             package_name="models",
         )

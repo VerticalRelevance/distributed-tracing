@@ -5,6 +5,10 @@ This module provides functionality to parse Python source files, build an AST-ba
 and leverage AI-powered analysis for trace point recommendations.
 """
 # pylint: enable=line-too-long
+
+# TODO separate main from SourceCodeTracer class
+# TODO add .__name__ to __class__ in logging statements
+
 import sys
 import os
 import time
@@ -20,13 +24,15 @@ from common.utilities import (
     GenericUtils,
     FormatterUtils,
 )
-from models.model import (
+from source_analyzer.models import model
+from source_analyzer.models.model import (
+    EXCEPTION_LEVEL_ERROR,
     ModelError,
     ModelFactory,
     ModelObject,
     ModelMaxTokenLimitException,
 )
-from formatters.formatter import (
+from source_analyzer.formatters.formatter import (
     FormatterError,
     FormatterObject,
     FormatterFactory,
@@ -361,93 +367,117 @@ class SourceCodeAnalyzer:
         )
 
         self._total_tokens = {"completion": 0, "prompt": 0}
-        break_llm_loop = False
+        # break_llm_loop = False
         for attempt in range(self._model.max_llm_retries):
             self._logging_utils.debug_info(
                 __class__,
                 f"Get completion attempt: (attempt {attempt + 1}/{self._model.max_llm_retries})",  # pylint: disable=line-too-long
             )
+
             try:
                 self._model.generate_text(prompt=prompt)
-
-                self._logging_utils.info(__class__, "LLM response received")
-                self._logging_utils.debug(
-                    __class__,
-                    f"LLM Prompt Tokens: {self._model.prompt_tokens}, "
-                    f"LLM Completion Tokens: {self._model.completion_tokens}, "
-                    f"Stopped Reason: {self._model.stopped_reason}",
-                )
-                if self._model.stopped_reason not in self._model.stop_valid_reasons:
-                    self._logging_utils.warning(
-                        __class__,
-                        f"Unsuccessful stop reason '{self._model.stopped_reason}'",
-                    )
-                    if attempt < self._model.max_llm_retries - 1:
-                        self._logging_utils.debug_info(
-                            __class__,
-                            f"Retrying in {self._model.retry_delay} seconds...",
-                        )
-                        time.sleep(self._model.retry_delay)
-                    else:
-                        self._logging_utils.error(
-                            __class__, "Max retries reached. Giving up."
-                        )
-                        raise ModelMaxTokenLimitException(
-                            max_token_limit=self._model.max_completion_tokens,
-                            prompt_tokens=self._model.prompt_tokens,
-                            completion_tokens=self._model.completion_tokens,
-                        )
-                else:
-                    self._logging_utils.debug(
-                        __class__, "setting break_llm_loop to True"
-                    )
-                    break_llm_loop = True
-            except ModelMaxTokenLimitException as mmtle:
-                raise Exception from mmtle  # pylint: disable=broad-exception-raised)
-            except ModelError as me:  # pylint: disable=broad-exception-raised
+                break
+            except ModelError as me:
                 self._logging_utils.error(
                     __class__,
                     f"Cannot generate text from model '{self._model.model_name}'."
                     f"Reason: {me}",
                 )
-                sys.exit(1)
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                self._logging_utils.error(__class__, f"LLM call failed: {str(e)}")
-                if attempt < self._model.max_llm_retries - 1:
-                    self._logging_utils.info(
-                        __class__,
-                        f"Retrying again in {self._model.retry_delay} seconds...",
-                    )
-                    time.sleep(self._model.retry_delay)
-                else:
-                    self._logging_utils.error(
-                        __class__, "Max retries reached again. Giving up."
-                    )
-                    self._logging_utils.debug(
-                        __class__, f"end get_completion_with_retry with exception: {e}"
-                    )
-                    raise e
+                if me.level == EXCEPTION_LEVEL_ERROR:
+                    raise Exception from me
+                # if self._model.stopped_reason not in [self._model.stop_valid_reasons, self._model.stop_max_tokens_reasons]:
+                #     raise Exception from me  # pylint: disable=broad-exception-raised
+                # if attempt >= self._model.max_llm_retries - 1:
+                #     raise Exception from me  # pylint: disable=broad-exception-raised
 
-            # Update token counts
-            self._total_tokens["prompt"] += self._model.prompt_tokens
-            self._total_tokens["completion"] += self._model.completion_tokens
-
-            tokens_output = pformat(
-                {
-                    "total_prompt_tokens": self._total_tokens["prompt"],
-                    "total_completion_tokens": self._total_tokens["completion"],
-                }
-            )
-            if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
-                self._logging_utils.debug(__class__, "total tokens:")
-                self._logging_utils.debug(__class__, tokens_output)
-
-            if break_llm_loop:
-                self._logging_utils.debug(__class__, "break_llm_loop is True")
-                self._logging_utils.debug(
-                    __class__, f"total tokens after loop: {self._total_tokens}"
+            if attempt < self._model.max_llm_retries - 1:
+                self._logging_utils.debug_info(
+                    __class__,
+                    f"Retrying in {self._model.retry_delay} seconds...",
                 )
-                break
+                time.sleep(self._model.retry_delay)
+            # else:
+            #     self._logging_utils.debug(
+            #         __class__, "setting break_llm_loop to True"
+            #     )
+            #     break_llm_loop = True
+
+        self._logging_utils.info(__class__, "LLM response received")
+        self._logging_utils.debug(
+            __class__,
+            f"LLM Prompt Tokens: {self._model.prompt_tokens}, "
+            f"LLM Completion Tokens: {self._model.completion_tokens}, "
+            f"Stopped Reason: {self._model.stopped_reason}",
+        )
+
+        # CLEANUP
+        # self._logging_utils.debug(__class__, "break_llm_loop is True")
+        self._logging_utils.debug(
+            __class__, f"total tokens after loop: {self._total_tokens}"
+        )
+
+        if self._model.stopped_reason in self._model.stop_max_tokens_reasons:
+            raise ModelMaxTokenLimitException(
+                max_token_limit=self._model.max_completion_tokens,
+                prompt_tokens=self._model.prompt_tokens,
+                completion_tokens=self._model.completion_tokens,
+            )
+
+        if self._model.stopped_reason not in self._model.stop_valid_reasons:
+            self._logging_utils.warning(
+                __class__,
+                f"Invalid stop reason '{self._model.stopped_reason}'",
+            )
+            raise ModelError(
+                f"Invalid stop reason '{self._model.stopped_reason}'",
+                model.EXCEPTION_LEVEL_ERROR,
+            )
+
+            # except ModelMaxTokenLimitException as mmtle:
+            #     raise Exception from mmtle  # pylint: disable=broad-exception-raised)
+            # except ModelError as me:  # pylint: disable=broad-exception-raised
+            #     self._logging_utils.error(
+            #         __class__,
+            #         f"Cannot generate text from model '{self._model.model_name}'."
+            #         f"Reason: {me}",
+            #     )
+            #     sys.exit(1)
+            # except Exception as e:  # pylint: disable=broad-exception-caught
+            #     self._logging_utils.error(__class__, f"LLM call failed: {str(e)}")
+            #     if attempt < self._model.max_llm_retries - 1:
+            #         self._logging_utils.info(
+            #             __class__,
+            #             f"Retrying again in {self._model.retry_delay} seconds...",
+            #         )
+            #         time.sleep(self._model.retry_delay)
+            #     else:
+            #         self._logging_utils.error(
+            #             __class__, "Max retries reached again. Giving up."
+            #         )
+            #         self._logging_utils.debug(
+            #             __class__, f"end get_completion_with_retry with exception: {e}"
+            #         )
+            #         # CLEANUP
+            #         # raise e
+            #         raise ModelMaxTokenLimitException(
+            #             max_token_limit=self._model.max_completion_tokens,
+            #             prompt_tokens=self._model.prompt_tokens,
+            #             completion_tokens=self._model.completion_tokens,
+            #         ) from e
+
+        # Update token counts
+        self._total_tokens["prompt"] += self._model.prompt_tokens
+        self._total_tokens["completion"] += self._model.completion_tokens
+
+        tokens_output = pformat(
+            {
+                "total_prompt_tokens": self._total_tokens["prompt"],
+                "total_completion_tokens": self._total_tokens["completion"],
+            }
+        )
+        if self._logging_utils.is_stderr_logger_level(__class__, logging.DEBUG):
+            self._logging_utils.debug(__class__, "total tokens:")
+            self._logging_utils.debug(__class__, tokens_output)
 
         self._logging_utils.trace(__class__, "end get_completion_with_retry")
 
@@ -542,7 +572,9 @@ Source Code:
         self._logging_utils.debug(__class__, "end generate_formatted_output")
         return formatted_output
 
-    def process_file(self, input_source_path: str):
+    def process_file(
+        self, input_source_path: str, display_results: bool = False
+    ) -> str | None:
         """
         Process a single Python source file.
 
@@ -554,7 +586,8 @@ Source Code:
         """
         self._logging_utils.trace(__class__, "start process_file")
         self._logging_utils.debug(__class__, f"input_source_path: {input_source_path}")
-        self._logging_utils.error(__class__, "this is sample error output")
+
+        # Load the source file
         try:
             full_code = self._path_utils.get_ascii_file_contents(
                 source_path=input_source_path
@@ -564,65 +597,57 @@ Source Code:
                 self._logging_utils.warning(__class__, "Source file is empty")
                 return
 
-            self._logging_utils.success(
-                __class__, f"\n# Source File: {Path(input_source_path).name}"
-            )
-            self._logging_utils.success(
-                __class__, f"Full file path: '{input_source_path}'"
-            )
-
-            source_tree = self.build_source_tree(source_code=full_code)
-            self._logging_utils.debug(
-                __class__,
-                f"source_tree class: {type(source_tree).__name__} name: {type(source_tree).__name__}",  # pylint: disable=line-too-long
-            )
-            if source_tree:
-                self._logging_utils.debug(
-                    __class__, f"source_tree: {type(source_tree).__name__}"
-                )
-                self._logging_utils.success(__class__, "")
-                self._logging_utils.success(__class__, "## Source Code Tree Structure")
-                self._logging_utils.success(__class__, "```")
-                self._logging_utils.success(
-                    __class__, self.tree_dumps(node=source_tree)
-                )
-                self._logging_utils.success(__class__, "```")
-
+            results = []
+            results.append(f"# Source File: {Path(input_source_path).name}")
+            results.append(f"Full file path: '{input_source_path}'")
+            results.append("")
+            # self._logging_utils.success(
+            #     __class__, f"\n# Source File: {Path(input_source_path).name}"
+            # )
+            # self._logging_utils.success(
+            #     __class__, f"Full file path: '{input_source_path}'"
+            # )
         except Exception as e:  # pylint: disable=broad-exception-caught
-            self._logging_utils.error(
-                __class__, f"Failed to build source tree: {str(e)}", exc_info=True
-            )
-            return
+            e_msg = f"Failed to load source file '{input_source_path}': {str(e)}"
+            self._logging_utils.error(__class__, e_msg, exc_info=True)
 
-        if not source_tree:
-            return
+            self._logging_utils.trace(__class__, "end process_file (file error)")
+            return f"# {e_msg}" if display_results else e_msg
 
+        # Analyze the code
         try:
-            # Analyze the code
             self.analyze_source_code_for_decision_points(full_code)
         except Exception as e:  # pylint: disable=broad-exception-caught
-            self._logging_utils.error(
-                __class__, f"Failed to analyze source code: {str(e)}", exc_info=True
-            )
-            self._logging_utils.trace(__class__, "end process_file (error)")
-            return
+            e_msg = f"Failed to analyze source code: {str(e)}"
+            self._logging_utils.error(__class__, e_msg, exc_info=True)
+            self._logging_utils.trace(__class__, "end process_file (analyzer error)")
+            return f"# {e_msg}" if display_results else e_msg
+
         self._logging_utils.info(__class__, "Analysis complete")
 
+        # Format the output
         try:
-            # Format the output
             formatted_output = self.generate_formatted_output(model=self._model)
         except Exception as e:  # pylint: disable=broad-exception-caught
             self._logging_utils.error(
                 __class__, f"Failed to format output: {str(e)}", exc_info=True
             )
-            self._logging_utils.trace(__class__, "end process_file (error)")
+            self._logging_utils.trace(__class__, "end process_file (formatter error)")
             raise FormatterError("Failed to format output") from e  # type: ignore
 
-        # Write the formatted output to the console
-        self._logging_utils.success(__class__, formatted_output)
+        self._logging_utils.debug(__class__, formatted_output)
+        results.append(formatted_output)
 
-        self._logging_utils.trace(__class__, "end process_file")
-        return
+        results_str = "\n".join(results)
+
+        # Write the formatted output to the console or return them to the caller
+        if display_results:
+            self._logging_utils.success(__class__, results_str)
+            self._logging_utils.trace(__class__, "end process_file display results")
+            return
+
+        self._logging_utils.trace(__class__, "end process_file return results")
+        return results_str
 
     def process_directory(self, source_path: str) -> None:
         """
@@ -665,7 +690,7 @@ Source Code:
                     self._logging_utils.debug(__class__, "Path(file)")
                     self._logging_utils.debug(__class__, Path(file))
                     source_path = f"{root}/{file}"
-                    self.process_file(source_path)
+                    self.process_file(source_path, display_results=True)
 
         self._logging_utils.trace(__class__, "end process_directory")
 
@@ -772,10 +797,18 @@ Log Levels:
     if path_utils.is_file(source_path):
         logging_utils.debug(__name__, "Path(source_path)")
         logging_utils.debug(__name__, Path(source_path))
-        analyzer.process_file(source_path)
+        try:
+            analyzer.process_file(source_path, display_results=True)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logging_utils.error(__name__, f"Failed to process file: {str(e)}")
+            logging_utils.trace(__name__, "end __main__ (file error)")
     else:
         if path_utils.is_dir(source_path):
-            analyzer.process_directory(source_path)
+            try:
+                analyzer.process_directory(source_path)
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logging_utils.error(__name__, f"Failed to process file: {str(e)}")
+                logging_utils.trace(__name__, "end __main__ (file error)")
         else:
             logging_utils.error(
                 __name__,
