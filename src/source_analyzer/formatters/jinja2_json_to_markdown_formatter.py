@@ -10,7 +10,7 @@ rendering JSON data to Markdown.
 
 from typing import Dict
 from jinja2 import Environment
-from formatters.formatter import FormatterObject
+from source_analyzer.formatters.formatter import FormatterObject
 from common.configuration import Configuration
 
 

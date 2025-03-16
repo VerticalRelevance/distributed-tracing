@@ -7,7 +7,7 @@ This module implements a singleton pattern for the formatter and provides method
 # pylint: enable=line-too-long
 
 from typing import Dict
-from formatters.formatter import FormatterObject
+from source_analyzer.formatters.formatter import FormatterObject
 from common.configuration import Configuration
 
 
