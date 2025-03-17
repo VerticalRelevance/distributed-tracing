@@ -27,7 +27,6 @@ from source_analyzer.models.model import (
     ModelMaxTokenLimitException,
 )
 from source_analyzer.formatters.formatter import (
-    FormatterError,
     FormatterObject,
     FormatterFactory,
 )
@@ -115,8 +114,12 @@ class SourceCodeAnalyzer:
                     f"Cannot generate text from model '{self._model.model_name}'."
                     f"Reason: {me}",
                 )
+                self._logging_utils.debug(__class__.__name__, f"ModelException level: {me.level}")
                 if me.level == EXCEPTION_LEVEL_ERROR:
-                    raise Exception from me # pylint: disable=broad-exception-raised)
+                    self._logging_utils.error(
+                        __class__.__name__, "me level is EXCEPTION_LEVEL_ERROR"
+                    )
+                    raise me # pylint: disable=broad-exception-raised)
 
             if attempt < self._model.max_llm_tries - 1:
                 self._logging_utils.debug_info(
@@ -318,7 +321,8 @@ Source Code:
                 __class__, f"Failed to format output: {str(e)}", exc_info=True
             )
             self._logging_utils.trace(__class__.__name__, "end process_file (formatter error)")
-            raise FormatterError("Failed to format output") from e  # type: ignore
+            e_msg = f"Failed to Failed to format results: {str(e)}"
+            return f"# {e_msg}" if display_results else e_msg
 
         self._logging_utils.debug(__class__.__name__, formatted_output)
         results.append(formatted_output)

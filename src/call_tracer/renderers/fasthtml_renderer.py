@@ -28,12 +28,7 @@ async def generate_node_content(node: Dict[str, Any]) -> str:
 
     # Generate detailed markdown content
     logger.debug(f"call process_file with '{node.get('file_path')}")
-    try:
-        details = SourceCodeAnalyzer().process_file(input_source_path=node.get("file_path"))
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        logger.error(str(e))
-        details = str(e)
-
+    details = SourceCodeAnalyzer().process_file(input_source_path=node.get("file_path"))
     logger.debug(f"call process_file finished details len: {len(details)}")
     return details
 
@@ -147,6 +142,44 @@ class FastHtmlRenderer(RendererObject):
 
         return None
 
+    # def generate_node_details(self, node_id: str) -> str:
+    #     """Generate HTML form for node details with loading state.
+    #     This method only creates the form structure and loading state,
+    #     the actual content is fetched separately."""
+    #     return f"""
+    #     <div id="loading-indicator">
+    #         <p>Loading node details... Please be patient as this could take some time.</p>
+    #         <div class="spinner"></div>
+    #     </div>
+
+    #     <div id="node-content" style="display: none;"></div>
+
+    #     <script>
+    #         // Immediately start fetching the content
+    #         fetch('/node/{node_id}/content')
+    #             .then(response => {{
+    #                 if (!response.ok) {{
+    #                     throw new Error('Network response was not ok');
+    #                 }}
+    #                 return response.text();
+    #             }})
+    #             .then(content => {{
+    #                 // Hide loading indicator
+    #                 document.getElementById('loading-indicator').style.display = 'none';
+
+    #                 // Show and populate content with parsed markdown
+    #                 const contentElement = document.getElementById('node-content');
+    #                 contentElement.innerHTML = marked.parse(content);
+    #                 contentElement.style.display = 'block';
+    #             }})
+    #             .catch(error => {{
+    #                 console.error('Error fetching content:', error);
+    #                 document.getElementById('loading-indicator').innerHTML =
+    #                     '<p>Error loading content. Please try again.</p>';
+    #             }});
+    #     </script>
+    #     """
+
     def generate_node_details(self, node_id: str) -> str:
         """Generate HTML form for node details with loading state.
         This method only creates the form structure and loading state,
@@ -185,6 +218,54 @@ class FastHtmlRenderer(RendererObject):
         </script>
         """
 
+    # def render_tree_node(self, node: Dict[str, Any], level: int = 0) -> str:
+    #     """Render a single node in the tree."""
+    #     node_id = node.get("id", "")
+    #     name = node.get("name", "Unknown")
+    #     node_type = node.get("type", "Unknown")
+    #     file_path = node.get("file_path", "")
+
+    #     # Determine if node is selectable (has file_path)
+    #     is_selectable = bool(file_path)
+    #     selectable_class = "selectable" if is_selectable else ""
+
+    #     # Only add the htmx attributes if the node is selectable
+    #     htmx_attrs = (
+    #         f'hx-get="/node/{node_id}" hx-target="#popup-content" hx-swap="innerHTML" '
+    #         'onclick="showPopup()"'
+    #         if is_selectable
+    #         else ""
+    #     )
+
+    #     html = f"""
+    #     <li>
+    #         <div class="node {selectable_class}" {htmx_attrs}>
+    #             <span class="function-name">{name}</span>
+    #             <span class="type-label">({node_type})</span>
+    #             {f'<div class="file-path">{file_path}</div>' if file_path else ''}
+    #         </div>
+    #     """
+
+    #     # If the node has calls, make them collapsible
+    #     calls = node.get("calls", [])
+    #     if calls:
+    #         html += f"""
+    #         <details>
+    #             <summary>Calls ({len(calls)})</summary>
+    #             <ul>
+    #         """
+
+    #         for call in calls:
+    #             html += self.render_tree_node(call, level + 1)
+
+    #         html += """
+    #             </ul>
+    #         </details>
+    #         """
+
+    #     html += "</li>"
+    #     return html
+
     def render_tree_node(self, node: Dict[str, Any], level: int = 0) -> str:
         """Render a single node in the tree."""
         node_id = node.get("id", "")
@@ -199,7 +280,7 @@ class FastHtmlRenderer(RendererObject):
         # Only add the htmx attributes if the node is selectable
         htmx_attrs = (
             f'hx-get="/node/{node_id}" hx-target="#popup-content" hx-swap="innerHTML" '
-            'onclick="showPopup()"'
+            'hx-trigger="click" onclick="showPopup()"'
             if is_selectable
             else ""
         )
@@ -265,14 +346,23 @@ class FastHtmlRenderer(RendererObject):
                 <div class="popup-container">
                     <button class="close-button" onclick="hidePopup()">&times;</button>
                     <div id="popup-content" class="markdown-content">
-                        <p>Loading details...</p>
+                        <!-- Content will be loaded here -->
                     </div>
                 </div>
             </div>
 
             <script>
                 function showPopup() {{
+                    // Show the popup immediately when a node is clicked
                     document.getElementById('popup-overlay').style.display = 'flex';
+
+                    // Add initial loading state to popup content
+                    document.getElementById('popup-content').innerHTML = `
+                        <div id="loading-indicator">
+                            <p>Loading node details... Please be patient as this could take some time.</p>
+                            <div class="spinner"></div>
+                        </div>
+                    `;
                 }}
 
                 function hidePopup() {{
@@ -283,7 +373,7 @@ class FastHtmlRenderer(RendererObject):
                 document.addEventListener('click', function(e) {{
                     const node = e.target.closest('.node.selectable');
                     if (node) {{
-                        document.querySelectorAll('.node').forEach(n => n.classList.remove('selected')); # pylint: disable=line-too-long
+                        document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
                         node.classList.add('selected');
                     }}
                 }});
@@ -305,7 +395,6 @@ class FastHtmlRenderer(RendererObject):
         </body>
         </html>
         """
-
 
 def main():
     def load_data(self) -> Dict[str, Any]:
