@@ -31,7 +31,7 @@ handling API requests and responses, and processing the returned data.
 
 import json
 import requests
-from models.model import ModelObject, ModelError
+from models.model import ModelObject, ModelException
 from configuration import Configuration
 
 # Define model-specific constants
@@ -102,11 +102,11 @@ def generate_text(self, prompt):
         prompt (str): The text prompt to send to the model.
 
     Raises:
-        ModelError: If there's an error with the API call or response.
+        ModelException: If there's an error with the API call or response.
     """
-    self._logging_utils.trace(__class__, "start generate_text")
-    self._logging_utils.debug(__class__, "prompt:")
-    self._logging_utils.debug(__class__, prompt)
+    self._logging_utils.trace(__class__.__name__, "start generate_text")
+    self._logging_utils.debug(__class__.__name__, "prompt:")
+    self._logging_utils.debug(__class__.__name__, prompt)
     
     # Reset token counters
     self.reset_tokens()
@@ -142,18 +142,18 @@ def generate_text(self, prompt):
         )
         response.raise_for_status()  # Raise exception for HTTP errors
         
-        self._logging_utils.debug(__class__, "response:")
-        self._logging_utils.debug(__class__, response.json(), enable_pformat=True)
+        self._logging_utils.debug(__class__.__name__, "response:")
+        self._logging_utils.debug(__class__.__name__, response.json(), enable_pformat=True)
         
     except requests.RequestException as e:
         self._logging_utils.trace(
             __class__,
             f"end generate_text with API error: {str(e)}",
         )
-        raise ModelError(f"API request error: {str(e)}") from e
+        raise ModelException(f"API request error: {str(e)}") from e
     
     self._handle_response(response=response)
-    self._logging_utils.trace(__class__, "end generate_text")
+    self._logging_utils.trace(__class__.__name__, "end generate_text")
 ```
 
 ### 5.2. Implement `_handle_response()`
@@ -166,26 +166,26 @@ def _handle_response(self, response):
     Args:
         response: Raw response object from the API call.
     """
-    self._logging_utils.trace(__class__, "start _handle_response")
+    self._logging_utils.trace(__class__.__name__, "start _handle_response")
     
     # Parse the response JSON
     model_response = response.json()
-    self._logging_utils.debug(__class__, "model_response")
-    self._logging_utils.debug(__class__, model_response, enable_pformat=True)
+    self._logging_utils.debug(__class__.__name__, "model_response")
+    self._logging_utils.debug(__class__.__name__, model_response, enable_pformat=True)
     
     # Extract the response text
     response_text = model_response["choices"][0]["message"]["content"]
     
     # Extract JSON content if present
     extracted_json = self._json_utils.extract_json(response_text)
-    self._logging_utils.debug(__class__, "Extracted json:")
-    self._logging_utils.debug(__class__, extracted_json, enable_pformat=True)
+    self._logging_utils.debug(__class__.__name__, "Extracted json:")
+    self._logging_utils.debug(__class__.__name__, extracted_json, enable_pformat=True)
     
     # Parse the JSON content
     data = self._json_utils.json_loads(json_string=extracted_json)
     data = data[0] if isinstance(data, list) else data
-    self._logging_utils.debug(__class__, "data:")
-    self._logging_utils.debug(__class__, data)
+    self._logging_utils.debug(__class__.__name__, "data:")
+    self._logging_utils.debug(__class__.__name__, data)
     
     # Store the parsed JSON
     self.completion_json = data
@@ -197,7 +197,7 @@ def _handle_response(self, response):
     # Set the stop reason
     self.stopped_reason = model_response["choices"][0]["finish_reason"]
     
-    self._logging_utils.trace(__class__, "end _handle_response")
+    self._logging_utils.trace(__class__.__name__, "end _handle_response")
 ```
 
 ### 5.3. Implement Required Properties
@@ -241,7 +241,7 @@ For better organization, you might want to create an intermediate base class for
 ```python
 # In a new file: models/external_model.py
 
-from models.model import ModelObject, ModelError
+from models.model import ModelObject, ModelException
 from configuration import Configuration
 
 class ExternalModelObject(ModelObject):
@@ -281,11 +281,11 @@ class ExternalModelObject(ModelObject):
             str: The API key
             
         Raises:
-            ModelError: If the API key is not configured
+            ModelException: If the API key is not configured
         """
         api_key = self._config.str_value(key_config_path, "")
         if not api_key:
-            raise ModelError(f"API key not configured at {key_config_path}")
+            raise ModelException(f"API key not configured at {key_config_path}")
         return api_key
 ```
 

@@ -13,7 +13,7 @@ This module defines the foundation of the model interaction framework:
 
 #### Key Classes:
 
-- **`ModelError` and `ModelMaxTokenLimitException`**: Custom exception classes for error handling
+- **`ModelException` and `ModelMaxTokenLimitException`**: Custom exception classes for error handling
 
 - **`ModelObject`**: Abstract base class implementing the Singleton pattern
   - Provides common functionality for all model implementations

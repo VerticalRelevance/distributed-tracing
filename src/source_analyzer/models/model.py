@@ -13,9 +13,12 @@ import boto3
 from common.configuration import Configuration
 from common.utilities import JsonUtils, LoggingUtils, ModelUtils, GenericUtils
 
-MAX_LLM_RETRIES_EXPECTED_MIN = 0
-MAX_LLM_RETRIES_EXPECTED_MAX = 10
-MAX_LLM_RETRIES_DEFAULT = 3
+EXCEPTION_LEVEL_WARN = 10
+EXCEPTION_LEVEL_ERROR = 20
+
+MAX_LLM_TRIES_EXPECTED_MIN = 0
+MAX_LLM_TRIES_EXPECTED_MAX = 10
+MAX_LLM_TRIES_DEFAULT = 3
 
 RETRY_DELAY_EXPECTED_MIN = 0
 RETRY_DELAY_EXPECTED_MAX = 30
@@ -25,8 +28,7 @@ TEMPERATURE_EXPECTED_MIN = 0.0
 TEMPERATURE_EXPECTED_MAX = 1.0
 TEMPERATURE_DEFAULT = 0.0
 
-
-class ModelError(Exception):
+class ModelException(Exception):
     # pylint: disable=line-too-long
     """Base exception class for model-related errors.
 
@@ -34,12 +36,16 @@ class ModelError(Exception):
     """
     # pylint: enable=line-too-long
 
-    def __init__(self, message: str):
-        self.message = message
-        super().__init__(self.message)
+    def __init__(self, message: str, level: int=EXCEPTION_LEVEL_ERROR):
+        self._level: int = level
+        self._message: str = message
+        super().__init__(self._message)
 
+    @property
+    def level(self):
+        return self._level
 
-class ModelMaxTokenLimitException(ModelError):
+class ModelMaxTokenLimitException(ModelException):
     # pylint: disable=line-too-long
     """Exception raised when the model's token limit is exceeded.
 
@@ -53,12 +59,14 @@ class ModelMaxTokenLimitException(ModelError):
         self._max_token_limit = max_token_limit
         self._prompt_tokens = prompt_tokens
         self._completion_tokens = completion_tokens
-        self.message = (
+        self._message = (
             f"Max tokens limit of {max_token_limit} exceeded. "
             f"Number of prompt tokens: {prompt_tokens}, completion tokens: {completion_tokens}"
         )
-        super().__init__(self.message)
+        super().__init__(message=self._message, level=EXCEPTION_LEVEL_WARN)
 
+    def __str__(self):
+        return self._message
 
 class ModelObject:
     # pylint: disable=line-too-long
@@ -88,7 +96,7 @@ class ModelObject:
         self._config = configuration
         self._logging_utils = LoggingUtils()
         self._model_utils = ModelUtils(configuration=configuration)
-        self._max_llm_retries = None
+        self._max_llm_tries = None
         self._retry_delay = None
         self._temperature = None
         self._completion_tokens = 0
@@ -98,8 +106,9 @@ class ModelObject:
         self._json_utils = JsonUtils()
         self._stopped_reason = None
         self._stop_valid_reasons = None
+        self._stop_max_tokens_reasons = None
 
-    def generate_text(self, prompt: str):
+    def generate_text(self, prompt: str) -> str:
         # pylint: disable=line-too-long
         """Generate text based on the provided prompt.
 
@@ -113,7 +122,7 @@ class ModelObject:
         raise NotImplementedError("Subclasses must implement this method")
 
     @property
-    def max_llm_retries(self) -> int:
+    def max_llm_tries(self) -> int:
         # pylint: disable=line-too-long
         """Get the maximum number of retries for LLM API calls.
 
@@ -121,31 +130,31 @@ class ModelObject:
             The maximum number of retries configured for LLM API calls
 
         Raises:
-            ModelError: If the configuration value is invalid or outside the expected range
+            ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
-        if self._max_llm_retries is None:
+        if self._max_llm_tries is None:
             try:
-                self._max_llm_retries = self._config.int_value(
-                    "ai_model.max_llm_retries",
-                    MAX_LLM_RETRIES_EXPECTED_MIN,
-                    MAX_LLM_RETRIES_EXPECTED_MAX,
-                    MAX_LLM_RETRIES_DEFAULT,
+                self._max_llm_tries = self._config.int_value(
+                    "ai_model.max_llm_tries",
+                    MAX_LLM_TRIES_EXPECTED_MIN,
+                    MAX_LLM_TRIES_EXPECTED_MAX,
+                    MAX_LLM_TRIES_DEFAULT,
                 )
             except TypeError as te:
-                raise ModelError(
+                raise ModelException(
                     "Type for max LLM retries is invalid. "
                     "Value must be a valid integer between "
-                    f"{MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
+                    f"{MAX_LLM_TRIES_EXPECTED_MIN} and {MAX_LLM_TRIES_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
-                raise ModelError(
+                raise ModelException(
                     "Value for max LLM retries is invalid. "
                     "Value must be a valid integer between "
-                    f"{MAX_LLM_RETRIES_EXPECTED_MIN} and {MAX_LLM_RETRIES_EXPECTED_MAX}."
+                    f"{MAX_LLM_TRIES_EXPECTED_MIN} and {MAX_LLM_TRIES_EXPECTED_MAX}."
                 ) from ve
 
-        return self._max_llm_retries
+        return self._max_llm_tries
 
     @property
     def model_client(self) -> boto3.client:
@@ -156,10 +165,12 @@ class ModelObject:
             A configured boto3 client for bedrock-runtime with appropriate region settings
         """
         # pylint: enable=line-too-long
-        # TODO refactor into separate Bedrock-specific middle-layer class
+        # FUTURE refactor into separate Bedrock-specific middle-layer class
         return boto3.client(
             "bedrock-runtime",
-            region_name=self._config.str_value("aws.region", "us-west-2"),
+            # region_name=self._config.str_value("aws.region", "us-west-2"),
+            region_name=self._model_utils.region_name,
+            config=boto3.session.Config(read_timeout=300, retries={"max_attempts": 3}),
         )
 
     @property
@@ -247,6 +258,10 @@ class ModelObject:
         # pylint: enable=line-too-long
         return self._max_completion_tokens
 
+    @max_completion_tokens.setter
+    def max_completion_tokens(self, value: int):
+        self._max_completion_tokens = value
+
     @property
     def model_id(self) -> str:
         # pylint: disable=line-too-long
@@ -298,7 +313,7 @@ class ModelObject:
             The retry delay in seconds
 
         Raises:
-            ModelError: If the configuration value is invalid or outside the expected range
+            ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
         if not self._retry_delay:
@@ -310,12 +325,12 @@ class ModelObject:
                     RETRY_DELAY_DEFAULT,
                 )
             except TypeError as te:
-                raise ModelError(
+                raise ModelException(
                     f"Type for retry delay is invalid. Value must be a valid integer between "
                     f"{RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
-                raise ModelError(
+                raise ModelException(
                     "Value for retry delay is invalid. "
                     "Value must be a valid integer between "
                     f"{RETRY_DELAY_EXPECTED_MIN} and {RETRY_DELAY_EXPECTED_MAX}."
@@ -335,7 +350,7 @@ class ModelObject:
             The temperature value for model randomness
 
         Raises:
-            ModelError: If the configuration value is invalid or outside the expected range
+            ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
         if not self._temperature:
@@ -347,17 +362,56 @@ class ModelObject:
                     TEMPERATURE_DEFAULT,
                 )
             except TypeError as te:
-                raise ModelError(
+                raise ModelException(
                     "Type for temperature is invalid. Value must be a valid floating point "
                     f"between {TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
                 ) from te
             except ValueError as ve:
-                raise ModelError(
+                raise ModelException(
                     "Value for temperature is invalid. "
                     "Value must be a valid floating point between "
                     f"{TEMPERATURE_EXPECTED_MIN} and {TEMPERATURE_EXPECTED_MAX}."
                 ) from ve
         return self._temperature
+
+    @property
+    def stop_max_tokens_reasons(self) -> int:
+        # pylint: disable=line-too-long
+        """Get the maximum number of stop reasons allowed for the model.
+
+        Returns:
+            The maximum number of stop reasons
+        """
+        # pylint: enable=line-too-long
+        if self._stop_max_tokens_reasons is None:
+            try:
+                self._stop_max_tokens_reasons = self._config.list_value(
+                    "ai_model.model_stop.reasons.max_tokens",
+                    [],
+                )
+            except TypeError as te:
+                raise ModelException(
+                    "Type for model stop max tokens reasons is invalid. Value must be a valid list."
+                ) from te
+            except ValueError as ve:
+                raise ModelException(
+                    "Value for model stop max tokens reasons is invalid. "
+                    "Value must be a valid list."
+                ) from ve
+
+        return self._stop_max_tokens_reasons
+
+    @stop_max_tokens_reasons.setter
+    def stop_max_tokens_reasons(self, stop_max_reasons: int) -> None:
+        # pylint: disable=line-too-long
+        """Set the maximum number of stop reasons allowed for the model.
+
+        Args:
+            stop_max_reasons: The maximum number of stop reasons
+        """
+        # pylint: enable=line-too-long
+        self._stop_max_tokens_reasons = stop_max_reasons
+
 
     @property
     def stop_valid_reasons(self) -> List[str]:
@@ -371,7 +425,7 @@ class ModelObject:
             A list of valid stop reason strings
 
         Raises:
-            ModelError: If the configuration value is invalid
+            ModelException: If the configuration value is invalid
         """
         # pylint: enable=line-too-long
         if self._stop_valid_reasons is None:
@@ -381,11 +435,11 @@ class ModelObject:
                     [],
                 )
             except TypeError as te:
-                raise ModelError(
+                raise ModelException(
                     "Type for model stop valid reasons is invalid. Value must be a valid list."
                 ) from te
             except ValueError as ve:
-                raise ModelError(
+                raise ModelException(
                     "Value for model stop valid reasons is invalid. Value must be a valid list."
                 ) from ve
 
@@ -494,7 +548,7 @@ class ModelFactory:
         """
         # pylint: enable=line-too-long
         model_class = self._generic_utils.load_class(
-            module_name="models." + module_name,
+            module_name="source_analyzer.models." + module_name,
             class_name=class_name,
             package_name="models",
         )

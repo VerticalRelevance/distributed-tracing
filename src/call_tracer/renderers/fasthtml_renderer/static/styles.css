@@ -1,0 +1,144 @@
+.tree ul {
+  list-style-type: none;
+  padding-left: 20px;
+}
+
+.tree li {
+  margin: 5px 0;
+  position: relative;
+}
+
+.tree details {
+  margin-left: 15px;
+}
+
+.tree summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.node {
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.node:hover {
+  background-color: #f0f0f0;
+}
+
+.node.selected {
+  background-color: #e1f5fe;
+  border-left: 2px solid #03a9f4;
+}
+
+.node.selectable {
+  cursor: pointer;
+}
+
+.tree-container {
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  max-width: 80%;
+  max-height: 80%;
+  overflow-y: auto;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background-color: #d32f2f;
+}
+
+.markdown-content {
+  font-family: sans-serif;
+  line-height: 1.5;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.function-name {
+  font-weight: bold;
+  color: #0d47a1;
+}
+
+.file-path {
+  color: #388e3c;
+  font-size: 0.9em;
+}
+
+.type-label {
+  color: #616161;
+  font-style: italic;
+}
+
+#loading-indicator {
+  text-align: center;
+  padding: 20px;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #09f;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#node-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}

@@ -45,17 +45,19 @@ formatter_coded:
     name: coded_json_to_markdown_formatter
 
 ai_model:
-  max_llm_retries: 2
+  max_llm_tries: 1
   retry_delay: 4
   temperature: 0.0
   custom:
-    max_tokens: 2048
+    max_tokens: 4096
   class:
     name: AnthropicClaude3Sonnet20240229V1
   module:
     name: anthropic_claude_3_sonnet_20240229_v1_0
   model_stop:
     reasons:
+      max_tokens:
+        - max_tokens
       valid:
         - end_turn
 
@@ -64,7 +66,7 @@ ai_model_keep_anthropic_claude3_sonnet:
   # This section is not used, but is a holding area for
   # specific model configuration
   #
-  max_llm_retries: 2
+  max_llm_tries: 2
   retry_delay: 4
   temperature: 0.0
   custom:
@@ -83,7 +85,7 @@ ai_model_keep_meta_llama:
   # This section is not used, but is a holding area for
   # specific model configuration
   #
-  max_llm_retries: 2
+  max_llm_tries: 2
   retry_delay: 4
   temperature: 0.0
   custom:

@@ -18,6 +18,8 @@ Classes:
     GenericUtils: General utility methods for serialization and environment handling
 """
 
+# TODO break up into separate modules
+
 import sys
 import os
 import logging
@@ -29,9 +31,9 @@ from contextlib import contextmanager
 from timeit import default_timer
 import json
 from pprint import pformat
-from configuration import Configuration
-from custom_logger_success import CustomLoggerSuccess  # pylint: disable=unused-import
-from custom_logger_trace import CustomLoggerTrace  # pylint: disable=unused-import
+from common.configuration import Configuration
+from common.custom_logger_success import CustomLoggerSuccess  # pylint: disable=unused-import
+from common.custom_logger_trace import CustomLoggerTrace  # pylint: disable=unused-import
 
 
 class MissingEnvironmentVariable(Exception):
@@ -39,7 +41,10 @@ class MissingEnvironmentVariable(Exception):
 
     def __init__(self, env_var_name):
         super().__init__(f"Missing environment variable '{env_var_name}'")
+        self._env_var_name = env_var_name
 
+    def __str__(self):
+        return f"Missing environment variable '{self._env_var_name}'"
 
 class CtxMgrUtils:
     """
@@ -398,7 +403,7 @@ class LoggingUtils:
         logger: logging.Logger = logging.getLogger(f"{name}.stdout")
         if not logger.handlers:
             logger_level = os.getenv("LOG_LEVEL_STDOUT", "SUCCESS").upper()
-            self.debug(__class__, f"setting stdout logger level to {logger_level}")
+            self.debug(__class__.__name__, f"setting stdout logger level to {logger_level}")
             logger.setLevel(logger_level)
             console_handler: logging.Handler = logging.StreamHandler(stream=sys.stdout)
             console_handler.setLevel(logger_level)
@@ -625,11 +630,11 @@ class PathUtils:
         Returns:
             str: The contents of the file as a string.
         """
-        LoggingUtils().trace(__class__, "start get_source_code")
+        LoggingUtils().trace(__class__.__name__, "start get_source_code")
         with open(source_path, "r", encoding="utf-8") as file:
             source_code = file.read()
 
-        LoggingUtils().trace(__class__, "end get_source_code")
+        LoggingUtils().trace(__class__.__name__, "end get_source_code")
         return source_code
 
 
@@ -837,8 +842,8 @@ class ModelUtils:
         """
         self._config: Configuration = configuration
 
-    # TODO convert to property
-    def get_desired_model_class_name(self):
+    @property
+    def desired_model_class_name(self):
         # pylint: disable=line-too-long
         """
         Retrieves the configured AI model class name from the configuration.
@@ -852,8 +857,8 @@ class ModelUtils:
         # pylint: enable=line-too-long
         return self._config.str_value("ai_model.class.name", "not found")
 
-    # TODO convert to property
-    def get_desired_model_module_name(self) -> str:
+    @property
+    def desired_model_module_name(self) -> str:
         # pylint: disable=line-too-long
         """
         Retrieves the configured AI model module name from the configuration.
@@ -867,8 +872,8 @@ class ModelUtils:
         # pylint: enable=line-too-long
         return self._config.str_value("ai_model.module.name", "not found")
 
-    # TODO convert to property
-    def get_region_name(self) -> str:
+    @property
+    def region_name(self) -> str:
         """
         Retrieves the AWS region name.
 
@@ -884,7 +889,8 @@ class ModelUtils:
             # Returns 'us-west-2' if AWS_REGION is not set, or uses the env value
         """
         return os.getenv(
-            "AWS_REGION", self._config.get_value("aws").get("region", "us-west-2")
+            # "AWS_REGION", self._config.str_value("aws").get("region", "us-west-2")
+            "AWS_REGION", self._config.str_value("aws.region", "us-west-2")
         )
 
 
@@ -1028,13 +1034,13 @@ class JsonUtils:
 
     def extract_code_blocks(self, text: str, block_type: str) -> list | str:
         """Extract all json blocks from the given input."""
-        self._logging_utils.debug(__class__, "start extract_code_blocks")
-        self._logging_utils.debug(__class__, "end extract_code_blocks")
+        self._logging_utils.debug(__class__.__name__, "start extract_code_blocks")
+        self._logging_utils.debug(__class__.__name__, "end extract_code_blocks")
         return re.findall(rf"```{block_type}\s*(.*?)\s*```", text, re.DOTALL)
 
     def extract_json(self, text: str) -> list | str:
         """Extract the first json block from the given input."""
-        self._logging_utils.debug(__class__, "start extract_json")
+        self._logging_utils.debug(__class__.__name__, "start extract_json")
         json_blocks = self.extract_code_blocks(text, "json")
         if json_blocks:
             self._logging_utils.debug(
@@ -1046,10 +1052,10 @@ class JsonUtils:
                 f"{json_blocks[0] if isinstance(json_blocks, list) else json_blocks}",
                 enable_pformat=True,
             )
-            self._logging_utils.debug(__class__, "end extract_json")
+            self._logging_utils.debug(__class__.__name__, "end extract_json")
             return json_blocks[0] if isinstance(json_blocks, list) else json_blocks
-        self._logging_utils.warning(__class__, "No json blocks found")
-        self._logging_utils.debug(__class__, "end extract_json empty")
+        self._logging_utils.warning(__class__.__name__, "No json blocks found")
+        self._logging_utils.debug(__class__.__name__, "end extract_json empty")
         return "{}"
 
 

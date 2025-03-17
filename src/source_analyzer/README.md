@@ -101,7 +101,7 @@ formatter
 └── any additional configuration as defined by the specific formatter class (reuqirement based on the model)
 
 ai_model
-├── max_llm_retries: the number of times to try calling the AI model in case of error (required)
+├── max_llm_tries: the number of times to try calling the AI model in case of error (required)
 ├── retry_delay: the number of seconds between retries of calling the AI model in case of error (required)
 ├── temperature: the model temperature, between 0.0 and 1.0, inclusive (required)
 ├── custom

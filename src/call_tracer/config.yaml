@@ -1,0 +1,5 @@
+renderer:
+  module:
+    name: fasthtml_renderer
+  class:
+    name: FastHtmlRenderer
