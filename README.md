@@ -101,13 +101,15 @@ add the following to the workspace or folder configuration:
 }
 ```
 
+## Call Tracer remaining
+TODO add unit and integration tests
+TODO update docstrings
+
+
 ## Source Analyzer remaining
 TODO see TODO and FUTURE tags in the code  
 TODO swap out Python logging for a modern logger  
 TODO add unit and integration tests  
 TODO standardize some of the repetitive code  
 TODO OpenAI model  
-
-## Call Tracer remaining
-TODO change print statements to logging statements  
-TODO add unit and integration tests  
+TODO update docstrings
