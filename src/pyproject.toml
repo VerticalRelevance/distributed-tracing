@@ -1,4 +1,88 @@
+# TODO move up one level and support both packages?
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trace-injector-advisor"
+dynamic = ["version"]
+description = "A tool for providing a starting point for injecting traces into Python code"
+readme = "README.md"
+requires-python = ">=3.13.1"
+license = {text = "MIT"}
+authors = [
+    {name = "Steven Caswell", email = "scaswell@verticalrelevance.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    langchain-openai
+    langchain-community==0.3.14
+    python-dotenv==1.0.1
+    tiktoken==0.8.0
+    faiss-cpu==1.9.0.post1
+    openai==1.59.7
+    PyYAML==6.0.2
+    stdlib-list
+    streamlit
+    streamlit-option-menu
+    Jinja2==3.1.6
+    python-fasthtml
+]
+
+[project.optional-dependencies]
+dev = [
+    genson
+]
+
+test = [
+    "pytest==8.3.5",
+    "pytest-cov==6.0.0",
+    "pytest-mock==3.14.0",
+]
+
+docs = [
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/VerticalRelevance/distributed-tracing"
+Documentation = "https://source-analyzer.readthedocs.io/"
+Repository = "https://github.com/VerticalRelevance/distributed-tracing.git"
+Issues = "https://github.com/VerticalRelevance/distributed-tracing/issues"
+
+[tool.setuptools]
+packages = [
+    "call_tracer"
+    "call_tracer.renderer,
+    "common",
+    "source_analyzer",
+    "source_analyzer.formatters",
+    "source_analyzer.models"
+]
+[tool.setuptools_scm]
+write_to = "_version.py"
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
 [tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
 addopts = [
     "--import-mode=importlib",
 ]
