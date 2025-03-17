@@ -102,6 +102,7 @@ add the following to the workspace or folder configuration:
 ```
 
 ## Call Tracer remaining
+TODO add dynamic setting of max tokens to fasthtml renderer
 TODO add unit and integration tests
 TODO update docstrings
 
