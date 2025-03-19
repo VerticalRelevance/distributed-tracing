@@ -39,7 +39,7 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
         Initialize the Claude 3 Sonnet model client.
 
         Args:
-            configuration: Configuration object containing model settings.
+            configuration (Configuration): Configuration object containing model settings.
         """
         # pylint: enable=line-too-long
         super().__init__(configuration=configuration)

@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 """
 Parameterized Property Module
 
@@ -29,9 +30,11 @@ Example:
 Classes:
     ParameterizedProperty: A descriptor class for parameterized property access.
 """
+# pylint: enable=line-too-long
 
 
 class ParameterizedProperty:
+    # pylint: disable=line-too-long
     """
     A descriptor class that allows getters and setters with arguments.
 
@@ -43,8 +46,10 @@ class ParameterizedProperty:
         fget: The function to be used for getting the attribute value.
         fset: The function to be used for setting the attribute value.
     """
+    # pylint: enable=line-too-long
 
     def __init__(self, fget=None, fset=None):
+        # pylint: disable=line-too-long
         """
         Initialize the parameterized property.
 
@@ -52,11 +57,13 @@ class ParameterizedProperty:
             fget: Optional function to be used for getting the attribute value.
             fset: Optional function to be used for setting the attribute value.
         """
+        # pylint: enable=line-too-long
         self.fget = fget
         self.fset = fset
         self.__doc__ = fget.__doc__ if fget else None
 
     def __get__(self, obj, objtype=None):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
         """
         Get the property value.
 
@@ -73,6 +80,7 @@ class ParameterizedProperty:
             Either the descriptor itself (if accessed on the class) or a callable
             getter function that accepts additional arguments.
         """
+        # pylint: enable=line-too-long
         if obj is None:
             return self
 
@@ -83,6 +91,7 @@ class ParameterizedProperty:
         return getter
 
     def __set__(self, obj, value):
+        # pylint: disable=line-too-long
         """
         Set the property value.
 
@@ -93,6 +102,8 @@ class ParameterizedProperty:
             obj: The instance on which to set the attribute.
             value: The value to set.
         """
+        # pylint: enable=line-too-long
+
         # For direct assignment without arguments, call setter with just the value
         self.fset(obj, value)
 
@@ -104,6 +115,7 @@ class ParameterizedProperty:
         obj.__dict__[f"_{self.fget.__name__}_setter"] = setter_wrapper
 
     def setter(self, fset):
+        # pylint: disable=line-too-long
         """
         Decorator to set the setter function.
 
@@ -116,5 +128,7 @@ class ParameterizedProperty:
         Returns:
             A new ParameterizedProperty instance with the same getter but the new setter.
         """
+        # pylint: enable=line-too-long
+
         # Create a new instance with the same getter but new setter
         return type(self)(self.fget, fset)

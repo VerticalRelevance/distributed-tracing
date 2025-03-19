@@ -30,7 +30,8 @@ from common.utilities import LoggingUtils, JsonUtils, GenericUtils
 
 class FormatterError(Exception):
     # pylint: disable=line-too-long
-    """A custom exception class for handling formatting-related errors.
+    """
+    A custom exception class for handling formatting-related errors.
 
     This exception provides a generic error mechanism for various formatting operations,
     allowing detailed error messages to be passed and handled appropriately.
@@ -47,7 +48,8 @@ class FormatterError(Exception):
 
 class FormatterObject:  # pylint: disable=too-few-public-methods
     # pylint: disable=line-too-long
-    """Base formatter class implementing a singleton pattern for JSON data formatting operations.
+    """
+    Base formatter class implementing a singleton pattern for JSON data formatting operations.
 
     This class serves as an abstract base class for specific formatter implementations. It provides
     core functionality for JSON formatting while enforcing a singleton pattern to ensure only one
@@ -72,7 +74,8 @@ class FormatterObject:  # pylint: disable=too-few-public-methods
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
         # pylint: disable=line-too-long
-        """Create a new instance of the formatter class or return the existing singleton instance.
+        """
+        Create a new instance of the formatter class or return the existing singleton instance.
 
         This method implements the singleton pattern, ensuring that only one instance of the formatter
         class is created throughout the application.
@@ -92,7 +95,8 @@ class FormatterObject:  # pylint: disable=too-few-public-methods
 
     def __init__(self, configuration: Configuration):
         # pylint: disable=line-too-long
-        """Initialize a new instance of the FormatterObject class.
+        """
+        Initialize a new instance of the FormatterObject class.
 
         This method sets up utility objects and configuration for formatter operations.
         It prepares the necessary resources for subsequent formatting tasks.
@@ -110,7 +114,8 @@ class FormatterObject:  # pylint: disable=too-few-public-methods
         self, data: Dict[str, str], variables: Dict[str, str] = None
     ) -> str:  # pylint: disable=unused-argument
         # pylint: disable=line-too-long
-        """Format JSON data according to implementation-specific rules.
+        """
+        Format JSON data according to implementation-specific rules.
 
         This method must be implemented by subclasses to provide specific JSON formatting logic.
         The base implementation raises a NotImplementedError.
@@ -131,7 +136,8 @@ class FormatterObject:  # pylint: disable=too-few-public-methods
 
 class FormatterFactory:
     # pylint: disable=line-too-long
-    """A singleton factory class for creating and managing formatter instances dynamically.
+    """
+    A singleton factory class for creating and managing formatter instances dynamically.
 
     This class implements the Singleton pattern to ensure only one formatter factory exists in the
     application. It provides functionality to dynamically load and instantiate formatter classes
@@ -154,7 +160,8 @@ class FormatterFactory:
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
         # pylint: disable=line-too-long
-        """Implement the singleton pattern for the FormatterFactory.
+        """
+        Implement the singleton pattern for the FormatterFactory.
 
         This method ensures that only one instance of the FormatterFactory is created and returned
         throughout the application's lifecycle.
@@ -174,7 +181,8 @@ class FormatterFactory:
 
     def __init__(self, configuration: Configuration):
         # pylint: disable=line-too-long
-        """Initialize the FormatterFactory with configuration.
+        """
+        Initialize the FormatterFactory with configuration.
 
         Args:
             configuration: Configuration object containing settings for formatter instantiation.
@@ -185,7 +193,8 @@ class FormatterFactory:
 
     def get_formatter(self, module_name: str, class_name: str) -> FormatterObject:
         # pylint: disable=line-too-long
-        """Dynamically load and instantiate a formatter based on module and class names.
+        """
+        Dynamically load and instantiate a formatter based on module and class names.
 
         This method uses reflection to load a formatter class from a specified module
         and create an instance with the current configuration.

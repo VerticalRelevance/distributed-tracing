@@ -46,9 +46,13 @@ class SourceCodeAnalyzer:
     # pylint: enable=line-too-long
 
     def __init__(self):
+        # pylint: disable=line-too-long
         """
         Initialize the SourceCodeAnalyzer with required dependencies.
+
+        Sets up utility objects, configuration, model, and formatter needed for source code analysis.
         """
+        # pylint: enable=line-too-long
         self._generic_utils: GenericUtils = GenericUtils()
         self._logging_utils = LoggingUtils()
         self._path_utils = PathUtils()
@@ -81,11 +85,14 @@ class SourceCodeAnalyzer:
         """
         Get an AI completion with automatic retry logic.
 
+        Attempts to generate text from the AI model with the given prompt, implementing retry logic
+        in case of failures. Tracks token usage and handles various error conditions.
+
         Args:
             prompt (str): The prompt to send to the AI model
 
         Raises:
-            Exception: If all retry attempts fail or if a token limit exception occurs
+            ModelException: If all retry attempts fail or if a token limit exception occurs
         """
         # pylint: enable=line-too-long
         self._logging_utils.trace(__class__.__name__, "start get_completion_with_retry")
@@ -174,8 +181,12 @@ class SourceCodeAnalyzer:
         self._logging_utils.trace(__class__.__name__, "end get_completion_with_retry")
 
     def analyze_source_code_for_decision_points(self, source_code) -> None:
+        # pylint: disable=line-too-long
         """
         Analyze source code to identify optimal locations for adding trace statements.
+
+        Constructs a prompt with the source code and tracing priorities from configuration,
+        then sends it to the AI model to identify critical locations for adding trace statements.
 
         Args:
             source_code (str): The source code to analyze
@@ -183,6 +194,7 @@ class SourceCodeAnalyzer:
         Returns:
             None
         """
+        # pylint: enable=line-too-long
         self._logging_utils.trace(
             __class__, "start analyze_source_code_for_decision_points"
         )
@@ -237,13 +249,13 @@ Source Code:
     def generate_formatted_output(self) -> str:
         # pylint: disable=line-too-long
         """
-        Generate formatted output based on the provided model.
+        Generate formatted output based on the model's completion data.
 
-        Args:
-            model (ModelObject): The model containing completion data to be formatted
+        Uses the configured formatter to convert the model's JSON completion data into a formatted string,
+        including metadata about the model and token usage.
 
         Returns:
-            str: The formatted output string
+            str: The formatted output string containing analysis results
         """
         # pylint: enable=line-too-long
         self._logging_utils.trace(__class__.__name__, "start generate_formatted_output")
@@ -269,15 +281,22 @@ Source Code:
     def process_file(
         self, input_source_path: str, display_results: bool = False
     ) -> str | None:
+        # pylint: disable=line-too-long
         """
-        Process a single Python source file.
+        Process a single Python source file for trace point analysis.
+
+        Loads the source file, analyzes it for trace points, and formats the results.
+        Can either display results to console or return them as a string.
 
         Args:
-            input_source_path (str): Path to the Python source file
+            input_source_path (str): Path to the Python source file to analyze
+            display_results (bool, optional): Whether to display results to console. Defaults to False.
 
         Returns:
-            bool: True if processing succeeded, None otherwise
+            str | None: Formatted analysis results as a string if display_results is False, None otherwise.
+                        Returns error message string if processing fails.
         """
+        # pylint: enable=line-too-long
         self._logging_utils.trace(__class__.__name__, "start process_file")
         self._logging_utils.debug(__class__.__name__, f"input_source_path: {input_source_path}")
 
@@ -340,8 +359,12 @@ Source Code:
         # pylint: enable=inconsistent-return-statements
 
     def process_directory(self, source_path: str) -> None:
+        # pylint: disable=line-too-long
         """
         Process all Python files in a directory and its subdirectories.
+
+        Recursively walks through the directory structure, identifying Python files and processing
+        each one for trace point analysis.
 
         Args:
             source_path (str): Path to the directory to process
@@ -349,6 +372,7 @@ Source Code:
         Returns:
             None
         """
+        # pylint: enable=line-too-long
         self._logging_utils.trace(__class__.__name__, "start process_directory")
         self._logging_utils.debug(__class__.__name__, f"source_path: {source_path}")
         self._logging_utils.info(__class__.__name__, f"Process directory '{source_path}'")

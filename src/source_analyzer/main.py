@@ -1,3 +1,14 @@
+# pylint: disable=line-too-long
+"""
+This module serves as the entry point for the source code analyzer tool.
+
+It provides functionality to analyze Python source code files or directories containing Python files.
+The module parses command line arguments to determine the target file or directory for analysis,
+configures logging based on environment variables, and delegates the actual analysis to the
+SourceCodeAnalyzer class.
+"""
+# pylint: enable=line-too-long
+
 import sys
 import os
 from pathlib import Path
@@ -27,6 +38,20 @@ def main():
     generic_utils = GenericUtils()
 
     def usage(script_name: str = "", invalid_args: bool = False, **invalid_arg_values):
+        # pylint: disable=line-too-long
+        """
+        Display usage information for the script.
+
+        Args:
+            script_name (str, optional): The name of the script being executed. Defaults to an empty string.
+            invalid_args (bool, optional): Flag indicating whether invalid arguments were provided. Defaults to False.
+            **invalid_arg_values: Dictionary containing invalid argument values to display in the error message.
+
+        Returns:
+            None
+        """
+        # pylint: enable=line-too-long
+
         print(f"Usage: python {script_name} [FILE|DIRECTORY]")
         print(
             f"Invalid argument(s): {invalid_arg_values}"

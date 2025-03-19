@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 """
 Module for tracing function calls in Python source code.
 
@@ -6,6 +7,7 @@ starting from an entry point and recursively following the call chain. It can ha
 calls to functions within the same file, imported functions, and functions in external
 files within a specified search path.
 """
+# pylint: enable=line-too-long
 
 # TODO add check for required env vars
 
@@ -28,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class CallTracer:
+    # pylint: disable=line-too-long
     """
     A class for tracing function calls in Python source code.
 
@@ -35,15 +38,19 @@ class CallTracer:
     starting from a specified entry point. It can trace calls within the same file,
     imported functions, and functions in external files within a specified search path.
     """
+    # pylint: enable=line-too-long
 
     def __init__(self, configuration: Configuration, source_file: str, search_paths: List[str]):
+        # pylint: disable=line-too-long
         """
         Initialize the CallTracer with a source file and search paths.
 
         Args:
+            configuration: Configuration object containing settings for the call tracer
             source_file: Full path to the source file to analyze
             search_paths: List of paths to search for external modules
         """
+        # pylint: enable=line-too-long
         self._config = configuration
         self.source_file = os.path.abspath(source_file)
         self.search_paths = [os.path.abspath(path) for path in search_paths]
@@ -57,6 +64,7 @@ class CallTracer:
         logger.info(f"Search paths: {self.search_paths}")
 
     def _generate_id(self, data: Dict) -> str:
+        # pylint: disable=line-too-long
         """
         Generate a unique ID for a dictionary using MD5 hash.
 
@@ -66,6 +74,7 @@ class CallTracer:
         Returns:
             MD5 hash of the dictionary as a string
         """
+        # pylint: enable=line-too-long
         # Create a copy to avoid modifying the original
         data_copy = data.copy()
         # Remove the id field if it exists to avoid circular reference
@@ -77,6 +86,7 @@ class CallTracer:
         return hashlib.md5(data_str.encode()).hexdigest()
 
     def _parse_file(self, file_path: str) -> ast.Module:
+        # pylint: disable=line-too-long
         """
         Parse a Python file into an AST.
 
@@ -86,6 +96,7 @@ class CallTracer:
         Returns:
             AST of the parsed file
         """
+        # pylint: enable=line-too-long
         if file_path in self.module_cache:
             return self.module_cache[file_path]
 
@@ -105,6 +116,7 @@ class CallTracer:
             return None
 
     def _index_classes_in_file(self, tree: ast.Module, file_path: str) -> None:
+        # pylint: disable=line-too-long
         """
         Index all classes in a file for quick lookup.
 
@@ -112,11 +124,13 @@ class CallTracer:
             tree: AST of a Python module
             file_path: Path to the file being analyzed
         """
+        # pylint: enable=line-too-long
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
                 self.class_file_map[node.name] = file_path
 
     def _find_imports(self, tree: ast.Module) -> Dict[str, str]:
+        # pylint: disable=line-too-long
         """
         Find all imports in an AST and map them to their module paths.
 
@@ -126,6 +140,7 @@ class CallTracer:
         Returns:
             Dictionary mapping imported names to their module paths
         """
+        # pylint: enable=line-too-long
         imports = {}
 
         class ImportVisitor(ast.NodeVisitor):
@@ -153,6 +168,7 @@ class CallTracer:
     def _analyze_class_attributes(
         self, tree: ast.Module, file_path: str
     ) -> Dict[str, Dict[str, str]]:
+        # pylint: disable=line-too-long
         """
         Analyze class attributes to determine their types.
 
@@ -163,6 +179,7 @@ class CallTracer:
         Returns:
             Dictionary mapping class names to dictionaries of attribute names and their types
         """
+        # pylint: enable=line-too-long
         class_attrs = {}
 
         class ClassAttributeVisitor(ast.NodeVisitor):
@@ -215,6 +232,7 @@ class CallTracer:
         return class_attrs
 
     def _find_module_path(self, module_name: str) -> Optional[str]:
+        # pylint: disable=line-too-long
         """
         Find the file path for a module name.
 
@@ -224,6 +242,7 @@ class CallTracer:
         Returns:
             File path of the module if found, None otherwise
         """
+        # pylint: enable=line-too-long
         # Handle relative imports
         if module_name.startswith("relative."):
             parts = module_name.split(".")
@@ -263,6 +282,7 @@ class CallTracer:
     def _find_function_in_tree(
         self, tree: ast.Module, function_name: str
     ) -> Optional[ast.FunctionDef]:
+        # pylint: disable=line-too-long
         """
         Find a function definition in an AST.
 
@@ -273,6 +293,7 @@ class CallTracer:
         Returns:
             Function definition node if found, None otherwise
         """
+        # pylint: enable=line-too-long
         # If function_name contains a class name (e.g., "ClassName.method_name")
         if "." in function_name:
             class_name, method_name = function_name.split(".", 1)
@@ -296,6 +317,7 @@ class CallTracer:
     def _find_class_in_tree(
         self, tree: ast.Module, class_name: str
     ) -> Optional[ast.ClassDef]:
+        # pylint: disable=line-too-long
         """
         Find a class definition in an AST.
 
@@ -306,6 +328,7 @@ class CallTracer:
         Returns:
             Class definition node if found, None otherwise
         """
+        # pylint: enable=line-too-long
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef) and node.name == class_name:
                 return node
@@ -314,6 +337,7 @@ class CallTracer:
     def _extract_function_calls(
         self, func_node: ast.FunctionDef
     ) -> List[Dict[str, Any]]:
+        # pylint: disable=line-too-long
         """
         Extract all function calls from a function definition.
 
@@ -323,6 +347,7 @@ class CallTracer:
         Returns:
             List of dictionaries containing information about each function call
         """
+        # pylint: enable=line-too-long
         calls = []
 
         class CallVisitor(ast.NodeVisitor):
@@ -388,6 +413,7 @@ class CallTracer:
         current_file: str,
         current_class: Optional[str] = None,
     ) -> Dict[str, Any]:
+        # pylint: disable=line-too-long
         """
         Resolve a function call to its definition.
 
@@ -399,6 +425,7 @@ class CallTracer:
         Returns:
             Dictionary with information about the resolved function
         """
+        # pylint: enable=line-too-long
         call_type = call_info["type"]
         call_name = call_info["name"]
 
@@ -422,7 +449,17 @@ class CallTracer:
         return result
 
     def _initialize_result_dict(self, call_info: Dict[str, Any]) -> Dict[str, Any]:
-        """Initialize the result dictionary with call information."""
+        # pylint: disable=line-too-long
+        """
+        Initialize the result dictionary with call information.
+
+        Args:
+            call_info: Dictionary containing information about the function call
+
+        Returns:
+            Dictionary initialized with basic call information
+        """
+        # pylint: enable=line-too-long
         return {
             "name": call_info["name"],
             "type": call_info["type"],
@@ -437,7 +474,17 @@ class CallTracer:
     def _resolve_self_method_call(
         self, result: Dict[str, Any], call_name: str, current_file: str, current_class: str
     ) -> None:
-        """Resolve a self.method() call."""
+        # pylint: disable=line-too-long
+        """
+        Resolve a self.method() call.
+
+        Args:
+            result: Dictionary to store the resolution result
+            call_name: Name of the method being called
+            current_file: Path to the file containing the call
+            current_class: Name of the class containing the call
+        """
+        # pylint: enable=line-too-long
         tree = self._parse_file(current_file)
         class_node = self._find_class_in_tree(tree, current_class)
 
@@ -460,7 +507,17 @@ class CallTracer:
     def _resolve_self_attribute_method_call(
         self, result: Dict[str, Any], call_name: str, current_file: str, current_class: str
     ) -> None:
-        """Resolve a self.attribute.method() call."""
+        # pylint: disable=line-too-long
+        """
+        Resolve a self.attribute.method() call.
+
+        Args:
+            result: Dictionary to store the resolution result
+            call_name: Name of the attribute method being called (in the format "attribute.method")
+            current_file: Path to the file containing the call
+            current_class: Name of the class containing the call
+        """
+        # pylint: enable=line-too-long
         # Set the qualified name to include "self."
         result["qualified_name"] = f"self.{call_name}"
 
@@ -486,7 +543,18 @@ class CallTracer:
     def _resolve_known_attribute_type(
         self, result: Dict[str, Any], attr_type: str, method_name: str, tree, current_file: str
     ) -> None:
-        """Resolve method when attribute type is known."""
+        # pylint: disable=line-too-long
+        """
+        Resolve method when attribute type is known.
+
+        Args:
+            result: Dictionary to store the resolution result
+            attr_type: Type of the attribute
+            method_name: Name of the method being called
+            tree: AST of the current file
+            current_file: Path to the current file
+        """
+        # pylint: enable=line-too-long
         # If the attribute type is an imported class
         imports = self._find_imports(tree)
         if "." in attr_type and attr_type.split(".")[0] in imports:
@@ -508,7 +576,18 @@ class CallTracer:
         self, result: Dict[str, Any], attr_type: str, method_name: str, imports: Dict,
         current_file: str
     ) -> None:
-        """Resolve method from an imported class."""
+        # pylint: disable=line-too-long
+        """
+        Resolve method from an imported class.
+
+        Args:
+            result: Dictionary to store the resolution result
+            attr_type: Type of the attribute (in the format "module.class")
+            method_name: Name of the method being called
+            imports: Dictionary of imports in the current file
+            current_file: Path to the current file
+        """
+        # pylint: enable=line-too-long
         module_name = imports[attr_type.split(".")[0]]
         class_name = attr_type.split(".")[1]
         module_path = self._find_module_path(module_name)
@@ -525,7 +604,18 @@ class CallTracer:
     def _resolve_method_in_class_node(
         self, result: Dict[str, Any], class_node, method_name: str, file_path: str, class_name: str
     ) -> None:
-        """Find and resolve a method in a class node."""
+        # pylint: disable=line-too-long
+        """
+        Find and resolve a method in a class node.
+
+        Args:
+            result: Dictionary to store the resolution result
+            class_node: AST node of the class
+            method_name: Name of the method being called
+            file_path: Path to the file containing the class
+            class_name: Name of the class
+        """
+        # pylint: enable=line-too-long
         for node in class_node.body:
             if isinstance(node, ast.FunctionDef) and node.name == method_name:
                 result["file_path"] = file_path
@@ -541,7 +631,16 @@ class CallTracer:
     def _search_class_in_all_files(
         self, result: Dict[str, Any], attr_type: str, method_name: str
     ) -> None:
-        """Search for a class in all files and resolve its method."""
+        # pylint: disable=line-too-long
+        """
+        Search for a class in all files and resolve its method.
+
+        Args:
+            result: Dictionary to store the resolution result
+            attr_type: Type of the attribute (class name)
+            method_name: Name of the method being called
+        """
+        # pylint: enable=line-too-long
         # First check if we've already indexed this class
         if attr_type in self.class_file_map:
             class_file = self.class_file_map[attr_type]
@@ -559,7 +658,16 @@ class CallTracer:
     def _search_class_in_search_paths(
         self, result: Dict[str, Any], attr_type: str, method_name: str
     ) -> None:
-        """Search for a class in all search paths."""
+        # pylint: disable=line-too-long
+        """
+        Search for a class in all search paths.
+
+        Args:
+            result: Dictionary to store the resolution result
+            attr_type: Type of the attribute (class name)
+            method_name: Name of the method being called
+        """
+        # pylint: enable=line-too-long
         for search_path in self.search_paths:
             if self._search_class_in_path(result, attr_type, method_name, search_path):
                 break
@@ -567,7 +675,20 @@ class CallTracer:
     def _search_class_in_path(
         self, result: Dict[str, Any], attr_type: str, method_name: str, search_path: str
     ) -> bool:
-        """Search for a class in a specific path."""
+        # pylint: disable=line-too-long
+        """
+        Search for a class in a specific path.
+
+        Args:
+            result: Dictionary to store the resolution result
+            attr_type: Type of the attribute (class name)
+            method_name: Name of the method being called
+            search_path: Path to search in
+
+        Returns:
+            True if the class and method were found, False otherwise
+        """
+        # pylint: enable=line-too-long
         for root, _, files in os.walk(search_path):
             for file in files:
                 if file.endswith(".py"):
@@ -600,7 +721,18 @@ class CallTracer:
         self, result: Dict[str, Any], attr_name: str, method_name: str, current_class: str,
         current_file: str
     ) -> None:
-        """Resolve method when attribute type is unknown."""
+        # pylint: disable=line-too-long
+        """
+        Resolve method when attribute type is unknown.
+
+        Args:
+            result: Dictionary to store the resolution result
+            attr_name: Name of the attribute
+            method_name: Name of the method being called
+            current_class: Name of the class containing the call
+            current_file: Path to the file containing the call
+        """
+        # pylint: enable=line-too-long
         logger.warning(
             f"Could not determine type of attribute {attr_name} "
             f"in class {current_class}"
@@ -617,7 +749,19 @@ class CallTracer:
     def _search_method_in_current_file(
         self, result: Dict[str, Any], method_name: str, current_file: str
     ) -> bool:
-        """Search for a method in the current file."""
+        # pylint: disable=line-too-long
+        """
+        Search for a method in the current file.
+
+        Args:
+            result: Dictionary to store the resolution result
+            method_name: Name of the method being called
+            current_file: Path to the current file
+
+        Returns:
+            True if the method was found, False otherwise
+        """
+        # pylint: enable=line-too-long
         tree = self._parse_file(current_file)
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
@@ -637,14 +781,34 @@ class CallTracer:
         return False
 
     def _search_method_in_all_files(self, result: Dict[str, Any], method_name: str) -> None:
-        """Search for a method in all files."""
+        # pylint: disable=line-too-long
+        """
+        Search for a method in all files.
+
+        Args:
+            result: Dictionary to store the resolution result
+            method_name: Name of the method being called
+        """
+        # pylint: enable=line-too-long
         for search_path in self.search_paths:
             if self._search_method_in_path(result, method_name, search_path):
                 break
 
     def _search_method_in_path(self,
         result: Dict[str, Any], method_name: str, search_path: str) -> bool:
-        """Search for a method in a specific path."""
+        # pylint: disable=line-too-long
+        """
+        Search for a method in a specific path.
+
+        Args:
+            result: Dictionary to store the resolution result
+            method_name: Name of the method being called
+            search_path: Path to search in
+
+        Returns:
+            True if the method was found, False otherwise
+        """
+        # pylint: enable=line-too-long
         for root, _, files in os.walk(search_path):
             for file in files:
                 if file.endswith(".py"):
@@ -683,7 +847,16 @@ class CallTracer:
     def _resolve_direct_function_call(
         self, result: Dict[str, Any], call_name: str, current_file: str
     ) -> None:
-        """Resolve a direct function call."""
+        # pylint: disable=line-too-long
+        """
+        Resolve a direct function call.
+
+        Args:
+            result: Dictionary to store the resolution result
+            call_name: Name of the function being called
+            current_file: Path to the file containing the call
+        """
+        # pylint: enable=line-too-long
         # First, check if it's a function in the current file
         tree = self._parse_file(current_file)
         func_node = self._find_function_in_tree(tree, call_name)
@@ -704,7 +877,17 @@ class CallTracer:
     def _resolve_imported_or_external_function(
         self, result: Dict[str, Any], call_name: str, tree, current_file: str
     ) -> None:
-        """Resolve an imported function or search in external files."""
+        # pylint: disable=line-too-long
+        """
+        Resolve an imported function or search in external files.
+
+        Args:
+            result: Dictionary to store the resolution result
+            call_name: Name of the function being called
+            tree: AST of the current file
+            current_file: Path to the current file
+        """
+        # pylint: enable=line-too-long
         # Check if it's an imported function
         imports = self._find_imports(tree)
         if call_name in imports:
@@ -721,7 +904,16 @@ class CallTracer:
     def _resolve_imported_function(
         self, result: Dict[str, Any], call_name: str, imports: Dict
     ) -> None:
-        """Resolve an imported function."""
+        # pylint: disable=line-too-long
+        """
+        Resolve an imported function.
+
+        Args:
+            result: Dictionary to store the resolution result
+            call_name: Name of the function being called
+            imports: Dictionary of imports in the current file
+        """
+        # pylint: enable=line-too-long
         module_name = imports[call_name]
         module_path = self._find_module_path(module_name)
 
@@ -743,7 +935,16 @@ class CallTracer:
     def _resolve_attribute_call(
         self, result: Dict[str, Any], call_name: str, current_file: str
     ) -> None:
-        """Resolve an attribute call (module.func or obj.method)."""
+        # pylint: disable=line-too-long
+        """
+        Resolve an attribute call (module.func or obj.method).
+
+        Args:
+            result: Dictionary to store the resolution result
+            call_name: Name of the attribute call (in the format "module.func" or "obj.method")
+            current_file: Path to the file containing the call
+        """
+        # pylint: enable=line-too-long
         parts = call_name.split(".")
         module_or_obj = parts[0]
 
@@ -774,7 +975,17 @@ class CallTracer:
     def _resolve_module_function_call(
         self, result: Dict[str, Any], func_name: str, module_name: str, module_path: str
     ) -> None:
-        """Resolve a module.function call."""
+        # pylint: disable=line-too-long
+        """
+        Resolve a module.function call.
+
+        Args:
+            result: Dictionary to store the resolution result
+            func_name: Name of the function being called
+            module_name: Name of the module containing the function
+            module_path: Path to the module file
+        """
+        # pylint: enable=line-too-long
         module_tree = self._parse_file(module_path)
         if module_tree:
             func_node = self._find_function_in_tree(module_tree, func_name)
@@ -793,7 +1004,18 @@ class CallTracer:
         self, result: Dict[str, Any], class_name: str,
         method_name: str, module_name: str, module_path: str
     ) -> None:
-        """Resolve a module.class.method call."""
+        # pylint: disable=line-too-long
+        """
+        Resolve a module.class.method call.
+
+        Args:
+            result: Dictionary to store the resolution result
+            class_name: Name of the class containing the method
+            method_name: Name of the method being called
+            module_name: Name of the module containing the class
+            module_path: Path to the module file
+        """
+        # pylint: enable=line-too-long
         module_tree = self._parse_file(module_path)
         if module_tree:
             class_node = self._find_class_in_tree(module_tree, class_name)
@@ -814,6 +1036,7 @@ class CallTracer:
                         break
 
     def _search_function_in_paths(self, function_name: str) -> List[Dict[str, Any]]:
+        # pylint: disable=line-too-long
         """
         Search for a function in all files in the search paths.
 
@@ -823,6 +1046,7 @@ class CallTracer:
         Returns:
             List of dictionaries with information about matching functions
         """
+        # pylint: enable=line-too-long
         results = []
 
         # Skip the original source file to avoid circular references
@@ -912,6 +1136,7 @@ class CallTracer:
         file_path: str,
         class_name: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
+        # pylint: disable=line-too-long
         """
         Trace all function calls within a function.
 
@@ -923,6 +1148,7 @@ class CallTracer:
         Returns:
             List of dictionaries with information about each function call
         """
+        # pylint: enable=line-too-long
         # Extract all function calls
         calls = self._extract_function_calls(func_node)
 
@@ -935,6 +1161,7 @@ class CallTracer:
         return resolved_calls
 
     def _analyze_class_init(self, file_path: str, class_name: str) -> None:
+        # pylint: disable=line-too-long
         """
         Analyze a class's __init__ method to find attribute assignments.
 
@@ -942,6 +1169,7 @@ class CallTracer:
             file_path: Path to the file containing the class
             class_name: Name of the class to analyze
         """
+        # pylint: enable=line-too-long
         tree = self._parse_file(file_path)
         if not tree:
             return
@@ -988,6 +1216,7 @@ class CallTracer:
         self.class_attribute_map[f"{file_path}:{class_name}"] = class_attrs
 
     def trace(self, entry_point: str) -> Dict[str, Any]:
+        # pylint: disable=line-too-long
         """
         Trace function calls starting from an entry point.
 
@@ -997,6 +1226,7 @@ class CallTracer:
         Returns:
             Dictionary with the call tree
         """
+        # pylint: enable=line-too-long
         logger.info(f"Starting trace from entry point: {entry_point}")
 
         # Reset visited sets
@@ -1063,12 +1293,14 @@ class CallTracer:
         return root
 
     def display_trace(self, data: Dict[str, Any]) -> None:
+        # pylint: disable=line-too-long
         """
         Display the call tree in a human-readable format.
 
         Args:
-            trace_result: Dictionary with the call tree
+            data: Dictionary with the call tree
         """
+        # pylint: enable=line-too-long
         renderer_utils = RendererUtils(configuration=self._config)
         renderer = RendererFactory(configuration=self._config).get_renderer(
             module_name=renderer_utils.desired_renderer_module_name,

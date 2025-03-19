@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 """
 Configuration Management Module
 
@@ -15,6 +16,7 @@ Classes:
     Configuration: A configuration management class with methods for loading
     and accessing configuration values.
 """
+# pylint: enable=line-too-long
 
 from pathlib import Path
 import yaml
@@ -79,8 +81,8 @@ class Configuration:
         Returns:
             str: A formatted string representation of the configuration content.
         """
-
         # pylint: enable=line-too-long
+
         def dict_to_string(d, prefix: str = ""):
             if isinstance(d, dict):
                 return (
