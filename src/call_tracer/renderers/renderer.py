@@ -1,12 +1,47 @@
+# pylint: disable=line-too-long
+"""
+Utility classes for rendering data based on configuration settings.
+
+This module provides utilities for dynamically loading and instantiating renderer classes
+based on configuration. It includes a singleton RendererUtils class for accessing renderer
+configuration, a base RendererObject class that defines the interface for renderers, and
+a RendererFactory for creating renderer instances.
+"""
+# pylint: enable=line-too-long
 from typing import Any, Dict
 from common.configuration import Configuration
 from common.utilities import GenericUtils, LoggingUtils
 
-
 class RendererUtils:
+    # pylint: disable=line-too-long
+    """
+    Utility class for accessing renderer configuration.
+
+    This singleton class provides access to renderer-specific configuration values,
+    such as the desired renderer class name and module name. It ensures consistent
+    access to configuration throughout the application.
+    """
+    # pylint: enable=line-too-long
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
+        """
+        Implement the singleton pattern for the RendererUtils.
+
+        This method ensures that only one instance of the RendererUtils is created and returned
+        throughout the application's lifecycle.
+
+        Args:
+            cls: The class being instantiated.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            The singleton instance of the RendererUtils class.
+        """
+        # pylint: enable=line-too-long
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -54,19 +89,58 @@ class RendererUtils:
 
 
 class RendererObject:
+    # pylint: disable=line-too-long
+    """
+    Base class for all renderer objects.
+
+    This abstract class defines the interface that all renderer implementations must follow.
+    It provides common initialization for renderers and requires subclasses to implement
+    the render method.
+    """
+    # pylint: enable=line-too-long
+
     def __init__(
         self, configuration: Configuration, data: Dict[str, Any]
     ):
+        # pylint: disable=line-too-long
+        """
+        Initialize a renderer object with configuration and data.
+
+        Args:
+            configuration: Configuration object containing settings for the renderer.
+            data: Dictionary containing the data to be rendered.
+        """
+        # pylint: enable=line-too-long
         self._logging_utils = LoggingUtils()
         self._renderer_utils = RendererUtils(configuration=configuration)
         self._config = configuration
         self.data = data
 
     def render(self):
+        # pylint: disable=line-too-long
+        """
+        Render the data according to the implementation in subclasses.
+
+        This is an abstract method that must be implemented by subclasses.
+
+        Raises:
+            NotImplementedError: If the subclass does not implement this method.
+        """
+        # pylint: enable=line-too-long
         raise NotImplementedError("Subclasses must implement the render method")
 
 
 class RendererFactory:
+    # pylint: disable=line-too-long
+    """
+    Factory class for creating renderer instances.
+
+    This singleton class is responsible for dynamically loading and instantiating renderer classes
+    based on provided module and class names. It uses reflection to create the appropriate renderer
+    for the given data.
+    """
+    # pylint: enable=line-too-long
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
@@ -106,17 +180,19 @@ class RendererFactory:
         self, module_name: str, class_name: str, data: Dict[str, Any]
     ) -> RendererObject:
         # pylint: disable=line-too-long
-        """Dynamically load and instantiate a formatter based on module and class names.
+        """
+        Dynamically load and instantiate a renderer based on module and class names.
 
-        This method uses reflection to load a formatter class from a specified module
-        and create an instance with the current configuration.
+        This method uses reflection to load a renderer class from a specified module
+        and create an instance with the current configuration and data.
 
         Args:
-            module_name: Name of the module containing the formatter class.
-            class_name: Name of the formatter class to instantiate.
+            module_name: Name of the module containing the renderer class.
+            class_name: Name of the renderer class to instantiate.
+            data: Dictionary containing the data to be rendered.
 
         Returns:
-            An instance of the specified formatter class.
+            An instance of the specified renderer class.
 
         Raises:
             ImportError: If the module cannot be imported.

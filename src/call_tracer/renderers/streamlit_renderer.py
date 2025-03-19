@@ -1,3 +1,13 @@
+# pylint: disable=line-too-long
+"""
+A Streamlit application for visualizing Python method call trees from a JSON file.
+
+This module provides a user interface to explore and navigate through function call hierarchies,
+displaying details about each function call node. The application loads a JSON file containing
+function call data and renders it as an interactive tree structure.
+"""
+# pylint: enable=line-too-long
+
 import sys
 import json
 from typing import Dict, Any
@@ -5,8 +15,29 @@ import streamlit as st
 
 
 class StreamlitRenderer:
+    # pylint: disable=line-too-long
+    """
+    A class that renders a Python method call tree in a Streamlit application.
+
+    This class loads function call data from a JSON file and creates an interactive UI to explore
+    the call hierarchy. Users can expand/collapse nodes, select nodes to view details, and navigate
+    through the call tree.
+
+    Attributes:
+        json_file_path (str): Path to the JSON file containing the function call data.
+        data (Dict[str, Any]): The loaded JSON data representing the function call tree.
+    """
+    # pylint: enable=line-too-long
+
     def __init__(self, json_file_path: str):
-        """Initialize the StreamlitRenderer with the path to the JSON file."""
+        # pylint: disable=line-too-long
+        """
+        Initialize the StreamlitRenderer with the path to the JSON file.
+
+        Args:
+            json_file_path (str): Path to the JSON file containing the function call data.
+        """
+        # pylint: enable=line-too-long
         self.json_file_path = json_file_path
         self.data = self._load_json()
 
@@ -22,7 +53,17 @@ class StreamlitRenderer:
                 st.session_state.expanded_nodes.add(key)
 
     def _load_json(self) -> Dict[str, Any]:
-        """Load the JSON data from the file."""
+        # pylint: disable=line-too-long
+        """
+        Load the JSON data from the file.
+
+        Returns:
+            Dict[str, Any]: The loaded JSON data as a dictionary. Returns an empty dictionary if loading fails.
+
+        Raises:
+            Exception: Displays an error message in the Streamlit UI if the JSON file cannot be loaded.
+        """
+        # pylint: enable=line-too-long
         try:
             with open(self.json_file_path, "r", encoding="utf-8") as f:
                 return json.load(f)
@@ -31,21 +72,45 @@ class StreamlitRenderer:
             return {}
 
     def toggle_node(self, node_id: str):
-        """Toggle the expanded/collapsed state of a node."""
+        # pylint: disable=line-too-long
+        """
+        Toggle the expanded/collapsed state of a node.
+
+        Args:
+            node_id (str): The ID of the node to toggle.
+        """
+        # pylint: enable=line-too-long
         if node_id in st.session_state.expanded_nodes:
             st.session_state.expanded_nodes.remove(node_id)
         else:
             st.session_state.expanded_nodes.add(node_id)
 
     def select_node(self, node_id: str):
-        """Select a node to display its details."""
+        # pylint: disable=line-too-long
+        """
+        Select a node to display its details.
+
+        Args:
+            node_id (str): The ID of the node to select.
+        """
+        # pylint: enable=line-too-long
         st.session_state.selected_node = node_id
 
     def _get_node_details(self, node_id: str) -> str:
+        # pylint: disable=line-too-long
         """
-        External function to get details about a node.
-        This would be replaced with actual implementation.
+        Get detailed information about a specific node.
+
+        This function searches for the node in the data structure and returns formatted details
+        about the node if found.
+
+        Args:
+            node_id (str): The ID of the node to get details for.
+
+        Returns:
+            str: Formatted markdown string containing the node details.
         """
+        # pylint: enable=line-too-long
         # Find the node in the data
         for key, value in self.data.items():
             if key == node_id:
@@ -79,7 +144,19 @@ class StreamlitRenderer:
         return f"# No details found for node: {node_id}"
 
     def _render_tree_node(self, key: str, value: Dict[str, Any], level: int = 0):
-        """Render a tree node and its children recursively."""
+        # pylint: disable=line-too-long
+        """
+        Render a tree node and its children recursively.
+
+        This function creates the UI elements for each node in the tree, including buttons for
+        expanding/collapsing nodes and selecting nodes to view details.
+
+        Args:
+            key (str): The key or name of the node.
+            value (Dict[str, Any]): The data associated with the node.
+            level (int, optional): The indentation level of the node. Defaults to 0.
+        """
+        # pylint: enable=line-too-long
         indent = "  " * level
 
         # For the root node
@@ -125,7 +202,13 @@ class StreamlitRenderer:
                 self.select_node(key)
 
     def _create_menu(self):
-        """Create the menu bar with File submenu."""
+        # pylint: disable=line-too-long
+        """
+        Create the menu bar with File submenu.
+
+        This function creates a simple menu in the sidebar with options like "Close" to exit the application.
+        """
+        # pylint: enable=line-too-long
         menu = st.sidebar.selectbox("Menu", ["File"])
 
         if menu == "File":
@@ -133,7 +216,14 @@ class StreamlitRenderer:
                 st.stop()
 
     def render(self):
-        """Main rendering function for the Streamlit app."""
+        # pylint: disable=line-too-long
+        """
+        Main rendering function for the Streamlit app.
+
+        This function sets up the overall layout of the application, including the title, menu,
+        function call tree, and node details panel.
+        """
+        # pylint: enable=line-too-long
         st.title("Python Method Call Tree Viewer")
 
         # Create the menu

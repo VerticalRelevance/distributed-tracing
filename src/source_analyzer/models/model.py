@@ -30,7 +30,8 @@ TEMPERATURE_DEFAULT = 0.0
 
 class ModelException(Exception):
     # pylint: disable=line-too-long
-    """Base exception class for model-related errors.
+    """
+    Base exception class for model-related errors.
 
     This exception hides AWS implementation details from users of the model classes.
     """
@@ -47,7 +48,8 @@ class ModelException(Exception):
 
 class ModelMaxTokenLimitException(ModelException):
     # pylint: disable=line-too-long
-    """Exception raised when the model's token limit is exceeded.
+    """
+    Exception raised when the model's token limit is exceeded.
 
     This exception provides details about the token limits and actual token usage that caused the error.
     """
@@ -70,7 +72,8 @@ class ModelMaxTokenLimitException(ModelException):
 
 class ModelObject:
     # pylint: disable=line-too-long
-    """Base class for AI model objects that interact with language models.
+    """
+    Base class for AI model objects that interact with language models.
 
     This class provides common functionality for model interactions, including
     configuration management, token counting, and error handling. It implements
@@ -87,7 +90,8 @@ class ModelObject:
 
     def __init__(self, configuration: Configuration) -> None:
         # pylint: disable=line-too-long
-        """Initialize a ModelObject with the given configuration.
+        """
+        Initialize a ModelObject with the given configuration.
 
         Args:
             configuration: Configuration object containing model settings and parameters
@@ -110,7 +114,8 @@ class ModelObject:
 
     def generate_text(self, prompt: str) -> str:
         # pylint: disable=line-too-long
-        """Generate text based on the provided prompt.
+        """
+        Generate text based on the provided prompt.
 
         Args:
             prompt: The input text to generate a response for
@@ -124,7 +129,8 @@ class ModelObject:
     @property
     def max_llm_tries(self) -> int:
         # pylint: disable=line-too-long
-        """Get the maximum number of retries for LLM API calls.
+        """
+        Get the maximum number of retries for LLM API calls.
 
         Returns:
             The maximum number of retries configured for LLM API calls
@@ -159,7 +165,8 @@ class ModelObject:
     @property
     def model_client(self) -> boto3.client:
         # pylint: disable=line-too-long
-        """Get the boto3 client for interacting with AWS Bedrock.
+        """
+        Get the boto3 client for interacting with AWS Bedrock.
 
         Returns:
             A configured boto3 client for bedrock-runtime with appropriate region settings
@@ -176,7 +183,8 @@ class ModelObject:
     @property
     def completion_tokens(self) -> int:
         # pylint: disable=line-too-long
-        """Get the count of completion tokens used in the current or most recent request.
+        """
+        Get the count of completion tokens used in the current or most recent request.
 
         Returns:
             The number of completion tokens
@@ -186,7 +194,8 @@ class ModelObject:
 
     def increment_completion_tokens(self, value: int) -> None:
         # pylint: disable=line-too-long
-        """Increment the completion token count by the specified value.
+        """
+        Increment the completion token count by the specified value.
 
         Args:
             value: The number of tokens to add to the completion token count
@@ -197,7 +206,8 @@ class ModelObject:
     @completion_tokens.setter
     def completion_tokens(self, value: int) -> None:
         # pylint: disable=line-too-long
-        """Set the completion token count to the specified value.
+        """
+        Set the completion token count to the specified value.
 
         Args:
             value: The new completion token count
@@ -208,7 +218,8 @@ class ModelObject:
     @property
     def prompt_tokens(self) -> int:
         # pylint: disable=line-too-long
-        """Get the count of prompt tokens used in the current or most recent request.
+        """
+        Get the count of prompt tokens used in the current or most recent request.
 
         Returns:
             The number of prompt tokens
@@ -218,7 +229,8 @@ class ModelObject:
 
     def increment_prompt_tokens(self, value: int) -> None:
         # pylint: disable=line-too-long
-        """Increment the prompt token count by the specified value.
+        """
+        Increment the prompt token count by the specified value.
 
         Args:
             value: The number of tokens to add to the prompt token count
@@ -229,7 +241,8 @@ class ModelObject:
     @prompt_tokens.setter
     def prompt_tokens(self, value: int) -> None:
         # pylint: disable=line-too-long
-        """Set the prompt token count to the specified value.
+        """
+        Set the prompt token count to the specified value.
 
         Args:
             value: The new prompt token count
@@ -239,7 +252,8 @@ class ModelObject:
 
     def reset_tokens(self) -> None:
         # pylint: disable=line-too-long
-        """Reset both completion and prompt token counters to zero.
+        """
+        Reset both completion and prompt token counters to zero.
 
         This method should be called before starting a new model interaction to ensure accurate token counting.
         """
@@ -250,7 +264,8 @@ class ModelObject:
     @property
     def max_completion_tokens(self) -> int:
         # pylint: disable=line-too-long
-        """Get the maximum number of completion tokens allowed for the model.
+        """
+        Get the maximum number of completion tokens allowed for the model.
 
         Returns:
             The maximum number of completion tokens
@@ -265,7 +280,8 @@ class ModelObject:
     @property
     def model_id(self) -> str:
         # pylint: disable=line-too-long
-        """Get the model ID used for API calls.
+        """
+        Get the model ID used for API calls.
 
         Returns:
             The model ID
@@ -279,7 +295,8 @@ class ModelObject:
     @property
     def model_name(self) -> str:
         # pylint: disable=line-too-long
-        """Get the human-readable model name.
+        """
+        Get the human-readable model name.
 
         Returns:
             The model name
@@ -293,7 +310,8 @@ class ModelObject:
     @property
     def model_vendor(self) -> str:
         # pylint: disable=line-too-long
-        """Get the model vendor name.
+        """
+        Get the model vendor name.
 
         Returns:
             The model vendor
@@ -307,7 +325,8 @@ class ModelObject:
     @property
     def retry_delay(self) -> int:
         # pylint: disable=line-too-long
-        """Get the delay between retry attempts in seconds.
+        """
+        Get the delay between retry attempts in seconds.
 
         Returns:
             The retry delay in seconds
@@ -341,7 +360,8 @@ class ModelObject:
     @property
     def temperature(self) -> float:
         # pylint: disable=line-too-long
-        """Get the temperature setting for the model.
+        """
+        Get the temperature setting for the model.
 
         The temperature controls randomness in the model's output. Higher values (closer to 1.0) make output
         more random, while lower values (closer to 0.0) make output more deterministic.
@@ -377,7 +397,8 @@ class ModelObject:
     @property
     def stop_max_tokens_reasons(self) -> int:
         # pylint: disable=line-too-long
-        """Get the maximum number of stop reasons allowed for the model.
+        """
+        Get the maximum number of stop reasons allowed for the model.
 
         Returns:
             The maximum number of stop reasons
@@ -404,7 +425,8 @@ class ModelObject:
     @stop_max_tokens_reasons.setter
     def stop_max_tokens_reasons(self, stop_max_reasons: int) -> None:
         # pylint: disable=line-too-long
-        """Set the maximum number of stop reasons allowed for the model.
+        """
+        Set the maximum number of stop reasons allowed for the model.
 
         Args:
             stop_max_reasons: The maximum number of stop reasons
@@ -416,7 +438,8 @@ class ModelObject:
     @property
     def stop_valid_reasons(self) -> List[str]:
         # pylint: disable=line-too-long
-        """Get the list of valid stop reasons for the model.
+        """
+        Get the list of valid stop reasons for the model.
 
         Stop reasons indicate why the model stopped generating text (e.g., reaching a token limit,
         encountering a stop sequence, etc.).
@@ -448,7 +471,8 @@ class ModelObject:
     @property
     def stopped_reason(self) -> str:
         # pylint: disable=line-too-long
-        """Get the reason why the model stopped generating text in the most recent request.
+        """
+        Get the reason why the model stopped generating text in the most recent request.
 
         Returns:
             The stop reason string
@@ -459,7 +483,8 @@ class ModelObject:
     @stopped_reason.setter
     def stopped_reason(self, stopped_reason: str) -> None:
         # pylint: disable=line-too-long
-        """Set the reason why the model stopped generating text.
+        """
+        Set the reason why the model stopped generating text.
 
         Args:
             stopped_reason: The stop reason string
@@ -470,7 +495,8 @@ class ModelObject:
     @property
     def completion_json(self) -> Dict[str, str]:
         # pylint: disable=line-too-long
-        """Get the JSON response from the model completion.
+        """
+        Get the JSON response from the model completion.
 
         Returns:
             The completion response as a dictionary
@@ -481,7 +507,8 @@ class ModelObject:
     @completion_json.setter
     def completion_json(self, completion_json: Dict[str, str]) -> None:
         # pylint: disable=line-too-long
-        """Set the JSON response from the model completion.
+        """
+        Set the JSON response from the model completion.
 
         Args:
             completion_json: The completion response as a dictionary
@@ -492,7 +519,8 @@ class ModelObject:
 
 class ModelFactory:
     # pylint: disable=line-too-long
-    """Factory class for creating model objects based on configuration.
+    """
+    Factory class for creating model objects based on configuration.
 
     This class implements the singleton pattern to ensure only one factory instance exists.
     It dynamically loads and instantiates model classes based on provided module and class names.
@@ -503,7 +531,8 @@ class ModelFactory:
 
     def __new__(cls, *args, **kwargs):
         # pylint: disable=line-too-long
-        """Create a new instance of ModelFactory or return the existing instance.
+        """
+        Create a new instance of ModelFactory or return the existing instance.
 
         This method implements the singleton pattern, ensuring that only one instance of the ModelFactory
         class is created.
@@ -523,7 +552,8 @@ class ModelFactory:
 
     def __init__(self, configuration: Configuration):
         # pylint: disable=line-too-long
-        """Initialize the ModelFactory with the given configuration.
+        """
+        Initialize the ModelFactory with the given configuration.
 
         Args:
             configuration: Configuration object containing model settings and parameters
@@ -534,7 +564,8 @@ class ModelFactory:
 
     def get_model(self, module_name: str, class_name: str) -> ModelObject:
         # pylint: disable=line-too-long
-        """Create and return a model object of the specified type.
+        """
+        Create and return a model object of the specified type.
 
         This method dynamically loads the specified model class and instantiates it with the
         current configuration.

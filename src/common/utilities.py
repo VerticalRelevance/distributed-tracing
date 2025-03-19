@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 """
 A collection of utility classes providing various helper methods for application functionality.
 
@@ -17,6 +18,7 @@ Classes:
     DirUtils: File and directory management operations
     GenericUtils: General utility methods for serialization and environment handling
 """
+# pylint: enable=line-too-long
 
 # TODO break up into separate modules
 
@@ -37,7 +39,16 @@ from common.custom_logger_trace import CustomLoggerTrace  # pylint: disable=unus
 
 
 class MissingEnvironmentVariable(Exception):
-    """Custom exception for missing log stderr filename."""
+    # pylint: disable=line-too-long
+    """
+    Custom exception for missing log stderr filename.
+
+    This exception is raised when a required environment variable is not found.
+
+    Attributes:
+        _env_var_name (str): The name of the missing environment variable.
+    """
+    # pylint: enable=line-too-long
 
     def __init__(self, env_var_name):
         super().__init__(f"Missing environment variable '{env_var_name}'")
@@ -47,6 +58,7 @@ class MissingEnvironmentVariable(Exception):
         return f"Missing environment variable '{self._env_var_name}'"
 
 class CtxMgrUtils:
+    # pylint: disable=line-too-long
     """
     A singleton utility class providing context managers for time measurement and
     performance monitoring.
@@ -106,17 +118,19 @@ class CtxMgrUtils:
         - The context manager is reentrant and can be nested
         - The singleton pattern ensures consistent timing across the application
     """
+    # pylint: enable=line-too-long
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
         """
         Creates and returns a singleton instance of the class.
 
         This method ensures that only one instance of the class is created
         throughout the application, implementing the singleton design pattern.
 
-        Parameters:
+        Args:
             cls (type): The class being instantiated.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
@@ -124,12 +138,14 @@ class CtxMgrUtils:
         Returns:
             CtxMgrUtils: The singleton instance of the class.
         """
+        # pylint: enable=line-too-long
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     @contextmanager
     def elapsed_timer(self):
+        # pylint: disable=line-too-long
         """
         A context manager that measures the elapsed time of a code block.
 
@@ -145,6 +161,7 @@ class CtxMgrUtils:
                 time.sleep(1)
             print(f"Operation took {timer():.2f} seconds")
         """
+        # pylint: enable=line-too-long
         start = default_timer()
 
         def elapsed_keeper():
@@ -243,18 +260,19 @@ class LoggingUtils:
         - Exception stack traces can be included via exc_info parameter
         - Logging levels follow standard Python logging hierarchy
     """
-    # pylint: disable=line-too-long
+    # pylint: enable=line-too-long
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
         """
         Creates and returns a singleton instance of the class.
 
         This method ensures that only one instance of the class is created
         throughout the application, implementing the singleton design pattern.
 
-        Parameters:
+        Args:
             cls (type): The class being instantiated.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
@@ -262,17 +280,20 @@ class LoggingUtils:
         Returns:
             LoggingUtils: The singleton instance of the class.
         """
+        # pylint: enable=line-too-long
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self):
+        # pylint: disable=line-too-long
         """
         Initializes the class instance by configuring log levels for various libraries.
 
         Sets critical log levels for boto3, botocore, urllib3, httpcore, and httpx to
         suppress verbose logging from these libraries.
         """
+        # pylint: enable=line-too-long
         logging.getLogger("boto3").setLevel(logging.CRITICAL)
         logging.getLogger("botocore").setLevel(logging.CRITICAL)
         logging.getLogger("urllib3").setLevel(logging.CRITICAL)
@@ -282,14 +303,17 @@ class LoggingUtils:
     def debug(
         self, name: str, msg: str, exc_info: bool = False, enable_pformat: bool = False
     ) -> None:
+        # pylint: disable=line-too-long
         """
         Logs a debug message to the stderr stream.
 
-        Parameters:
+        Args:
             name (str): The name of the logger.
             msg (str): The debug message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
+            enable_pformat (bool, optional): Whether to pretty-format the message. Defaults to False.
         """
+        # pylint: enable=line-too-long
         self.get_stderr_logger(name).debug(
             (pformat(msg) if enable_pformat else msg), exc_info=exc_info
         )
@@ -297,14 +321,17 @@ class LoggingUtils:
     def debug_info(
         self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
     ) -> None:
+        # pylint: disable=line-too-long
         """
         Sends a message to the debug and info loggers.
 
-        Parameters:
+        Args:
             name (str): The name of the logger.
             msg (str): The debug message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
+            enable_pformat (bool, optional): Whether to pretty-format the message. Defaults to False.
         """
+        # pylint: enable=line-too-long
         self.get_stderr_logger(name).debug(
             pformat(msg) if enable_pformat else msg, exc_info=exc_info
         )
@@ -315,14 +342,17 @@ class LoggingUtils:
     def error(
         self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
     ) -> None:
+        # pylint: disable=line-too-long
         """
         Logs an error message to the stderr stream.
 
-        Parameters:
+        Args:
             name (str): The name of the logger.
             msg (str): The error message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
+            enable_pformat (bool, optional): Whether to pretty-format the message. Defaults to False.
         """
+        # pylint: enable=line-too-long
         self.get_stderr_logger(name).error(
             pformat(msg) if enable_pformat else msg, exc_info=exc_info
         )
@@ -330,14 +360,17 @@ class LoggingUtils:
     def info(
         self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
     ) -> None:
+        # pylint: disable=line-too-long
         """
         Logs an informational message to the stdout stream.
 
-        Parameters:
+        Args:
             name (str): The name of the logger.
             msg (str): The informational message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
+            enable_pformat (bool, optional): Whether to pretty-format the message. Defaults to False.
         """
+        # pylint: enable=line-too-long
         self.get_stdout_logger(name).info(
             pformat(msg) if enable_pformat else msg, exc_info=exc_info
         )
@@ -345,14 +378,17 @@ class LoggingUtils:
     def success(
         self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
     ) -> None:
+        # pylint: disable=line-too-long
         """
         Logs a success message to the stdout stream.
 
-        Parameters:
+        Args:
             name (str): The name of the logger.
             msg (str): The success message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
+            enable_pformat (bool, optional): Whether to pretty-format the message. Defaults to False.
         """
+        # pylint: enable=line-too-long
         self.get_stdout_logger(name).success(
             pformat(msg) if enable_pformat else msg, exc_info=exc_info
         )
@@ -360,14 +396,17 @@ class LoggingUtils:
     def trace(
         self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
     ) -> None:
+        # pylint: disable=line-too-long
         """
         Logs a trace message to the stderr stream.
 
-        Parameters:
+        Args:
             name (str): The name of the logger.
             msg (str): The debug message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
+            enable_pformat (bool, optional): Whether to pretty-format the message. Defaults to False.
         """
+        # pylint: enable=line-too-long
         self.get_stderr_logger(name).trace(
             pformat(msg) if enable_pformat else msg, exc_info=exc_info
         )
@@ -375,31 +414,36 @@ class LoggingUtils:
     def warning(
         self, name: str, msg: str, exc_info=False, enable_pformat: bool = False
     ) -> None:
+        # pylint: disable=line-too-long
         """
         Logs a warning message to the stdout stream.
 
-        Parameters:
+        Args:
             name (str): The name of the logger.
             msg (str): The warning message to log.
             exc_info (bool, optional): Whether to include exception information. Defaults to False.
+            enable_pformat (bool, optional): Whether to pretty-format the message. Defaults to False.
         """
+        # pylint: enable=line-too-long
         self.get_stdout_logger(name).warning(
             pformat(msg) if enable_pformat else msg, exc_info=exc_info
         )
 
     def get_stdout_logger(self, name: str) -> logging.Logger:
+        # pylint: disable=line-too-long
         """
         Creates and retrieves a logger that outputs to the stdout stream.
 
         The logger's level is determined by the LOG_LEVEL_STDOUT environment variable,
         defaulting to the SUCCESS level if not specified.
 
-        Parameters:
+        Args:
             name (str): The name of the logger.
 
         Returns:
             logging.Logger: A configured logger for standard output.
         """
+        # pylint: enable=line-too-long
         logger: logging.Logger = logging.getLogger(f"{name}.stdout")
         if not logger.handlers:
             logger_level = os.getenv("LOG_LEVEL_STDOUT", "SUCCESS").upper()
@@ -416,6 +460,7 @@ class LoggingUtils:
         return logger
 
     def get_stderr_logger(self, name: str) -> logging.Logger:
+        # pylint: disable=line-too-long
         """
         Creates or retrieves a logger for stderr stream.
 
@@ -427,7 +472,11 @@ class LoggingUtils:
 
         Returns:
             logging.Logger: Configured logger for stderr
+
+        Raises:
+            MissingEnvironmentVariable: If LOG_FILE_STDERR environment variable is not set
         """
+        # pylint: enable=line-too-long
         logger = logging.getLogger(f"{name}.stderr")
         if not logger.handlers:
             logger_level = os.getenv(
@@ -449,6 +498,7 @@ class LoggingUtils:
         return logger
 
     def is_stderr_logger_level(self, name: str, level: str) -> bool:
+        # pylint: disable=line-too-long
         """
         Checks if the stderr logger is set to a specific logging level.
 
@@ -459,12 +509,14 @@ class LoggingUtils:
         Returns:
             bool: True if logger's effective level matches specified level
         """
+        # pylint: enable=line-too-long
         if self.get_stderr_logger(name).getEffectiveLevel() == level:
             return True
         return False
 
 
 class PathUtils:
+    # pylint: disable=line-too-long
     """
     A singleton utility class for file system operations and path management.
 
@@ -526,17 +578,19 @@ class PathUtils:
         - Logging is implemented for file reading operations
         - Path existence checks are performed before type validation
     """
+    # pylint: enable=line-too-long
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
         """
         Creates and returns a singleton instance of the PathUtils class.
 
         This method ensures that only one instance of the PathUtils class is created
         throughout the application, implementing the singleton design pattern.
 
-        Parameters:
+        Args:
             cls (type): The class being instantiated.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
@@ -544,51 +598,59 @@ class PathUtils:
         Returns:
             PathUtils: The singleton instance of the PathUtils class.
         """
+        # pylint: enable=line-too-long
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def is_dir(self, check_path: str) -> bool:
+        # pylint: disable=line-too-long
         """
         Checks if the given path is a directory.
 
-        Parameters:
+        Args:
             check_path (str): The path to check.
 
         Returns:
             bool: True if the path is a directory, False otherwise.
         """
+        # pylint: enable=line-too-long
         return Path.is_dir(Path(check_path))
 
     def is_file(self, check_path: str) -> bool:
+        # pylint: disable=line-too-long
         """
         Checks if the given path is a file.
 
-        Parameters:
+        Args:
             check_path (str): The path to check.
 
         Returns:
             bool: True if the path is a file, False otherwise.
         """
+        # pylint: enable=line-too-long
         return Path.is_file(Path(check_path))
 
     def path_exists(self, check_path: str) -> bool:
+        # pylint: disable=line-too-long
         """
         Checks if the given path exists.
 
-        Parameters:
+        Args:
             check_path (str): The path to check.
 
         Returns:
             bool: True if the path exists, False otherwise.
         """
+        # pylint: enable=line-too-long
         return Path.exists(check_path)
 
     def directory_exists(self, check_path) -> bool:
+        # pylint: disable=line-too-long
         """
         Checks if a directory exists at the specified path.
 
-        Parameters:
+        Args:
             check_path (str): The path to check.
 
         Returns:
@@ -597,16 +659,18 @@ class PathUtils:
         Raises:
             ValueError: If the path exists but is not a directory.
         """
+        # pylint: enable=line-too-long
         if self.path_exists(check_path):
             if not self.is_dir(check_path):
                 raise ValueError(f"Path '{check_path}' is not a directory.")
         return self.path_exists(check_path)
 
     def file_exists(self, check_path) -> bool:
+        # pylint: disable=line-too-long
         """
         Checks if a file exists at the specified path.
 
-        Parameters:
+        Args:
             check_path (str): The path to the file.
 
         Returns:
@@ -615,21 +679,24 @@ class PathUtils:
         Raises:
             ValueError: If the path exists but is not a file.
         """
+        # pylint: enable=line-too-long
         if self.path_exists(check_path):
             if not self.is_file(check_path):
                 raise ValueError(f"Path '{check_path}' is not a file.")
         return Path.exists(check_path)
 
     def get_ascii_file_contents(self, source_path: str) -> str:
+        # pylint: disable=line-too-long
         """
         Reads and returns the contents of a file using UTF-8 encoding.
 
-        Parameters:
+        Args:
             source_path (str): The path to the file to read.
 
         Returns:
             str: The contents of the file as a string.
         """
+        # pylint: enable=line-too-long
         LoggingUtils().trace(__class__.__name__, "start get_source_code")
         with open(source_path, "r", encoding="utf-8") as file:
             source_code = file.read()
@@ -639,6 +706,7 @@ class PathUtils:
 
 
 class GenericUtils:
+    # pylint: disable=line-too-long
     """
     A singleton utility class providing general-purpose functionality for dynamic class loading
     and boolean value interpretation.
@@ -693,17 +761,19 @@ class GenericUtils:
         - String comparisons for truthy values are case-insensitive
         - Whitespace is stripped from truthy value inputs
     """
+    # pylint: enable=line-too-long
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
         """
         Creates and returns a singleton instance of the GenericUtils class.
 
         This method ensures that only one instance of the GenericUtils class is created
         throughout the application, implementing the singleton design pattern.
 
-        Parameters:
+        Args:
             cls (type): The class being instantiated.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
@@ -711,6 +781,7 @@ class GenericUtils:
         Returns:
             Utilities: The singleton instance of the GenericUtils class.
         """
+        # pylint: enable=line-too-long
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -718,6 +789,7 @@ class GenericUtils:
     def load_class(
         self, module_name: str, class_name: str, package_name: str
     ) -> object:
+        # pylint: disable=line-too-long
         """
         Dynamically loads a class from a specified module and package.
 
@@ -726,7 +798,7 @@ class GenericUtils:
         found and an AttributeError if the class does not exist within the
         module.
 
-        Parameters:
+        Args:
             module_name (str): The name of the module to import.
             class_name (str): The name of the class to retrieve.
             package_name (str): The package name to use for relative imports.
@@ -738,6 +810,7 @@ class GenericUtils:
             ImportError: If the module cannot be imported.
             AttributeError: If the class cannot be found in the module.
         """
+        # pylint: enable=line-too-long
         try:
             module = importlib.import_module(module_name, package_name)
             return getattr(module, class_name)
@@ -749,12 +822,13 @@ class GenericUtils:
             ) from ae
 
     def is_truthy(self, value: str) -> bool:
+        # pylint: disable=line-too-long
         """
         Determines if a value is considered "truthy".
 
         Checks if the value is equivalent to common truthy representations like "1", "true", "yes".
 
-        Parameters:
+        Args:
             value (str): The value to check for truthiness.
 
         Returns:
@@ -769,6 +843,7 @@ class GenericUtils:
             >>> utils.is_truthy("false")
             False
         """
+        # pylint: enable=line-too-long
         # If no value exists, return True
         if value is None:
             return True
@@ -781,6 +856,7 @@ class GenericUtils:
 
 
 class ModelUtils:
+    # pylint: disable=line-too-long
     """
     A utility class for managing AI model configuration and AWS region settings.
 
@@ -832,14 +908,20 @@ class ModelUtils:
         - Values are lazily loaded when first accessed
         - Region configuration follows AWS standard region format
     """
+    # pylint: enable=line-too-long
 
     def __init__(self, configuration: Configuration):
+        # pylint: disable=line-too-long
         """
         Initializes the SourceCodeAnalyzerUtils with default None values.
 
         The actual values will be lazily loaded when the respective getter
         methods are called for the first time.
+
+        Args:
+            configuration (Configuration): The configuration object to use for retrieving settings.
         """
+        # pylint: enable=line-too-long
         self._config: Configuration = configuration
 
     @property
@@ -874,6 +956,7 @@ class ModelUtils:
 
     @property
     def region_name(self) -> str:
+        # pylint: disable=line-too-long
         """
         Retrieves the AWS region name.
 
@@ -888,6 +971,7 @@ class ModelUtils:
             >>> region = utils.get_region_name()
             # Returns 'us-west-2' if AWS_REGION is not set, or uses the env value
         """
+        # pylint: enable=line-too-long
         return os.getenv(
             # "AWS_REGION", self._config.str_value("aws").get("region", "us-west-2")
             "AWS_REGION", self._config.str_value("aws.region", "us-west-2")
@@ -895,6 +979,7 @@ class ModelUtils:
 
 
 class JsonUtils:
+    # pylint: disable=line-too-long
     """
     A utility class for JSON-related operations with singleton pattern implementation.
 
@@ -936,17 +1021,19 @@ class JsonUtils:
         - datetime: For datetime handling
         - LoggingUtils: For logging functionality
     """
+    # pylint: enable=line-too-long
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
         """
         Creates and returns a singleton instance of the JsonUtils class.
 
         This method ensures that only one instance of the class is created
         throughout the application, implementing the singleton design pattern.
 
-        Parameters:
+        Args:
             cls (type): The class being instantiated.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
@@ -954,28 +1041,38 @@ class JsonUtils:
         Returns:
             CtxMgrUtils: The singleton instance of the JsonUtils class.
         """
+        # pylint: enable=line-too-long
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self):
+        # pylint: disable=line-too-long
         """
         Initializes the JsonUtils class.
         """
+        # pylint: enable=line-too-long
         self._logging_utils = LoggingUtils()
 
     def json_loads(self, json_string: str):
-        # pylint: enable=line-too-long
+        # pylint: disable=line-too-long
         """
         Deserializes a JSON formatted string to a Python object.
 
         This method takes a JSON formatted string as input and deserializes
         it to a Python dictionary
+
+        Args:
+            json_string (str): The JSON string to deserialize.
+
+        Returns:
+            dict: The deserialized Python object.
         """
         # pylint: enable=line-too-long
         return json.loads(json_string)
 
     def json_dumps_with_datetime_serialization(self, obj, json_options=None):
+        # pylint: disable=line-too-long
         """
         Serializes an object to a JSON formatted string with datetime serialization.
 
@@ -985,9 +1082,9 @@ class JsonUtils:
         serialization function is responsible for serializing datetime objects to their ISO
         formatted string representation.
 
-        Parameters:
+        Args:
             obj: The object to be serialized.
-            json_options (optional): Additional options to be passed to the 'json.dumps' function.
+            json_options (dict, optional): Additional options to be passed to the 'json.dumps' function.
 
         Returns:
             str: The JSON formatted string representation of the object.
@@ -998,13 +1095,14 @@ class JsonUtils:
             >>> json_string = json_utils.json_dumps_with_datetime_serialization(data)
             >>> print(json_string)
             {"name": "John", "age": 30, "timestamp": "2022-01-01T12:00:00"}
-
         """
+        # pylint: enable=line-too-long
         return json.dumps(
-            obj, default=self.handle_datetime_serialization, **json_options
+            obj, default=self.handle_datetime_serialization, **(json_options or {})
         )
 
     def handle_datetime_serialization(self, obj):
+        # pylint: disable=line-too-long
         """
         Serializes a datetime object to its ISO formatted string representation.
 
@@ -1012,7 +1110,7 @@ class JsonUtils:
         representation using the 'isoformat()' method of the datetime object. If the input object
         is not a datetime object, a TypeError is raised.
 
-        Parameters:
+        Args:
             obj (datetime): The datetime object to be serialized.
 
         Returns:
@@ -1028,18 +1126,46 @@ class JsonUtils:
             >>> print(iso_string)
             '2022-01-01T12:00:00'
         """
+        # pylint: enable=line-too-long
         if isinstance(obj, datetime):
             return obj.isoformat()
         raise TypeError(f"Type {type(obj)} not serializable")
 
     def extract_code_blocks(self, text: str, block_type: str) -> list | str:
-        """Extract all json blocks from the given input."""
+        # pylint: disable=line-too-long
+        """
+        Extract all code blocks of a specific type from the given input text.
+
+        This method uses regular expressions to find and extract all code blocks of the specified type
+        from the input text. Code blocks are expected to be formatted in markdown style with triple backticks.
+
+        Args:
+            text (str): The input text containing code blocks.
+            block_type (str): The type of code block to extract (e.g., 'json', 'python').
+
+        Returns:
+            list | str: A list of extracted code blocks or a single string if only one block is found.
+        """
+        # pylint: enable=line-too-long
         self._logging_utils.debug(__class__.__name__, "start extract_code_blocks")
         self._logging_utils.debug(__class__.__name__, "end extract_code_blocks")
         return re.findall(rf"```{block_type}\s*(.*?)\s*```", text, re.DOTALL)
 
     def extract_json(self, text: str) -> list | str:
-        """Extract the first json block from the given input."""
+        # pylint: disable=line-too-long
+        """
+        Extract the first JSON block from the given input text.
+
+        This method finds and extracts the first JSON code block from the input text.
+        JSON blocks are expected to be formatted in markdown style with triple backticks and 'json' identifier.
+
+        Args:
+            text (str): The input text containing JSON code blocks.
+
+        Returns:
+            list | str: The extracted JSON block as a string, or an empty JSON object string "{}" if no JSON blocks are found.
+        """
+        # pylint: enable=line-too-long
         self._logging_utils.debug(__class__.__name__, "start extract_json")
         json_blocks = self.extract_code_blocks(text, "json")
         if json_blocks:
@@ -1060,6 +1186,7 @@ class JsonUtils:
 
 
 class FormatterUtils:
+    # pylint: disable=line-too-long
     """
     A utility class for managing formatter configuration with singleton pattern implementation.
 
@@ -1101,17 +1228,19 @@ class FormatterUtils:
         - os: For environment variable access
         - Configuration: For default configuration values
     """
+    # pylint: enable=line-too-long
 
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
         """
         Creates and returns a singleton instance of the FormatterUtils class.
 
         This method ensures that only one instance of the class is created
         throughout the application, implementing the singleton design pattern.
 
-        Parameters:
+        Args:
             cls (type): The class being instantiated.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
@@ -1119,11 +1248,13 @@ class FormatterUtils:
         Returns:
             formatterUtils: The singleton instance of the FormatterUtils class.
         """
+        # pylint: enable=line-too-long
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def __init__(self, configuration: Configuration):
+        # pylint: disable=line-too-long
         """
         Initializes a new instance of the FormatterUtils class.
 
@@ -1132,7 +1263,7 @@ class FormatterUtils:
         the singleton pattern, this initialization will only take effect the first time
         an instance is created.
 
-        Parameters:
+        Args:
             configuration (Configuration): The configuration object containing formatter settings.
                                         This object should provide a 'value' method to retrieve
                                         configuration properties.
@@ -1141,10 +1272,12 @@ class FormatterUtils:
             Due to the singleton implementation, subsequent initializations with different
             configuration objects will not affect the existing instance.
         """
+        # pylint: enable=line-too-long
 
         self._config = configuration
 
     def get_desired_formatter_class_name(self) -> str:
+        # pylint: disable=line-too-long
         """
         Retrieves the desired formatter class name from configuration.
 
@@ -1161,9 +1294,11 @@ class FormatterUtils:
             >>> print(formatter_class_name)
             'JsonFormatter'
         """
+        # pylint: enable=line-too-long
         return self._config.str_value("formatter.class.name", "not found")
 
     def get_desired_formatter_module_name(self) -> str:
+        # pylint: disable=line-too-long
         """
         Retrieves the desired formatter module name from configuration.
 
@@ -1180,4 +1315,5 @@ class FormatterUtils:
             >>> print(formatter_module_name)
             'formatters.json'
         """
+        # pylint: enable=line-too-long
         return self._config.str_value("formatter.module.name", "not found")
