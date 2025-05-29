@@ -20,18 +20,18 @@ Before diving into the Trace Injection Advisor, it is important to acknowledge t
 
 ### Definitions
 
-**AI Model** – Large language model used for intelligent code analysis, supporting multiple providers including AWS Bedrock
-**AST (Abstract Syntax Tree)** – Tree representation of source code structure used for code analysis
-**Call Tracer** – Component that dynamically traces function calls across files to build execution flow maps
-**Source Analyzer** – AI-powered component that identifies optimal locations for trace statement placement
-**Trace Injection** – The process of adding observability instrumentation to specific code locations
-**Entry Point** – Starting function or method from which call tracing begins
-**Formatter** – Component responsible for converting analysis results into human-readable formats
-**Search Paths** – Directories where the tracer looks for external modules and dependencies
-**Tracing Priorities** – Configurable criteria used by AI to identify critical locations for instrumentation
-**AWS Bedrock** – Amazon's managed AI service platform for accessing foundation models
-**Jinja2** – Template engine used for flexible output formatting
-**FastHTML** – Rendering framework used for interactive trace visualization
+- **AI Model** – Large language model used for intelligent code analysis, supporting multiple providers including AWS Bedrock
+- **AST (Abstract Syntax Tree)** – Tree representation of source code structure used for code analysis
+- **Call Tracer** – Component that dynamically traces function calls across files to build execution flow maps
+- **Source Analyzer** – AI-powered component that identifies optimal locations for trace statement placement
+- **Trace Injection** – The process of adding observability instrumentation to specific code locations
+- **Entry Point** – Starting function or method from which call tracing begins
+- **Formatter** – Component responsible for converting analysis results into human-readable formats
+- **Search Paths** – Directories where the tracer looks for external modules and dependencies
+- **Tracing Priorities** – Configurable criteria used by AI to identify critical locations for instrumentation
+- **AWS Bedrock** – Amazon's managed AI service platform for accessing foundation models
+- **Jinja2** – Template engine used for flexible output formatting
+- **FastHTML** – Rendering framework used for interactive trace visualization
 
 ### Strategy
 
@@ -216,6 +216,90 @@ graph TB
 ```
 
 The Trace Injection Advisor consists of two main analysis components working in concert: the **Source Analyzer** for AI-powered static analysis and the **Call Tracer** for dynamic execution flow mapping. Both components integrate through a shared configuration system and flexible output formatting pipeline.
+
+### AWS Cloud Architecture
+
+```mermaid
+graph TB
+    subgraph "Enterprise Network"
+        DEV[Developer Workstation]
+        CI[CI/CD Pipeline]
+        REPO[Code Repository]
+    end
+    
+    subgraph "AWS Cloud Environment"
+        subgraph "AWS Bedrock"
+            BR[Bedrock Service]
+            CLAUDE[Claude 3 Sonnet Model]
+            LLAMA[Meta Llama 3.2 Model]
+        end
+        
+        subgraph "Compute Services"
+            EC2[EC2 Instance]
+            LAMBDA[Lambda Functions]
+            ECS[ECS Container Service]
+        end
+        
+        subgraph "Storage & Configuration"
+            S3[S3 Bucket]
+            SSM[Systems Manager]
+            SECRETS[Secrets Manager]
+        end
+        
+        subgraph "Monitoring & Logging"
+            CW[CloudWatch]
+            XRAY[X-Ray Tracing]
+            LOGS[CloudWatch Logs]
+        end
+        
+        subgraph "Security & Access"
+            IAM[IAM Roles]
+            VPC[VPC Network]
+            SG[Security Groups]
+        end
+    end
+    
+    subgraph "Analysis Outputs"
+        REPORTS[Analysis Reports]
+        DASHBOARDS[Interactive Dashboards]
+        APIS[REST APIs]
+    end
+    
+    DEV --> VPC
+    CI --> EC2
+    REPO --> LAMBDA
+    
+    EC2 --> BR
+    LAMBDA --> BR
+    ECS --> BR
+    
+    BR --> CLAUDE
+    BR --> LLAMA
+    
+    EC2 --> S3
+    EC2 --> SSM
+    EC2 --> SECRETS
+    
+    EC2 --> CW
+    EC2 --> XRAY
+    EC2 --> LOGS
+    
+    IAM --> EC2
+    IAM --> LAMBDA
+    IAM --> BR
+    
+    VPC --> SG
+    SG --> EC2
+    
+    EC2 --> REPORTS
+    ECS --> DASHBOARDS
+    LAMBDA --> APIS
+    
+    style BR fill:#ff9900
+    style CLAUDE fill:#ff6b6b
+    style LLAMA fill:#4ecdc4
+    style DEV fill:#45b7d1
+```
 
 ### Components
 
