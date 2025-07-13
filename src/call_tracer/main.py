@@ -13,6 +13,8 @@ def main():
         entry_point: Name of the entry point function to start tracing
         search_paths: List of paths to search for external modules
     """
+    # pylint: enable: line-too-long
+
     if len(sys.argv) < 4:
         print(
             "Usage: python call_tracer.py <source_file> <entry_point> <search_path1> "

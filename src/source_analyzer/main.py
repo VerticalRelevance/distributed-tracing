@@ -12,9 +12,9 @@ SourceCodeAnalyzer class.
 import sys
 import os
 from pathlib import Path
-from common.utilities import (
-    LoggingUtils,
-    PathUtils,
+from common.path_utils import PathUtils
+from common.logging_utils import LoggingUtils
+from common.generic_utils import (
     GenericUtils,
 )
 from source_analyzer.source_analyzer_class import SourceCodeAnalyzer
@@ -33,7 +33,8 @@ def main():
     """
     # pylint: enable=line-too-long
 
-    logging_utils: LoggingUtils = LoggingUtils()
+    logging_utils: LoggingUtils = LoggingUtils().get_class_logger(class_name=__name__)
+
     path_utils: PathUtils = PathUtils()
     generic_utils = GenericUtils()
 

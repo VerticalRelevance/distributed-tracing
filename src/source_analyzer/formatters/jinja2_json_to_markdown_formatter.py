@@ -85,7 +85,7 @@ class Jinja2JsonToMarkdownFormatter(
         template_path = (
             f"{file_path}/{file_name if file_name is not None else "notfound.jinja2"}"
         )
-        self._logging_utils.debug(__class__.__name__, f"Template path: {template_path}")
+        self._logger.debug(__class__.__name__, f"Template path: {template_path}")
         template_string = self._load_template(template_path=template_path)
 
         # Create the Jinja2 environment and template
@@ -95,9 +95,9 @@ class Jinja2JsonToMarkdownFormatter(
         )
         template = jinja2_env.from_string(template_string)
 
-        self._logging_utils.debug(__class__.__name__, "Formatting json data: ")
-        self._logging_utils.debug(__class__.__name__, data, enable_pformat=True)
-        self._logging_utils.debug(__class__.__name__, f"priorities: {data["priorities"]}")
+        self._logger.debug(__class__.__name__, "Formatting json data: ")
+        self._logger.debug(__class__.__name__, data, enable_pformat=True)
+        self._logger.debug(__class__.__name__, f"priorities: {data["priorities"]}")
         # Render the template with the data
         markdown_output = template.render(
             overall_analysis_summary=data["overall_analysis_summary"],
@@ -115,6 +115,6 @@ class Jinja2JsonToMarkdownFormatter(
             # total_time_in_microseconds=variables["total_time_in_microseconds"],
             # total_time_in_nanoseconds=variables["total_time_in_nanoseconds"],
         )
-        self._logging_utils.debug(__class__.__name__, f"Markdown output: {markdown_output}")
+        self._logger.debug(__class__.__name__, f"Markdown output: {markdown_output}")
 
         return markdown_output

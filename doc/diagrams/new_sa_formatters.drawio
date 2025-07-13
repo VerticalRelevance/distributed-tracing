@@ -1,0 +1,284 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.5 Chrome/134.0.6998.205 Electron/35.3.0 Safari/537.36" version="27.0.5">
+  <diagram id="C5RBs43oDa-KdzZeNtuy" name="Formatter Classes">
+    <mxGraphModel dx="1018" dy="691" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="Configuration" value="Configuration" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="500" y="260" width="200" height="80" as="geometry">
+            <mxRectangle x="545" y="270" width="110" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Configuration-line" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="Configuration" vertex="1">
+          <mxGeometry y="26" width="200" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="Configuration-methods" value="+ str_value(key: str, default: str): str&#xa;+ list_value(key: str, default: list): list" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="Configuration" vertex="1">
+          <mxGeometry y="34" width="200" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterUtils" value="FormatterUtils" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="450" y="50" width="320" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterUtils-attributes" value="- _instance: FormatterUtils&#xa;- _config: Configuration" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="FormatterUtils" vertex="1">
+          <mxGeometry y="26" width="320" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterUtils-line" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="FormatterUtils" vertex="1">
+          <mxGeometry y="60" width="320" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterUtils-methods" value="+ __new__(cls, *args, **kwargs): FormatterUtils&#xa;+ __init__(configuration: Configuration): void&#xa;+ get_desired_formatter_class_name(): str&#xa;+ get_desired_formatter_module_name(): str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="FormatterUtils" vertex="1">
+          <mxGeometry y="68" width="320" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterError" value="FormatterError" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="815" y="150" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterError-attributes" value="- message: str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="FormatterError" vertex="1">
+          <mxGeometry y="26" width="240" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterError-line" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="FormatterError" vertex="1">
+          <mxGeometry y="50" width="240" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterError-methods" value="+ __init__(message: str): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="FormatterError" vertex="1">
+          <mxGeometry y="58" width="240" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="Exception" value="Exception" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e3c800;fontColor=#000000;strokeColor=#B09500;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="855" y="30" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterObject" value="FormatterObject" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="400" y="430" width="400" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterObject-attributes" value="- _instance: FormatterObject&#xa;- _logging_utils: LoggingUtils&#xa;- _json_utils: JsonUtils&#xa;- _generic_utils: GenericUtils&#xa;- _config: Configuration" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="FormatterObject" vertex="1">
+          <mxGeometry y="26" width="400" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterObject-line" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="FormatterObject" vertex="1">
+          <mxGeometry y="100" width="400" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterObject-methods" value="+ __new__(cls, *args, **kwargs): FormatterObject&#xa;+ __init__(configuration: Configuration): void&#xa;+ format_json(data: Dict[str, str], variables: Dict[str, str] = None): str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="FormatterObject" vertex="1">
+          <mxGeometry y="108" width="400" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterFactory" value="FormatterFactory" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="880" y="270" width="380" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterFactory-attributes" value="- _instance: FormatterFactory&#xa;- _generic_utils: GenericUtils&#xa;- _config: Configuration" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="FormatterFactory" vertex="1">
+          <mxGeometry y="26" width="380" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterFactory-line" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="FormatterFactory" vertex="1">
+          <mxGeometry y="70" width="380" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="FormatterFactory-methods" value="+ __new__(cls, *args, **kwargs): FormatterFactory&#xa;+ __init__(configuration: Configuration): void&#xa;+ get_formatter(module_name: str, class_name: str): FormatterObject" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="FormatterFactory" vertex="1">
+          <mxGeometry y="78" width="380" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="Jinja2JsonToMarkdownFormatter" value="Jinja2JsonToMarkdownFormatter" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="190" y="800" width="370" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="Jinja2JsonToMarkdownFormatter-line" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="Jinja2JsonToMarkdownFormatter" vertex="1">
+          <mxGeometry y="26" width="370" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="Jinja2JsonToMarkdownFormatter-methods" value="+ __init__(configuration: Configuration): void&#xa;- _load_template(template_path: str): str&#xa;+ format_json(data: Dict[str, str], variables: Dict[str, str] = None): str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="Jinja2JsonToMarkdownFormatter" vertex="1">
+          <mxGeometry y="34" width="370" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="CodedJsonToMarkdownFormatter" value="CodedJsonToMarkdownFormatter" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="610" y="800" width="370" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="CodedJsonToMarkdownFormatter-line" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" parent="CodedJsonToMarkdownFormatter" vertex="1">
+          <mxGeometry y="26" width="370" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="CodedJsonToMarkdownFormatter-methods" value="+ __init__(configuration: Configuration): void&#xa;+ format_json(data: Dict[str, str], variables: Dict[str, str] = None): str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="CodedJsonToMarkdownFormatter" vertex="1">
+          <mxGeometry y="34" width="370" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="LoggingUtils" value="LoggingUtils" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="310" y="340" width="110" height="30" as="geometry">
+            <mxRectangle x="190" y="340" width="110" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JsonUtils" value="JsonUtils" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1" collapsed="1">
+          <mxGeometry x="220" y="485" width="110" height="30" as="geometry">
+            <mxRectangle x="200" y="450" width="90" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GenericUtils" value="GenericUtils" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1" collapsed="1">
+          <mxGeometry x="880" y="500" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="jinja2-env" value="jinja2.Environment" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="240" y="670" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="inheritException" value="" style="endArrow=block;endSize=14;endFill=0;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="FormatterError" target="Exception" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="340" y="790" as="sourcePoint" />
+            <mxPoint x="500" y="790" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="inheritException-label" value="extends" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="inheritException" vertex="1" connectable="0">
+          <mxGeometry x="-0.1529" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp1" value="" style="endArrow=diamondThin;endFill=1;endSize=14;html=1;entryX=0.438;entryY=1.028;entryDx=0;entryDy=0;startArrow=open;startFill=0;startSize=12;entryPerimeter=0;exitX=0.431;exitY=-0.002;exitDx=0;exitDy=0;exitPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="Configuration" target="FormatterUtils-methods" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="600" y="270" as="sourcePoint" />
+            <mxPoint x="490" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp1-label" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="comp1" vertex="1" connectable="0">
+          <mxGeometry x="-0.8" y="1" relative="1" as="geometry">
+            <mxPoint x="-4" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp2" value="" style="endArrow=diamondThin;endFill=1;endSize=14;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;startArrow=open;startFill=0;startSize=12;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="Configuration" target="FormatterFactory" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="330" y="400" as="sourcePoint" />
+            <mxPoint x="490" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp2-label" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="comp2" vertex="1" connectable="0">
+          <mxGeometry x="-0.8" y="1" relative="1" as="geometry">
+            <mxPoint x="12" y="-9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp3" value="" style="endArrow=diamondThin;endFill=1;endSize=14;html=1;startArrow=open;startFill=0;startSize=12;entryX=0.05;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="LoggingUtils" target="FormatterObject" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="271" y="400" as="sourcePoint" />
+            <mxPoint x="400.00000000000006" y="422.0799999999999" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp3-label" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="comp3" vertex="1" connectable="0">
+          <mxGeometry x="-0.8" y="1" relative="1" as="geometry">
+            <mxPoint x="20" y="6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp4" value="" style="endArrow=diamondThin;endFill=1;endSize=14;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=open;startFill=0;startSize=12;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="JsonUtils" target="FormatterObject" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="330" y="400" as="sourcePoint" />
+            <mxPoint x="490" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp4-label" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="comp4" vertex="1" connectable="0">
+          <mxGeometry x="-0.8" y="1" relative="1" as="geometry">
+            <mxPoint x="21" y="-3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp5" value="" style="endArrow=diamondThin;endFill=1;endSize=14;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.132;entryY=1.061;entryDx=0;entryDy=0;startArrow=open;startFill=0;startSize=12;entryPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="GenericUtils" target="FormatterFactory-methods" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="330" y="400" as="sourcePoint" />
+            <mxPoint x="490" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp5-label" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="comp5" vertex="1" connectable="0">
+          <mxGeometry x="-0.8" y="1" relative="1" as="geometry">
+            <mxPoint x="-13" y="-9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp6" value="" style="endArrow=diamondThin;endFill=1;endSize=14;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=open;startFill=0;startSize=12;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="Configuration" target="FormatterObject" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="330" y="400" as="sourcePoint" />
+            <mxPoint x="490" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="comp6-label" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="comp6" vertex="1" connectable="0">
+          <mxGeometry x="-0.8" y="1" relative="1" as="geometry">
+            <mxPoint x="-11" y="16" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="inherit1" value="" style="endArrow=block;endSize=14;endFill=0;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="Jinja2JsonToMarkdownFormatter" target="FormatterObject" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="340" y="790" as="sourcePoint" />
+            <mxPoint x="500" y="790" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="inherit1-label" value="extends" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="inherit1" vertex="1" connectable="0">
+          <mxGeometry x="-0.1529" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="inherit2" value="" style="endArrow=block;endSize=14;endFill=0;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="CodedJsonToMarkdownFormatter" target="FormatterObject" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="340" y="790" as="sourcePoint" />
+            <mxPoint x="500" y="790" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="inherit2-label" value="extends" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="inherit2" vertex="1" connectable="0">
+          <mxGeometry x="-0.1529" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="creates1" value="" style="endArrow=open;endSize=12;dashed=1;html=1;exitX=0.832;exitY=1.058;exitDx=0;exitDy=0;entryX=0.674;entryY=0.967;entryDx=0;entryDy=0;entryPerimeter=0;edgeStyle=orthogonalEdgeStyle;exitPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="FormatterFactory-methods" target="Jinja2JsonToMarkdownFormatter-methods" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="340" y="790" as="sourcePoint" />
+            <mxPoint x="500" y="790" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1196" y="950" />
+              <mxPoint x="439" y="950" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="creates1-label" value="creates" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="creates1" vertex="1" connectable="0">
+          <mxGeometry x="-0.1529" y="2" relative="1" as="geometry">
+            <mxPoint x="35" y="-352" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="creates2" value="" style="endArrow=open;endSize=12;dashed=1;html=1;exitX=0.416;exitY=0.981;exitDx=0;exitDy=0;exitPerimeter=0;edgeStyle=orthogonalEdgeStyle;entryX=1.005;entryY=0.1;entryDx=0;entryDy=0;entryPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="CodedJsonToMarkdownFormatter" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1058.08" y="399.01199999999994" as="sourcePoint" />
+            <mxPoint x="1030" y="811" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1058" y="600" />
+              <mxPoint x="1060" y="600" />
+              <mxPoint x="1060" y="808" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="creates2-label" value="creates" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="creates2" vertex="1" connectable="0">
+          <mxGeometry x="-0.1529" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uses-jinja2" value="" style="endArrow=open;endSize=12;dashed=1;html=1;exitX=0.324;exitY=-0.022;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="Jinja2JsonToMarkdownFormatter" target="jinja2-env" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="340" y="790" as="sourcePoint" />
+            <mxPoint x="500" y="790" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="uses-jinja2-label" value="uses" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="uses-jinja2" vertex="1" connectable="0">
+          <mxGeometry x="-0.1529" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="singleton-pattern1" value="Singleton Pattern" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="300" y="60" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="singleton-pattern1-line" value="" style="endArrow=none;dashed=1;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="singleton-pattern1" target="FormatterUtils" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="340" y="790" as="sourcePoint" />
+            <mxPoint x="390" y="740" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="singleton-factory-pattern" value="Singleton Pattern&#xa;Factory Pattern" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="1150" y="130" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="singleton-factory-pattern-line" value="" style="endArrow=none;dashed=1;html=1;exitX=0.3;exitY=1.033;exitDx=0;exitDy=0;exitPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="singleton-factory-pattern" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="340" y="790" as="sourcePoint" />
+            <mxPoint x="1180" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="singleton-pattern2" value="Singleton Pattern" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="720" y="350" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="singleton-pattern2-line" value="" style="endArrow=none;dashed=1;html=1;exitX=0.22;exitY=1;exitDx=0;exitDy=0;entryX=0.81;entryY=-0.019;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="singleton-pattern2" target="FormatterObject" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="340" y="790" as="sourcePoint" />
+            <mxPoint x="390" y="740" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="tUUtZib4TfGbeuwRnURN-3" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=diamondThin;endFill=1;endSize=14;startSize=12;exitX=0;exitY=0.25;exitDx=0;exitDy=0;startArrow=open;startFill=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="GenericUtils" target="FormatterObject-attributes">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="890" y="530" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="tUUtZib4TfGbeuwRnURN-5" value="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="tUUtZib4TfGbeuwRnURN-3">
+          <mxGeometry x="-0.6231" y="2" relative="1" as="geometry">
+            <mxPoint x="1" y="-9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

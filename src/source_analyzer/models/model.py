@@ -8,10 +8,15 @@ a factory pattern for creating model instances.
 """
 # pylint: enable=line-too-long
 
+import os
+from abc import ABC
 from typing import Dict, List
 import boto3
+from botocore.exceptions import ClientError, TokenRetrievalError
+from common.generic_utils import GenericUtils
+from common.logging_utils import LoggingUtils
 from common.configuration import Configuration
-from common.utilities import JsonUtils, LoggingUtils, ModelUtils, GenericUtils
+from common.json_utils import JsonUtils
 
 EXCEPTION_LEVEL_WARN = 10
 EXCEPTION_LEVEL_ERROR = 20
@@ -44,6 +49,7 @@ class ModelException(Exception):
 
     @property
     def level(self):
+        """ The level this exception belongs to. """
         return self._level
 
 class ModelMaxTokenLimitException(ModelException):
@@ -98,7 +104,7 @@ class ModelObject:
         """
         # pylint: enable=line-too-long
         self._config = configuration
-        self._logging_utils = LoggingUtils()
+        self._logger = LoggingUtils().get_class_logger(class_name=__class__.__name__)
         self._model_utils = ModelUtils(configuration=configuration)
         self._max_llm_tries = None
         self._retry_delay = None
@@ -161,24 +167,6 @@ class ModelObject:
                 ) from ve
 
         return self._max_llm_tries
-
-    @property
-    def model_client(self) -> boto3.client:
-        # pylint: disable=line-too-long
-        """
-        Get the boto3 client for interacting with AWS Bedrock.
-
-        Returns:
-            A configured boto3 client for bedrock-runtime with appropriate region settings
-        """
-        # pylint: enable=line-too-long
-        # FUTURE refactor into separate Bedrock-specific middle-layer class
-        return boto3.client(
-            "bedrock-runtime",
-            # region_name=self._config.str_value("aws.region", "us-west-2"),
-            region_name=self._model_utils.region_name,
-            config=boto3.session.Config(read_timeout=300, retries={"max_attempts": 3}),
-        )
 
     @property
     def completion_tokens(self) -> int:
@@ -434,7 +422,6 @@ class ModelObject:
         # pylint: enable=line-too-long
         self._stop_max_tokens_reasons = stop_max_reasons
 
-
     @property
     def stop_valid_reasons(self) -> List[str]:
         # pylint: disable=line-too-long
@@ -515,6 +502,241 @@ class ModelObject:
         """
         # pylint: enable=line-too-long
         self._completion_json = completion_json
+
+
+class BedrockModelObject(ModelObject, ABC):
+    # pylint: disable=line-too-long
+    """
+    AWS Bedrock-specific model object that extends the base ModelObject.
+
+    This class provides AWS Bedrock-specific functionality including client management,
+    error handling for Bedrock-specific exceptions, and AWS region configuration.
+    This is an abstract base class that requires subclasses to implement the abstract methods.
+    """
+    # pylint: enable=line-too-long
+
+    # Remove the __init__ method entirely since it's just calling super()
+    # The parent's __init__ will be called automatically
+
+    @property
+    def model_client(self) -> boto3.client:
+        # pylint: disable=line-too-long
+        """
+        Get the boto3 client for interacting with AWS Bedrock.
+
+        Returns:
+            A configured boto3 client for bedrock-runtime with appropriate region settings
+        """
+        # pylint: enable=line-too-long
+        return boto3.client(
+            "bedrock-runtime",
+            region_name=self._model_utils.region_name,
+            config=boto3.session.Config(read_timeout=300, retries={"max_attempts": 3}),
+        )
+
+    def _handle_bedrock_exceptions(self, func, *args, **kwargs):
+        # pylint: disable=line-too-long
+        """
+        Handle common AWS Bedrock exceptions and convert them to ModelExceptions.
+
+        Args:
+            func: The function to execute with exception handling
+            *args: Arguments to pass to the function
+            **kwargs: Keyword arguments to pass to the function
+
+        Returns:
+            The result of the function call
+
+        Raises:
+            ModelException: If a Bedrock-specific error occurs
+        """
+        # pylint: enable=line-too-long
+        try:
+            return func(*args, **kwargs)
+        except TokenRetrievalError as tre:
+            self._logger.debug(
+                __class__.__name__,
+                f"raising ModelException for TokenRetrievalError: {str(tre)}"
+            )
+            raise ModelException(
+                f"TokenRetrievalError error: {str(tre)}",
+                EXCEPTION_LEVEL_ERROR,
+            ) from tre
+        except ClientError as ce:
+            error_code = ce.response["Error"]["Code"]
+            self._logger.trace(
+                __class__.__name__,
+                f"Bedrock invoke_model error ({error_code}): {str(ce)}"
+            )
+            raise ModelException(
+                f"Bedrock invoke_model error ({error_code}): {str(ce)}",
+                EXCEPTION_LEVEL_WARN
+            ) from ce
+
+    def invoke_model(self, request: str):
+        # pylint: disable=line-too-long
+        """
+        Invoke the Bedrock model with the given request.
+
+        Args:
+            request: JSON string containing the model request
+
+        Returns:
+            The response from the Bedrock model
+
+        Raises:
+            ModelException: If there's an error invoking the model
+        """
+        # pylint: enable=line-too-long
+        def _invoke():
+            client = self.model_client
+            return client.invoke_model(modelId=self.model_id, body=request)
+
+        return self._handle_bedrock_exceptions(_invoke)
+
+class ModelUtils:
+    # pylint: disable=line-too-long
+    """
+    A utility class for managing AI model configuration and AWS region settings.
+
+    This class provides methods for retrieving AI model-related configuration values and
+    AWS region settings from either environment variables or a configuration object. It
+    implements lazy loading of values and supports environment variable overrides.
+
+    Features:
+        - AI model class and module name configuration
+        - AWS region configuration management
+        - Environment variable override support
+        - Configuration fallback values
+        - Lazy loading of configuration values
+
+    Methods:
+        __init__(configuration): Initializes with Configuration object
+        get_desired_model_class_name(): Retrieves AI model class name
+        get_desired_model_module_name(): Retrieves AI model module name
+        get_region_name(): Retrieves AWS region name
+
+    Configuration Priority:
+        1. Environment variables (AI_MODEL_CLASS_NAME, AI_MODEL_MODULE_NAME, AWS_REGION)
+        2. Configuration object values (ai_model.class.name, ai_model.module.name, aws.region)
+        3. Default values (us-west-2 for region)
+
+    Example:
+        >>> config = Configuration()
+        >>> model_utils = ModelUtils(config)
+        >>> class_name = model_utils.get_desired_model_class_name()
+        >>> module_name = model_utils.get_desired_model_module_name()
+        >>> region = model_utils.get_region_name()
+
+    Environment Variables:
+        - AI_MODEL_CLASS_NAME: Override for model class name
+        - AI_MODEL_MODULE_NAME: Override for model module name
+        - AWS_REGION: Override for AWS region
+
+    Configuration Keys:
+        - ai_model.class.name: Default model class name
+        - ai_model.module.name: Default model module name
+        - aws.region: Default AWS region (defaults to 'us-west-2')
+
+    Dependencies:
+        - os: For environment variable access
+        - Configuration: For default configuration values
+
+    Notes:
+        - All getter methods are planned to be converted to properties (TODO)
+        - Values are lazily loaded when first accessed
+        - Region configuration follows AWS standard region format
+    """
+    # pylint: enable=line-too-long
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
+        """
+        Creates and returns a singleton instance of the ModelUtils class.
+
+        This method ensures that only one instance of the class is created
+        throughout the application, implementing the singleton design pattern.
+
+        Args:
+            cls (type): The class being instantiated.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            ModelUtils: The singleton instance of the ModelUtils class.
+        """
+        # pylint: enable=line-too-long
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, configuration: Configuration):
+        # pylint: disable=line-too-long
+        """
+        Initializes the SourceCodeAnalyzerUtils with default None values.
+
+        The actual values will be lazily loaded when the respective getter
+        methods are called for the first time.
+
+        Args:
+            configuration (Configuration): The configuration object to use for retrieving settings.
+        """
+        # pylint: enable=line-too-long
+        self._config: Configuration = configuration
+
+    @property
+    def desired_model_class_name(self):
+        # pylint: disable=line-too-long
+        """
+        Retrieves the configured AI model class name from the configuration.
+
+        This method fetches the class name for the AI model from the configuration using a dot-notation path.
+        If the configuration value is not found, it returns a default value of "not found".
+
+        Returns:
+            str: The configured class name for the AI model, or "not found" if not configured.
+        """
+        # pylint: enable=line-too-long
+        return self._config.str_value("ai_model.class.name", "not found")
+
+    @property
+    def desired_model_module_name(self) -> str:
+        # pylint: disable=line-too-long
+        """
+        Retrieves the configured AI model module name from the configuration.
+
+        This method fetches the module name for the AI model from the configuration using a dot-notation path.
+        If the configuration value is not found, it returns a default value of "not found".
+
+        Returns:
+            str: The configured module name for the AI model, or "not found" if not configured.
+        """
+        # pylint: enable=line-too-long
+        return self._config.str_value("ai_model.module.name", "not found")
+
+    @property
+    def region_name(self) -> str:
+        # pylint: disable=line-too-long
+        """
+        Retrieves the AWS region name.
+
+        Returns the region name from the 'AWS_REGION' environment variable.
+        If not set, defaults to 'us-east-1'.
+
+        Returns:
+            str: The AWS region name.
+
+        Example:
+            >>> utils = SourceCodeAnalyzerUtils()
+            >>> region = utils.get_region_name()
+            # Returns 'us-west-2' if AWS_REGION is not set, or uses the env value
+        """
+        # pylint: enable=line-too-long
+        return os.getenv(
+            "AWS_REGION", self._config.str_value("aws.region", "us-west-2")
+        )
 
 
 class ModelFactory:

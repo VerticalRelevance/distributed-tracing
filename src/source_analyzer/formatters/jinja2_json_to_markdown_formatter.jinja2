@@ -1,11 +1,12 @@
 ## {{ model_vendor }} {{ model_name }} Analysis
 {{ overall_analysis_summary}}
 
-{% for priority_item in priorities -%}
+{% for priority in priorities -%}
 
-### {{ priority_item.priority }}
-{% if priority_item.critical_locations -%}
-{% for location in priority_item.critical_locations -%}
+### {{ priority.priority }}
+{%   if priority.critical_locations -%}
+{%     for location in priority.critical_locations -%}
+{%       if location.include %}
 
 #### {{ location.function_name }}
 - **Specific code blocks/lines to trace:**
@@ -15,12 +16,13 @@
 - **Rationale for tracing:** {{ location.rationale }}
 - **Recommended trace information to capture:** {{ location.trace_info }}
 
-{% endfor -%}
-{% else -%}
+{%       endif -%}
+{%     endfor -%}
+{%   else -%}
 
 No critical findings for this priority.
 
-{% endif -%}
+{%   endif -%}
 {% endfor -%}
 
 ## Summary

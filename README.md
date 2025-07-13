@@ -38,20 +38,29 @@ cd /path/to/root/distributed-tracing/src
 ### Running Call Tracer
 1. Set the `PYTHONPATH` environment variable:
 ```bash
-export PYTHONPATH=common:.:call_tracer
+export export PYTHONPATH=common:.:call_tracer:call_tracer/renderers:source_analyzer:source_analyzer/models
 ```
-2. Run the call tracer:
+2. Set the `LOG_FILE_STDERR` environment variable:
+```bash
+export LOG_FILE_STDERR="/absolute/path/to/some/location/distributed-tracing/source_analyzer.err"```
+```
+3. (Optional) Set the `LOG_LEVEL_STDERR` environment variable:
+```bash
+export LOG_LEVEL_STDERR="DEBUG"
+```
+Default is DEBUG
+4. Run the call tracer:
 ```bash
 python call_tracer/main.py (path to file or local repository) > (some location).md 2> (some location).err
 ```
 
-### Running Source Analyzer
+### Running Source Analyzer Standalone
 1. Set the `PYTHONPATH` environment variable:
 ```bash
-export PYTHONPATH=common:.:source_analyzer
+export PYTHONPATH=common:.:source_analyzer:source_analyzer/models
 ```
 2. Set up configuration file (see [source_analyzer_configuration](#source-analyzer-configuration))
-3. Create any model-specific environment variables.
+3. Create any necessary model-specific environment variables.
 * For example, for an OpenAI model:
 ```bash
 export OPENAI_API_KEY="sk-proj-xyzzy..."

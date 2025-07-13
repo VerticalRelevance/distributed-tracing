@@ -11,14 +11,14 @@ import json
 from botocore.exceptions import ClientError, TokenRetrievalError
 from common.configuration import Configuration
 from source_analyzer.models import model
-from source_analyzer.models.model import ModelObject, ModelException
+from source_analyzer.models.model import BedrockModelObject, ModelException
 
 MAX_TOKENS_EXPECTED_MIN = 0
 MAX_TOKENS_EXPECTED_MAX = 134144
 MAX_TOKENS_DEFAULT = 2048
 
 
-class AnthropicClaude3Sonnet20240229V1(ModelObject):
+class AnthropicClaude3Sonnet20240229V1(BedrockModelObject):
     # pylint: disable=line-too-long
     """
     Client for Anthropic's Claude 3 Sonnet model via AWS Bedrock.
@@ -63,10 +63,10 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             None: Results are stored in instance attributes.
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__.__name__, "start generate_text")
+        self._logger.trace(__class__.__name__, "start generate_text")
 
-        self._logging_utils.debug(__class__.__name__, "prompt:")
-        self._logging_utils.debug(__class__.__name__, prompt)
+        self._logger.debug(__class__.__name__, "prompt:")
+        self._logger.debug(__class__.__name__, prompt)
 
         system_prompt = """You are Claude, an AI assistant created by Anthropic to be helpful,
             harmless, and honest. Your goal is to provide informative and substantive
@@ -80,10 +80,8 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             MAX_TOKENS_EXPECTED_MAX,
             MAX_TOKENS_DEFAULT,
         )
-        self._logging_utils.debug(__class__.__name__, f"system_prompt: {system_prompt}")
-        self._logging_utils.debug(
-            __class__, f"max_tokens: {self.max_completion_tokens}"
-        )
+        self._logger.debug(__class__.__name__, f"system_prompt: {system_prompt}")
+        self._logger.debug(__class__.__name__, f"max_tokens: {self.max_completion_tokens}")
         request = json.dumps(
             {
                 "anthropic_version": "bedrock-2023-05-31",
@@ -98,28 +96,26 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             client = self.model_client
             # Invoke the model with the request.
             response = client.invoke_model(modelId=self.model_id, body=request)
-            self._logging_utils.debug(__class__.__name__, "response:")
-            self._logging_utils.debug(__class__.__name__, response, enable_pformat=True)
+            self._logger.debug(__class__.__name__, "response:")
+            self._logger.debug(__class__.__name__, response, enable_pformat=True)
         except TokenRetrievalError as tre:  # expired or otherwise invalid AWS token
-            self._logging_utils.debug(__class__.__name__, f"tre: {str(tre)}")
-            self._logging_utils.debug(__class__.__name__, "tre structure:")
-            self._logging_utils.debug(__class__.__name__, tre.__dict__)
+            self._logger.debug(__class__.__name__, f"raising ModelException for TokenRetrievalError: {str(tre)}")
             raise ModelException(
                 f"TokenRetrievalError error: {str(tre)}",
                 model.EXCEPTION_LEVEL_ERROR,
             ) from tre
         except ClientError as ce:
             error_code = ce.response["Error"]["Code"]
-            self._logging_utils.trace(
-                __class__,
-                f"end generate_text with Bedrock invoke_model error ({error_code}): {str(ce)}",
+            self._logger.trace(
+                __class__.__name__,
+                f"end generate_text with Bedrock invoke_model error ({error_code}): {str(ce)}"
             )
             raise ModelException(
                 f"Bedrock invoke_model error ({error_code}): {str(ce)}", model.EXCEPTION_LEVEL_WARN
             ) from ce
 
         self._handle_response(response=response)
-        self._logging_utils.trace(__class__.__name__, "end generate_text")
+        self._logger.trace(__class__.__name__, "end generate_text")
 
     def _handle_response(self, response):
         # pylint: disable=line-too-long
@@ -136,40 +132,35 @@ class AnthropicClaude3Sonnet20240229V1(ModelObject):
             None: Results are stored in instance attributes.
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__.__name__, "start _handle_response")
+        self._logger.trace(__class__.__name__, "start _handle_response")
 
         # Decode the response body.
         model_response = json.loads(response["body"].read())
-        self._logging_utils.debug(__class__.__name__, "model_response")
-        self._logging_utils.debug(__class__.__name__, model_response, enable_pformat=True)
+        self._logger.debug(__class__.__name__, "model_response")
+        self._logger.debug(__class__.__name__, model_response, enable_pformat=False)
 
         # Extract and return the response text.
-        self._logging_utils.debug(
-            __class__, f"len(content): {len(model_response["content"])}"
+        self._logger.debug(
+            __class__.__name__, f"len(content): {len(model_response["content"])}"
         )
         response_text = model_response["content"][0].get("text")
-        self._logging_utils.debug(__class__.__name__, f"usage: {model_response.get("usage")}")
+        self._logger.debug(__class__.__name__, f"usage: {model_response.get("usage")}")
         extracted_json = self._json_utils.extract_json(response_text)
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks type: {type(extracted_json)}"
-        )
-        self._logging_utils.debug(
-            __class__, f"Extracted code blocks len: {len(extracted_json)}"
-        )
-        self._logging_utils.debug(__class__.__name__, "Extracted json:")
-        self._logging_utils.debug(__class__.__name__, extracted_json, enable_pformat=True)
+        self._logger.debug(__class__.__name__, "Extracted json:")
+        self._logger.debug(__class__.__name__, extracted_json, enable_pformat=True)
 
         data = self._json_utils.json_loads(json_string=extracted_json)
         data = data[0] if isinstance(data, list) else data
-        self._logging_utils.debug(__class__.__name__, "data:")
-        self._logging_utils.debug(__class__.__name__, data)
+        self._logger.debug(__class__.__name__, "data:")
+        self._logger.debug(__class__.__name__, data)
         self.completion_json = data
 
+        # Increment the
         self.increment_completion_tokens(value=model_response["usage"]["output_tokens"])
         self.increment_prompt_tokens(value=model_response["usage"]["input_tokens"])
         self.stopped_reason = model_response["stop_reason"]
 
-        self._logging_utils.trace(__class__.__name__, "end generate_text")
+        self._logger.trace(__class__.__name__, "end _handle_response")
 
     @property
     def model_id(self) -> str:

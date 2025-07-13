@@ -8,16 +8,14 @@ and leverage AI-powered analysis for trace point recommendations.
 
 import time
 from pathlib import Path
-import logging
 from pprint import pformat
+from common.path_utils import PathUtils
+from common.logging_utils import LoggingUtils
 from common.configuration import Configuration
-from common.utilities import (
-    LoggingUtils,
-    ModelUtils,
-    PathUtils,
+from common.generic_utils import (
     GenericUtils,
-    FormatterUtils,
 )
+from source_analyzer.formatters.formatter import FormatterUtils
 from source_analyzer.models import model
 from source_analyzer.models.model import (
     EXCEPTION_LEVEL_ERROR,
@@ -25,6 +23,7 @@ from source_analyzer.models.model import (
     ModelFactory,
     ModelObject,
     ModelMaxTokenLimitException,
+    ModelUtils,
 )
 from source_analyzer.formatters.formatter import (
     FormatterObject,
@@ -53,11 +52,12 @@ class SourceCodeAnalyzer:
         Sets up utility objects, configuration, model, and formatter needed for source code analysis.
         """
         # pylint: enable=line-too-long
+
         self._generic_utils: GenericUtils = GenericUtils()
-        self._logging_utils = LoggingUtils()
+        self._logger = LoggingUtils().get_class_logger(self.__class__.__name__)
         self._path_utils = PathUtils()
-        # FUTURE make config file name dynamic
         self._config: Configuration = Configuration("source_analyzer/config.yaml")
+        # FUTURE make config file name dynamic
 
         model_utils = ModelUtils(configuration=self._config)
         self._model: ModelObject = ModelFactory(configuration=self._config).get_model(
@@ -75,10 +75,11 @@ class SourceCodeAnalyzer:
 
         self._total_tokens: dict = {"completion": 0, "prompt": 0}
 
-        self._logging_utils.debug(__class__.__name__, f"Model: {self._model.model_id}")
-        self._logging_utils.debug(__class__.__name__, f"_config: {pformat(self._config)}")
-        self._logging_utils.info(__class__.__name__, "Configuration:")
-        self._logging_utils.info(__class__.__name__, pformat(str(self._config)))
+        self._logger.debug(f"Model: {self._model.model_id}")
+        self._logger.debug("_config:")
+        self._logger.debug(self._config, enable_pformat=True)
+        self._logger.debug("Configuration:")
+        self._logger.debug(pformat(str(self._config)))
 
     def get_completion_with_retry(self, prompt: str) -> None:
         # pylint: disable=line-too-long
@@ -95,10 +96,9 @@ class SourceCodeAnalyzer:
             ModelException: If all retry attempts fail or if a token limit exception occurs
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__.__name__, "start get_completion_with_retry")
-        self._logging_utils.debug(__class__.__name__, f"prompt:\n{prompt}")
-        self._logging_utils.debug(
-            __class__,
+        self._logger.trace("start get_completion_with_retry")
+        self._logger.debug(f"prompt:\n{prompt}")
+        self._logger.debug(
             f"max_llm_tries: {self._model.max_llm_tries}, "
             f"retry_delay: {self._model.retry_delay}, "
             f"temperature: {self._model.temperature}",
@@ -107,8 +107,7 @@ class SourceCodeAnalyzer:
         self._total_tokens = {"completion": 0, "prompt": 0}
         # break_llm_loop = False
         for attempt in range(self._model.max_llm_tries):
-            self._logging_utils.debug_info(
-                __class__,
+            print(
                 f"Get completion attempt: (attempt {attempt + 1}/{self._model.max_llm_tries})",  # pylint: disable=line-too-long
             )
 
@@ -116,35 +115,30 @@ class SourceCodeAnalyzer:
                 self._model.generate_text(prompt=prompt)
                 break
             except ModelException as me:    # pylint: disable=broad-exception-caught
-                self._logging_utils.error(
-                    __class__,
+                self._logger.error(
                     f"Cannot generate text from model '{self._model.model_name}'."
                     f"Reason: {me}",
                 )
-                self._logging_utils.debug(__class__.__name__, f"ModelException level: {me.level}")
+                self._logger.debug(f"ModelException level: {me.level}")
                 if me.level == EXCEPTION_LEVEL_ERROR:
-                    self._logging_utils.error(
-                        __class__.__name__, "me level is EXCEPTION_LEVEL_ERROR"
+                    self._logger.error(
+                        "me level is EXCEPTION_LEVEL_ERROR"
                     )
                     raise me # pylint: disable=broad-exception-raised)
 
             if attempt < self._model.max_llm_tries - 1:
-                self._logging_utils.debug_info(
-                    __class__,
-                    f"Retrying in {self._model.retry_delay} seconds...",
-                )
+                print(f"Retrying in {self._model.retry_delay} seconds...",)
                 time.sleep(self._model.retry_delay)
 
-        self._logging_utils.info(__class__.__name__, "LLM response received")
-        self._logging_utils.debug(
-            __class__,
+        print("LLM response received")
+        self._logger.debug(
             f"LLM Prompt Tokens: {self._model.prompt_tokens}, "
             f"LLM Completion Tokens: {self._model.completion_tokens}, "
             f"Stopped Reason: {self._model.stopped_reason}",
         )
 
-        self._logging_utils.debug(
-            __class__, f"total tokens after loop: {self._total_tokens}"
+        self._logger.debug(
+            f"total tokens after loop: {self._total_tokens}"
         )
 
         if self._model.stopped_reason in self._model.stop_max_tokens_reasons:
@@ -155,8 +149,7 @@ class SourceCodeAnalyzer:
             )
 
         if self._model.stopped_reason not in self._model.stop_valid_reasons:
-            self._logging_utils.warning(
-                __class__,
+            self._logger.warning(
                 f"Invalid stop reason '{self._model.stopped_reason}'",
             )
             raise ModelException(
@@ -174,13 +167,13 @@ class SourceCodeAnalyzer:
                 "total_completion_tokens": self._total_tokens["completion"],
             }
         )
-        if self._logging_utils.is_stderr_logger_level(__class__.__name__, logging.DEBUG):
-            self._logging_utils.debug(__class__.__name__, "total tokens:")
-            self._logging_utils.debug(__class__.__name__, tokens_output)
+        self._logger.debug("total tokens:")
+        self._logger.debug(tokens_output)
 
-        self._logging_utils.trace(__class__.__name__, "end get_completion_with_retry")
+        self._logger.trace("end get_completion_with_retry")
 
-    def analyze_source_code_for_decision_points(self, source_code) -> None:
+    def analyze_source_code_for_decision_points(
+            self, source_code: str, function_name: str=None) -> None:
         # pylint: disable=line-too-long
         """
         Analyze source code to identify optimal locations for adding trace statements.
@@ -190,45 +183,51 @@ class SourceCodeAnalyzer:
 
         Args:
             source_code (str): The source code to analyze
+            focus_name (str):
 
         Returns:
             None
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(
-            __class__, "start analyze_source_code_for_decision_points"
+        self._logger.trace(
+            "start analyze_source_code_for_decision_points"
         )
 
         tracing_priorities = self._config.list_value("tracing_priorities", [])
         clarifications = self._config.list_value("clarifications", [])
+        embed_function_name = f"only the function or method named {function_name}" if function_name is not None else "all functions and methods"
+        exclude_others = " Exclude all other functions and methods." if function_name is not None else ""
+        found_text = f" within {function_name}" if function_name is not None else ""
 
         # FUTURE move prompt to config
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements.
-Include every critical locations found. Categorize critical locations based on the following priorities.
+Within the source code, analyze {embed_function_name}.{exclude_others}
+Categorize critical locations based on the following priorities.
 
 Priorities:
 {', '.join(tracing_priorities)}
 
 {'\n'.join(clarifications)}
 
-For every critical location found, include the following details:
+For each critical location found{found_text}, include the following details:
 1. Name of the location function/method.
 2. Fully-qualified name of the containing function/method.
-3. Specific code blocks/lines to trace. Include the function/method name and parent class.
-4. Rationale for tracing
-5. Recommended trace information to capture
+3. Specific code blocks/lines to trace. Include the function/method name and parent class name.
+4. Rationale for tracing.
+5. Recommended trace information to capture.
 
 Format the output as a JSON array with the following keys:
-- "overall_analysis_summary": A summary of the source code analysis
+- "overall_analysis_summary": A summary of the source code analysis. In the summary describe only the {function_name}.
 - "priorities": for each priority, list the following:
-    - the priority
-    - for each critical location found for this priority, include the following keys:
-        - "location_name": Name of the location function/method
-        - "function_name": Fully-qualified name of the function/method
-        - "code_block": Specific code block/line to trace
-        - "rationale": Rationale for tracing
-        - "trace_info": Recommended trace information to capture
+    - "priority": the priority
+    - "critical_locations": a list of critical locations found for this priority.
+        - for each critical location found for this priority, include the following keys:
+            - "location_name": Name of the location function/method
+            - "function_name": Fully-qualified name of the function/method
+            - "code_block": Specific code block/line to trace
+            - "rationale": Rationale for tracing
+            - "trace_info": Recommended trace information to capture
 
 Source Code:
 ```python
@@ -236,14 +235,26 @@ Source Code:
 ```
 """
 
-        self._logging_utils.info(__class__.__name__, "Analyzing code")
+        print("Analyzing code")
         self.get_completion_with_retry(
             prompt=prompt,
         )
-        self._logging_utils.info(__class__.__name__, "Code analysis complete")
+        print("Code analysis complete")
 
-        self._logging_utils.trace(
-            __class__, "end analyze_source_code_for_decision_points"
+        for priority in self._model.completion_json.get("priorities"):
+            self._logger.debug(f"priority: {priority}")
+            for location in priority.get("critical_locations", priority.get(priority.get("locations"))):
+                self._logger.debug(f"location: {location}")
+                if location.get("function_name") == function_name:
+                    self._logger.debug("function_name matches")
+                    location["include"] = True
+                else:
+                    location["include"] = False
+
+        self._logger.debug("completion json:")
+        self._logger.debug(self._model.completion_json, enable_pformat=False)
+        self._logger.trace(
+            "end analyze_source_code_for_decision_points"
         )
 
     def generate_formatted_output(self) -> str:
@@ -258,10 +269,10 @@ Source Code:
             str: The formatted output string containing analysis results
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__.__name__, "start generate_formatted_output")
-        self._logging_utils.debug(__class__.__name__, "completion_json:")
-        self._logging_utils.debug(
-            __class__.__name__, self._model.completion_json, enable_pformat=True)
+        self._logger.trace("start generate_formatted_output")
+        self._logger.debug("completion_json:")
+        self._logger.debug(
+            self._model.completion_json, enable_pformat=True)
 
         formatter_inputs = {}
         formatter_inputs["model_vendor"] = self._model.model_vendor
@@ -274,12 +285,12 @@ Source Code:
             data=self._model.completion_json, variables=formatter_inputs
         )
 
-        self._logging_utils.debug(__class__.__name__, "end generate_formatted_output")
+        self._logger.debug("end generate_formatted_output")
         return formatted_output
 
     # pylint: disable=inconsistent-return-statements
     def process_file(
-        self, input_source_path: str, display_results: bool = False
+        self, input_source_path: str, function_name: str=None, display_results: bool=False,
     ) -> str | None:
         # pylint: disable=line-too-long
         """
@@ -297,17 +308,17 @@ Source Code:
                         Returns error message string if processing fails.
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__.__name__, "start process_file")
-        self._logging_utils.debug(__class__.__name__, f"input_source_path: {input_source_path}")
+        self._logger.trace("start process_file")
+        self._logger.debug(f"input_source_path: {input_source_path}")
 
         # Load the source file
         try:
             full_code = self._path_utils.get_ascii_file_contents(
                 source_path=input_source_path
             )
-            self._logging_utils.debug(__class__.__name__, f"full_code len: {len(full_code)}")
+            self._logger.debug(f"full_code len: {len(full_code)}")
             if len(full_code) == 0:
-                self._logging_utils.warning(__class__.__name__, "Source file is empty")
+                self._logger.warning("Source file is empty")
                 return
 
             results = []
@@ -316,45 +327,43 @@ Source Code:
             results.append("")
         except Exception as e:  # pylint: disable=broad-exception-caught
             e_msg = f"Failed to load source file '{input_source_path}': {str(e)}"
-            self._logging_utils.error(__class__.__name__, e_msg, exc_info=True)
+            self._logger.error(e_msg, exc_info=True)
 
-            self._logging_utils.trace(__class__.__name__, "end process_file (file error)")
+            self._logger.trace("end process_file (file error)")
             return f"# {e_msg}" if display_results else e_msg
 
         # Analyze the code
         try:
-            self.analyze_source_code_for_decision_points(full_code)
+            self.analyze_source_code_for_decision_points(full_code, function_name=function_name)
         except Exception as e:  # pylint: disable=broad-exception-caught
             e_msg = f"Failed to analyze source code: {str(e)}"
-            self._logging_utils.error(__class__.__name__, e_msg, exc_info=True)
-            self._logging_utils.trace(__class__.__name__, "end process_file (analyzer error)")
+            self._logger.error(e_msg, exc_info=True)
+            self._logger.trace("end process_file (analyzer error)")
             return f"# {e_msg}" if display_results else e_msg
 
-        self._logging_utils.info(__class__.__name__, "Analysis complete")
+        print("Analysis complete")
 
         # Format the output
         try:
             formatted_output = self.generate_formatted_output()
         except Exception as e:  # pylint: disable=broad-exception-caught
-            self._logging_utils.error(
-                __class__, f"Failed to format output: {str(e)}", exc_info=True
-            )
-            self._logging_utils.trace(__class__.__name__, "end process_file (formatter error)")
+            self._logger.error(f"Failed to format output: {str(e)}", exc_info=True)
+            self._logger.trace("end process_file (formatter error)")
             e_msg = f"Failed to Failed to format results: {str(e)}"
             return f"# {e_msg}" if display_results else e_msg
 
-        self._logging_utils.debug(__class__.__name__, formatted_output)
+        self._logger.debug(formatted_output)
         results.append(formatted_output)
 
         results_str = "\n".join(results)
 
         # Write the formatted output to the console or return them to the caller
         if display_results:
-            self._logging_utils.success(__class__.__name__, results_str)
-            self._logging_utils.trace(__class__.__name__, "end process_file display results")
+            self._logger.success(results_str)
+            self._logger.trace("end process_file display results")
             return
 
-        self._logging_utils.trace(__class__.__name__, "end process_file return results")
+        self._logger.trace("end process_file return results")
         return results_str
         # pylint: enable=inconsistent-return-statements
 
@@ -373,37 +382,37 @@ Source Code:
             None
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__.__name__, "start process_directory")
-        self._logging_utils.debug(__class__.__name__, f"source_path: {source_path}")
-        self._logging_utils.info(__class__.__name__, f"Process directory '{source_path}'")
+        self._logger.trace("start process_directory")
+        self._logger.debug(f"source_path: {source_path}")
+        print(f"Process directory '{source_path}'")
 
         if not Path(source_path).exists():
-            self._logging_utils.error(
-                __class__, f"Source path '{source_path}' does not exist"
+            self._logger.error(
+                f"Source path '{source_path}' does not exist"
             )
-            self._logging_utils.trace(
-                __class__, "end process_directory path does not exist"
+            self._logger.trace(
+                "end process_directory path does not exist"
             )
             return
         if not Path(source_path).is_dir():
-            self._logging_utils.error(
-                __class__, f"Source path '{source_path}' is not a directory"
+            self._logger.error(
+                f"Source path '{source_path}' is not a directory"
             )
-            self._logging_utils.trace(
-                __class__, "end process_directory path is not a directory"
+            self._logger.trace(
+                "end process_directory path is not a directory"
             )
             return
 
         for root, dirs, files in Path(source_path).walk():
-            self._logging_utils.debug(__class__.__name__, f"root: {root}")
-            self._logging_utils.debug(__class__.__name__, f"dirs: {dirs}")
-            self._logging_utils.debug(__class__.__name__, f"files: {files}", enable_pformat=True)
+            self._logger.debug(f"root: {root}")
+            self._logger.debug(f"dirs: {dirs}")
+            self._logger.debug(f"files: {files}", enable_pformat=True)
             for file in files:
-                self._logging_utils.debug(__class__.__name__, f"file: {file}")
+                self._logger.debug(f"file: {file}")
                 if Path(file).suffix == ".py":
-                    self._logging_utils.debug(__class__.__name__, "Path(file)")
-                    self._logging_utils.debug(__class__.__name__, Path(file))
+                    self._logger.debug("Path(file)")
+                    self._logger.debug(Path(file))
                     source_path = f"{root}/{file}"
                     self.process_file(source_path, display_results=True)
 
-        self._logging_utils.trace(__class__.__name__, "end process_directory")
+        self._logger.trace("end process_directory")

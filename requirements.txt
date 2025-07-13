@@ -9,4 +9,5 @@ stdlib-list
 streamlit
 streamlit-option-menu
 Jinja2==3.1.6
-python-fasthtml=0.12.4
+python-fasthtml==0.12.4
+loguru

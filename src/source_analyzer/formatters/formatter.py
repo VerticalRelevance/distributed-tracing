@@ -7,6 +7,7 @@ particularly JSON formatting. It implements a singleton pattern to ensure consis
 instances across the application.
 
 Classes:
+    FormatterUtils: Utility class for managing formatter configuration with singleton pattern.
     FormatterError: Custom exception for handling formatting-related errors.
     FormatterObject: Base class for formatter implementations with singleton pattern.
     FormatterFactory: Factory class for dynamically creating formatter instances.
@@ -24,9 +25,150 @@ Typical usage example:
 # pylint: enable=line-too-long
 
 from typing import Dict
+from common.generic_utils import GenericUtils
+from common.logging_utils import LoggingUtils
 from common.configuration import Configuration
-from common.utilities import LoggingUtils, JsonUtils, GenericUtils
+from common.json_utils import JsonUtils
 
+class FormatterUtils:
+    # pylint: disable=line-too-long
+    """
+    A utility class for managing formatter configuration with singleton pattern implementation.
+
+    This class provides methods for retrieving formatter-related configuration values from
+    either environment variables or a configuration object. It implements the singleton pattern
+    to ensure consistent formatter configuration throughout the application.
+
+    Features:
+        - Singleton pattern implementation
+        - Environment variable override support
+        - Configuration fallback values
+        - Formatter class and module name retrieval
+
+    Attributes:
+        _instance: The singleton instance of the FormatterUtils class.
+        _config: Configuration object containing formatter settings.
+
+    Methods:
+        __new__(cls, *args, **kwargs): Creates singleton instance
+        __init__(configuration): Initializes with Configuration object
+        get_desired_formatter_class_name(): Retrieves formatter class name
+        get_desired_formatter_module_name(): Retrieves formatter module name
+
+    Configuration Priority:
+        1. Environment variables (FORMATTER_CLASS_NAME, FORMATTER_MODULE_NAME)
+        2. Configuration object values (formatter.class.name, formatter.module.name)
+
+    Example:
+        >>> config = Configuration()
+        >>> formatter_utils = FormatterUtils(config)
+        >>> class_name = formatter_utils.get_desired_formatter_class_name()
+        >>> module_name = formatter_utils.get_desired_formatter_module_name()
+
+    Environment Variables:
+        - FORMATTER_CLASS_NAME: Override for formatter class name
+        - FORMATTER_MODULE_NAME: Override for formatter module name
+
+    Configuration Keys:
+        - formatter.class.name: Default formatter class name
+        - formatter.module.name: Default formatter module name
+
+    Dependencies:
+        - os: For environment variable access
+        - Configuration: For default configuration values
+    """
+    # pylint: enable=line-too-long
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
+        """
+        Creates and returns a singleton instance of the FormatterUtils class.
+
+        This method ensures that only one instance of the class is created
+        throughout the application, implementing the singleton design pattern.
+
+        Args:
+            cls (type): The class being instantiated.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            FormatterUtils: The singleton instance of the FormatterUtils class.
+        """
+        # pylint: enable=line-too-long
+
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, configuration: Configuration):
+        # pylint: disable=line-too-long
+        """
+        Initializes a new instance of the FormatterUtils class.
+
+        This method sets up the FormatterUtils instance with a configuration object
+        that will be used to retrieve formatter settings. Since this class implements
+        the singleton pattern, this initialization will only take effect the first time
+        an instance is created.
+
+        Args:
+            configuration (Configuration): The configuration object containing formatter settings.
+                                        This object should provide a 'value' method to retrieve
+                                        configuration properties.
+
+        Note:
+            Due to the singleton implementation, subsequent initializations with different
+            configuration objects will not affect the existing instance.
+        """
+        # pylint: enable=line-too-long
+
+        self._config = configuration
+
+    def get_desired_formatter_class_name(self) -> str:
+        # pylint: disable=line-too-long
+        """
+        Retrieves the desired formatter class name from configuration.
+
+        This method returns the formatter class name based on the following priority:
+        1. FORMATTER_CLASS_NAME environment variable if set
+        2. Value from configuration using the key 'formatter.class.name'
+
+        Returns:
+            str: The name of the formatter class to be used.
+
+        Example:
+            >>> formatter_utils = FormatterUtils(config)
+            >>> formatter_class_name = formatter_utils.get_desired_formatter_class_name()
+            >>> print(formatter_class_name)
+            'JsonFormatter'
+        """
+        # pylint: enable=line-too-long
+
+        return self._config.str_value("formatter.class.name", "not found")
+
+    def get_desired_formatter_module_name(self) -> str:
+        # pylint: disable=line-too-long
+        """
+        Retrieves the desired formatter module name from configuration.
+
+        This method returns the formatter module name based on the following priority:
+        1. FORMATTER_MODULE_NAME environment variable if set
+        2. Value from configuration using the key 'formatter.module.name'
+
+        Returns:
+            str: The name of the module containing the formatter class.
+
+        Example:
+            >>> formatter_utils = FormatterUtils(config)
+            >>> formatter_module_name = formatter_utils.get_desired_formatter_module_name()
+            >>> print(formatter_module_name)
+            'formatters.json'
+        """
+        # pylint: enable=line-too-long
+
+        return self._config.str_value("formatter.module.name", "not found")
 
 class FormatterError(Exception):
     # pylint: disable=line-too-long
@@ -38,10 +180,26 @@ class FormatterError(Exception):
 
     Attributes:
         message (str): A descriptive error message explaining the formatting issue.
+
+    Example:
+        >>> try:
+        ...     # Some formatting operation
+        ...     pass
+        ... except Exception as e:
+        ...     raise FormatterError(f"Formatting failed: {str(e)}")
     """
     # pylint: enable=line-too-long
 
     def __init__(self, message: str):
+        # pylint: disable=line-too-long
+        """
+        Initialize a new FormatterError instance.
+
+        Args:
+            message (str): A descriptive error message explaining the formatting issue.
+        """
+        # pylint: enable=line-too-long
+
         self.message = message
         super().__init__(self.message)
 
@@ -57,7 +215,7 @@ class FormatterObject:  # pylint: disable=too-few-public-methods
 
     Attributes:
         _instance (FormatterObject): The singleton instance of the formatter class.
-        _logging_utils (LoggingUtils): Utility instance for logging operations.
+        _logger (LoggingUtils): Utility instance for logging operations.
         _json_utils (JsonUtils): Utility instance for JSON-related operations.
         _generic_utils (GenericUtils): Utility instance for generic operations.
         _config (Configuration): Configuration instance containing formatter settings.
@@ -89,6 +247,7 @@ class FormatterObject:  # pylint: disable=too-few-public-methods
             FormatterObject: The singleton instance of the formatter class.
         """
         # pylint: enable=line-too-long
+
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -102,10 +261,12 @@ class FormatterObject:  # pylint: disable=too-few-public-methods
         It prepares the necessary resources for subsequent formatting tasks.
 
         Args:
-            configuration: A configuration object containing settings and parameters for the formatter.
+            configuration (Configuration): A configuration object containing settings and parameters
+                                        for the formatter.
         """
         # pylint: enable=line-too-long
-        self._logging_utils = LoggingUtils()
+
+        self._logger = LoggingUtils().get_class_logger(class_name=__class__.__name__)
         self._json_utils = JsonUtils()
         self._generic_utils = GenericUtils()
         self._config = configuration
@@ -121,16 +282,18 @@ class FormatterObject:  # pylint: disable=too-few-public-methods
         The base implementation raises a NotImplementedError.
 
         Args:
-            data: The input JSON data to be formatted as a dictionary.
-            variables: Additional variables that might be used in formatting. Defaults to None.
+            data (Dict[str, str]): The input JSON data to be formatted as a dictionary.
+            variables (Dict[str, str], optional): Additional variables that might be used in formatting.
+                                                Defaults to None.
 
         Returns:
-            The formatted output as a string.
+            str: The formatted output as a string.
 
         Raises:
             NotImplementedError: If the method is not overridden by a subclass.
         """
         # pylint: enable=line-too-long
+
         raise NotImplementedError("Subclasses must implement this method")
 
 
@@ -172,9 +335,10 @@ class FormatterFactory:
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
-            The singleton instance of the FormatterFactory class.
+            FormatterFactory: The singleton instance of the FormatterFactory class.
         """
         # pylint: enable=line-too-long
+
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -185,9 +349,11 @@ class FormatterFactory:
         Initialize the FormatterFactory with configuration.
 
         Args:
-            configuration: Configuration object containing settings for formatter instantiation.
+            configuration (Configuration): Configuration object containing settings for formatter
+                                        instantiation.
         """
         # pylint: enable=line-too-long
+
         self._generic_utils: GenericUtils = GenericUtils()
         self._config: Configuration = configuration
 
@@ -200,17 +366,18 @@ class FormatterFactory:
         and create an instance with the current configuration.
 
         Args:
-            module_name: Name of the module containing the formatter class.
-            class_name: Name of the formatter class to instantiate.
+            module_name (str): Name of the module containing the formatter class.
+            class_name (str): Name of the formatter class to instantiate.
 
         Returns:
-            An instance of the specified formatter class.
+            FormatterObject: An instance of the specified formatter class.
 
         Raises:
             ImportError: If the module cannot be imported.
             AttributeError: If the specified class is not found in the module.
         """
         # pylint: enable=line-too-long
+
         formatter_class = self._generic_utils.load_class(
             module_name="formatters." + module_name,
             class_name=class_name,

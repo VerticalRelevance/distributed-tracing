@@ -8,9 +8,11 @@ configuration, a base RendererObject class that defines the interface for render
 a RendererFactory for creating renderer instances.
 """
 # pylint: enable=line-too-long
+
 from typing import Any, Dict
+from common.logging_utils import LoggingUtils
 from common.configuration import Configuration
-from common.utilities import GenericUtils, LoggingUtils
+from common.generic_utils import GenericUtils
 
 class RendererUtils:
     # pylint: disable=line-too-long
@@ -42,6 +44,7 @@ class RendererUtils:
             The singleton instance of the RendererUtils class.
         """
         # pylint: enable=line-too-long
+
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -49,12 +52,13 @@ class RendererUtils:
     def __init__(self, configuration: Configuration):
         # pylint: disable=line-too-long
         """
-        Initialize the RendererFactory with configuration.
+        Initialize the RendererUtils with configuration.
 
         Args:
-            configuration: Configuration object containing settings for formatter instantiation.
+            configuration: Configuration object containing settings for renderer instantiation.
         """
         # pylint: enable=line-too-long
+
         self._config: Configuration = configuration
 
     @property
@@ -70,6 +74,7 @@ class RendererUtils:
             str: The configured class name for the renderer, or "not found" if not configured.
         """
         # pylint: enable=line-too-long
+
         return self._config.str_value("renderer.class.name", "not found")
 
     @property
@@ -85,6 +90,7 @@ class RendererUtils:
             str: The configured module name for the renderer, or "not found" if not configured.
         """
         # pylint: enable=line-too-long
+
         return self._config.str_value("renderer.module.name", "not found")
 
 
@@ -99,6 +105,30 @@ class RendererObject:
     """
     # pylint: enable=line-too-long
 
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        # pylint: disable=line-too-long
+        """
+        Create a new instance of the renderer class or return the existing singleton instance.
+
+        This method implements the singleton pattern, ensuring that only one instance of the renderer
+        class is created throughout the application.
+
+        Args:
+            cls: The class object.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            RendererObject: The singleton instance of the renderer class.
+        """
+        # pylint: enable=line-too-long
+
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(
         self, configuration: Configuration, data: Dict[str, Any]
     ):
@@ -111,7 +141,8 @@ class RendererObject:
             data: Dictionary containing the data to be rendered.
         """
         # pylint: enable=line-too-long
-        self._logging_utils = LoggingUtils()
+
+        self._logger = LoggingUtils().get_class_logger(class_name=__class__.__name__)
         self._renderer_utils = RendererUtils(configuration=configuration)
         self._config = configuration
         self.data = data
@@ -127,6 +158,7 @@ class RendererObject:
             NotImplementedError: If the subclass does not implement this method.
         """
         # pylint: enable=line-too-long
+
         raise NotImplementedError("Subclasses must implement the render method")
 
 
@@ -160,6 +192,7 @@ class RendererFactory:
             The singleton instance of the RendererFactory class.
         """
         # pylint: enable=line-too-long
+
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -170,9 +203,10 @@ class RendererFactory:
         Initialize the RendererFactory with configuration.
 
         Args:
-            configuration: Configuration object containing settings for formatter instantiation.
+            configuration: Configuration object containing settings for renderer instantiation.
         """
         # pylint: enable=line-too-long
+
         self._generic_utils: GenericUtils = GenericUtils()
         self._config: Configuration = configuration
 
@@ -199,6 +233,7 @@ class RendererFactory:
             AttributeError: If the specified class is not found in the module.
         """
         # pylint: enable=line-too-long
+
         renderer_class = self._generic_utils.load_class(
             module_name="renderers." + module_name,
             class_name=class_name,

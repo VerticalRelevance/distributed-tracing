@@ -5,6 +5,18 @@ A Streamlit application for visualizing Python method call trees from a JSON fil
 This module provides a user interface to explore and navigate through function call hierarchies,
 displaying details about each function call node. The application loads a JSON file containing
 function call data and renders it as an interactive tree structure.
+
+The main components include:
+- StreamlitRenderer: A class that creates an interactive tree visualization
+- Interactive tree navigation with expand/collapse functionality
+- Node selection and detail viewing
+- Command-line interface for JSON file input
+
+Usage:
+    python streamlit_renderer.py <json_file_path>
+
+Example:
+    python streamlit_renderer.py call_trace.json
 """
 # pylint: enable=line-too-long
 
@@ -12,9 +24,10 @@ import sys
 import json
 from typing import Dict, Any
 import streamlit as st
+from call_tracer.renderers.renderer import RendererObject
 
 
-class StreamlitRenderer:
+class StreamlitRenderer(RendererObject):
     # pylint: disable=line-too-long
     """
     A class that renders a Python method call tree in a Streamlit application.
@@ -22,6 +35,10 @@ class StreamlitRenderer:
     This class loads function call data from a JSON file and creates an interactive UI to explore
     the call hierarchy. Users can expand/collapse nodes, select nodes to view details, and navigate
     through the call tree.
+
+    The renderer maintains session state for node expansion and selection, providing a persistent
+    user experience across interactions. It creates a two-column layout with the call tree on the
+    left and node details on the right.
 
     Attributes:
         json_file_path (str): Path to the JSON file containing the function call data.
@@ -34,10 +51,14 @@ class StreamlitRenderer:
         """
         Initialize the StreamlitRenderer with the path to the JSON file.
 
+        Sets up the renderer by loading the JSON data and initializing Streamlit session state
+        for node selection and expansion tracking. The first level of nodes is expanded by default.
+
         Args:
             json_file_path (str): Path to the JSON file containing the function call data.
         """
         # pylint: enable=line-too-long
+
         self.json_file_path = json_file_path
         self.data = self._load_json()
 
@@ -57,6 +78,10 @@ class StreamlitRenderer:
         """
         Load the JSON data from the file.
 
+        Attempts to read and parse the JSON file specified in the constructor. If the file
+        cannot be loaded or parsed, displays an error message in the Streamlit UI and returns
+        an empty dictionary.
+
         Returns:
             Dict[str, Any]: The loaded JSON data as a dictionary. Returns an empty dictionary if loading fails.
 
@@ -64,6 +89,7 @@ class StreamlitRenderer:
             Exception: Displays an error message in the Streamlit UI if the JSON file cannot be loaded.
         """
         # pylint: enable=line-too-long
+
         try:
             with open(self.json_file_path, "r", encoding="utf-8") as f:
                 return json.load(f)
@@ -76,10 +102,14 @@ class StreamlitRenderer:
         """
         Toggle the expanded/collapsed state of a node.
 
+        If the node is currently expanded, it will be collapsed. If it's collapsed, it will be
+        expanded. This affects the visibility of the node's children in the tree view.
+
         Args:
             node_id (str): The ID of the node to toggle.
         """
         # pylint: enable=line-too-long
+
         if node_id in st.session_state.expanded_nodes:
             st.session_state.expanded_nodes.remove(node_id)
         else:
@@ -90,10 +120,14 @@ class StreamlitRenderer:
         """
         Select a node to display its details.
 
+        Updates the session state to mark the specified node as selected, which will cause
+        its details to be displayed in the details panel.
+
         Args:
             node_id (str): The ID of the node to select.
         """
         # pylint: enable=line-too-long
+
         st.session_state.selected_node = node_id
 
     def _get_node_details(self, node_id: str) -> str:
@@ -102,15 +136,18 @@ class StreamlitRenderer:
         Get detailed information about a specific node.
 
         This function searches for the node in the data structure and returns formatted details
-        about the node if found.
+        about the node if found. It handles both root-level nodes and nested call nodes,
+        extracting relevant information such as file paths, line numbers, and function names.
 
         Args:
             node_id (str): The ID of the node to get details for.
 
         Returns:
-            str: Formatted markdown string containing the node details.
+            str: Formatted markdown string containing the node details, or an error message
+                 if the node is not found.
         """
         # pylint: enable=line-too-long
+
         # Find the node in the data
         for key, value in self.data.items():
             if key == node_id:
@@ -149,7 +186,9 @@ class StreamlitRenderer:
         Render a tree node and its children recursively.
 
         This function creates the UI elements for each node in the tree, including buttons for
-        expanding/collapsing nodes and selecting nodes to view details.
+        expanding/collapsing nodes and selecting nodes to view details. It handles both parent
+        nodes (with children) and leaf nodes differently, providing appropriate expand/collapse
+        functionality only for parent nodes.
 
         Args:
             key (str): The key or name of the node.
@@ -157,6 +196,7 @@ class StreamlitRenderer:
             level (int, optional): The indentation level of the node. Defaults to 0.
         """
         # pylint: enable=line-too-long
+
         indent = "  " * level
 
         # For the root node
@@ -207,6 +247,7 @@ class StreamlitRenderer:
         Create the menu bar with File submenu.
 
         This function creates a simple menu in the sidebar with options like "Close" to exit the application.
+        Currently provides basic file operations, with the close option terminating the Streamlit application.
         """
         # pylint: enable=line-too-long
         menu = st.sidebar.selectbox("Menu", ["File"])
@@ -221,9 +262,11 @@ class StreamlitRenderer:
         Main rendering function for the Streamlit app.
 
         This function sets up the overall layout of the application, including the title, menu,
-        function call tree, and node details panel.
+        function call tree, and node details panel. It creates a two-column layout where the left
+        column displays the interactive tree and the right column shows details of the selected node.
         """
         # pylint: enable=line-too-long
+
         st.title("Python Method Call Tree Viewer")
 
         # Create the menu
