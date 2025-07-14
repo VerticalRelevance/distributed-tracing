@@ -9,12 +9,12 @@ like dynamic content loading, tree navigation, and source code analysis.
 # pylint: enable=line-too-long
 
 import json
+from pprint import pformat
 import sys
 import webbrowser
 import threading
 import time
 from typing import Dict, Any, Optional
-import logging
 from fastcore.foundation import *   # pylint: disable=wildcard-import, unused-wildcard-import
 from starlette.applications import Starlette
 from starlette.routing import Route, Mount
@@ -23,30 +23,40 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 import uvicorn
 from common.configuration import Configuration
+from common.logging_utils import LoggingUtils
 from call_tracer.renderers.renderer import RendererObject
 from source_analyzer.main import SourceCodeAnalyzer
 
 
 STATIC_FILES_LOCATION = "call_tracer/renderers/fasthtml_renderer/static"
 
-logger = logging.getLogger(__name__)
+_logger = LoggingUtils().get_class_logger(class_name="fasthtml_renderer")
 
 async def generate_node_content(node: Dict[str, Any]) -> str:
     # pylint: disable=line-too-long
     """
     Generate detailed markdown content for a node by analyzing its source code.
 
+    This function takes a node from the call trace data and uses the SourceCodeAnalyzer
+    to generate comprehensive markdown documentation for the associated source code,
+    including the specific function if available.
+
     Args:
-        node: A dictionary containing node information, including file_path.
+        node: A dictionary containing node information, including file_path and
+              optionally qualified_name for the specific function to analyze.
 
     Returns:
-        str: Markdown-formatted content with details about the source code.
+        str: Markdown-formatted content with detailed analysis of the source code,
+             including function documentation, parameters, and code structure.
     """
     # pylint: enable=line-too-long
+
+    _logger.debug(__name__,f"generate_node_content node: {pformat(node)}")
     # Generate detailed markdown content
-    logger.debug(f"call process_file with '{node.get('file_path')}")
-    details = SourceCodeAnalyzer().process_file(input_source_path=node.get("file_path"))
-    logger.debug(f"call process_file finished details len: {len(details)}")
+    _logger.debug(__name__,f"call process_file with '{node.get('file_path')}")
+    details = SourceCodeAnalyzer().process_file(
+        input_source_path=node.get("file_path"),function_name=node.get('qualified_name', None))
+    _logger.debug(__name__,f"call process_file finished details len: {len(details)}")
     return details
 
 
@@ -56,7 +66,14 @@ class FastHtmlRenderer(RendererObject):
     A renderer that creates an interactive HTML visualization for call trace data.
 
     This renderer uses Starlette to serve a web application that displays call trace data
-    in a hierarchical tree view with detailed information available on demand.
+    in a hierarchical tree view with detailed information available on demand. The visualization
+    includes features like collapsible tree nodes, popup details for function analysis,
+    and dynamic content loading using HTMX.
+
+    Attributes:
+        app: The Starlette application instance that handles HTTP requests.
+        _config: Configuration object containing renderer settings.
+        data: The call trace data to visualize.
     """
     # pylint: enable=line-too-long
 
@@ -67,16 +84,24 @@ class FastHtmlRenderer(RendererObject):
         """
         Initialize the FastHTML renderer with configuration and call trace data.
 
+        Sets up the Starlette application with all necessary routes for serving
+        the interactive visualization, including static files, node details,
+        and dynamic content endpoints.
+
         Args:
-            configuration: Configuration object containing renderer settings.
-            data: Dictionary containing the call trace data to visualize.
+            configuration: Configuration object containing renderer settings,
+                          including debug mode and server configuration.
+            data: Dictionary containing the call trace data to visualize,
+                  structured as a hierarchical tree of function calls.
         """
         # pylint: enable=line-too-long
+
         super().__init__(configuration=configuration, data=data)
 
         # Create the Starlette app
+        _logger.debug(f"renderer.configuration.starlette.debug: {self._config.bool_value(key_path="renderer.configuration.starlette.debug")}")
         self.app = Starlette(
-            debug=True,
+            debug=self._config.bool_value(key_path="renderer.configuration.starlette.debug"),
             routes=[
                 Route("/", self.index),
                 Route("/node/{node_id}", self.get_node_details),
@@ -94,12 +119,17 @@ class FastHtmlRenderer(RendererObject):
         """
         Run the FastHTML application server.
 
+        Starts the Uvicorn server to serve the interactive visualization.
+        Optionally opens a browser window pointing to the application.
+
         Args:
             host: The hostname to bind the server to. Defaults to "127.0.0.1".
             port: The port to bind the server to. Defaults to 8000.
-            open_browser: Whether to automatically open a browser window. Defaults to False.
+            open_browser: Whether to automatically open a browser window pointing
+                         to the application. Defaults to False.
         """
         # pylint: enable=line-too-long
+
         # If open_browser is True, open the browser after a short delay
         if open_browser:
             url = f"http://{host}:{port}"
@@ -113,10 +143,15 @@ class FastHtmlRenderer(RendererObject):
         """
         Helper method to open the browser after a short delay.
 
+        This method is designed to be run in a separate thread to avoid blocking
+        the server startup. It waits briefly to ensure the server is ready before
+        opening the browser.
+
         Args:
             url: The URL to open in the browser.
         """
         # pylint: enable=line-too-long
+
         time.sleep(1)  # Give the server a moment to start
         webbrowser.open(url)
 
@@ -125,10 +160,12 @@ class FastHtmlRenderer(RendererObject):
         """
         Render the visualization by starting the web server and opening a browser.
 
-        This method starts the Uvicorn server with default settings and opens a browser
-        window pointing to the visualization.
+        This method starts the Uvicorn server with default settings (127.0.0.1:8000)
+        and automatically opens a browser window pointing to the visualization.
+        This is the main entry point for displaying the interactive call trace.
         """
         # pylint: enable=line-too-long
+
         host: str = "127.0.0.1"
         port: int = 8000
         open_browser: bool = True
@@ -146,13 +183,19 @@ class FastHtmlRenderer(RendererObject):
         """
         Render the main index page with the tree view.
 
+        This endpoint serves the primary visualization page containing the complete
+        HTML structure with the interactive call tree, popup overlay, and all
+        necessary JavaScript for dynamic functionality.
+
         Args:
-            request: The incoming HTTP request.
+            request: The incoming HTTP request (unused but required by Starlette).
 
         Returns:
-            HTMLResponse: The rendered HTML page.
+            HTMLResponse: The rendered HTML page containing the complete visualization
+                         interface with tree view and interactive elements.
         """
         # pylint: enable=line-too-long
+
         return HTMLResponse(self.render_page())
 
     async def get_node_details(self, request: Request) -> HTMLResponse:
@@ -160,13 +203,19 @@ class FastHtmlRenderer(RendererObject):
         """
         Render the details form for a specific node.
 
+        This endpoint provides the initial HTML structure for displaying node details
+        in the popup overlay. It includes a loading indicator and JavaScript to
+        asynchronously fetch the actual content.
+
         Args:
             request: The incoming HTTP request containing the node_id path parameter.
 
         Returns:
-            HTMLResponse: HTML content for the node details form or an error message if node not found.
+            HTMLResponse: HTML content for the node details form with loading state,
+                         or an error message if the node is not found.
         """
         # pylint: enable=line-too-long
+
         node_id = request.path_params["node_id"]
         node = self.find_node_by_id(self.data, node_id)
 
@@ -181,13 +230,19 @@ class FastHtmlRenderer(RendererObject):
         """
         Fetch the detailed content for a node using the source code analyzer.
 
+        This endpoint performs the actual source code analysis for a specific node
+        and returns the generated markdown content. It's called asynchronously
+        after the initial node details form is displayed.
+
         Args:
             request: The incoming HTTP request containing the node_id path parameter.
 
         Returns:
-            HTMLResponse: HTML content with the node details or an error message if node not found.
+            HTMLResponse: HTML content with the analyzed node details in markdown format,
+                         or an error message with 404 status if the node is not found.
         """
         # pylint: enable=line-too-long
+
         node_id = request.path_params["node_id"]
         node = self.find_node_by_id(self.data, node_id)
 
@@ -202,17 +257,24 @@ class FastHtmlRenderer(RendererObject):
         self, node: Dict[str, Any], node_id: str
     ) -> Optional[Dict[str, Any]]:
         # pylint: disable=line-too-long
+
         """
         Find a node in the tree by its ID using recursive search.
 
+        This method performs a depth-first search through the hierarchical call trace
+        data to locate a node with the specified ID. It recursively searches through
+        all child nodes in the 'calls' attribute.
+
         Args:
-            node: The current node to check.
-            node_id: The ID of the node to find.
+            node: The current node to check and search within.
+            node_id: The unique identifier of the node to find.
 
         Returns:
-            Optional[Dict[str, Any]]: The found node or None if not found.
+            Optional[Dict[str, Any]]: The found node dictionary if located,
+                                     or None if the node is not found in the tree.
         """
         # pylint: enable=line-too-long
+
         if node.get("id") == node_id:
             return node
 
@@ -229,16 +291,19 @@ class FastHtmlRenderer(RendererObject):
         """
         Generate HTML form for node details with loading state.
 
-        This method creates the form structure and loading state, with the actual content
-        fetched asynchronously.
+        This method creates the initial HTML structure for displaying node details
+        in the popup overlay. It includes a loading indicator and JavaScript code
+        that immediately fetches the actual content asynchronously.
 
         Args:
-            node_id: The ID of the node to generate details for.
+            node_id: The unique identifier of the node to generate details for.
 
         Returns:
-            str: HTML content with loading indicator and JavaScript for fetching node details.
+            str: HTML content with loading indicator, content placeholder, and
+                 JavaScript for asynchronous content fetching and markdown rendering.
         """
         # pylint: enable=line-too-long
+
         return f"""
         <div id="loading-indicator">
             <p>Loading node details... Please be patient as this could take some time.</p>
@@ -278,14 +343,20 @@ class FastHtmlRenderer(RendererObject):
         """
         Render a single node in the tree as HTML.
 
+        This method generates the HTML representation of a single node in the call tree,
+        including its display information, interactivity attributes, and nested children.
+        Nodes with file paths are made clickable and selectable.
+
         Args:
-            node: The node data to render.
+            node: The node data dictionary containing id, name, type, file_path, and calls.
             level: The nesting level of the node in the tree. Defaults to 0.
 
         Returns:
-            str: HTML representation of the node and its children.
+            str: HTML representation of the node and its children, including proper
+                 nesting with collapsible details elements for child calls.
         """
         # pylint: enable=line-too-long
+
         node_id = node.get("id", "")
         name = node.get("name", "Unknown")
         node_type = node.get("type", "Unknown")
@@ -337,10 +408,17 @@ class FastHtmlRenderer(RendererObject):
         """
         Render the full HTML page with the tree structure.
 
+        This method generates the complete HTML document for the visualization,
+        including the page structure, CSS and JavaScript imports, the interactive
+        tree view, popup overlay, and all necessary client-side functionality.
+
         Returns:
-            str: Complete HTML document for the visualization page.
+            str: Complete HTML document string for the visualization page,
+                 including head section, body with tree container, popup overlay,
+                 and all interactive JavaScript functionality.
         """
         # pylint: enable=line-too-long
+
         return f"""
         <!DOCTYPE html>
         <html lang="en">
@@ -426,24 +504,33 @@ def main():
     """
     Main entry point for running the FastHTML renderer as a standalone application.
 
-    Parses command line arguments, loads the call trace data from a JSON file,
-    and starts the renderer.
+    This function serves as the command-line interface for the renderer. It expects
+    a JSON file path as the first command-line argument, loads the call trace data,
+    and starts the interactive visualization server with browser auto-opening enabled.
     """
     # pylint: enable=line-too-long
-    def load_data(self) -> Dict[str, Any]:
-        # pylint: disable=line-too-long
+
+    # pylint: disable=line-too-long
+    def load_data(data_file) -> Dict[str, Any]:
         """
         Load the JSON data from the specified file.
 
+        This nested function handles loading and parsing of the call trace data
+        from a JSON file, with appropriate error handling for file and parsing issues.
+
+        Args:
+            data_file: Path to the JSON file containing call trace data.
+
         Returns:
-            Dict[str, Any]: The loaded JSON data.
+            Dict[str, Any]: The loaded and parsed JSON data structure.
 
         Raises:
-            SystemExit: If there's an error loading the JSON data.
+            SystemExit: If there's an error loading or parsing the JSON data.
         """
         # pylint: enable=line-too-long
+
         try:
-            with open(self.data_file, "r", encoding="utf-8") as f:
+            with open(data_file, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"Error loading JSON data: {e}")

@@ -58,6 +58,7 @@ class ParameterizedProperty:
             fset: Optional function to be used for setting the attribute value.
         """
         # pylint: enable=line-too-long
+
         self.fget = fget
         self.fset = fset
         self.__doc__ = fget.__doc__ if fget else None
@@ -81,6 +82,7 @@ class ParameterizedProperty:
             getter function that accepts additional arguments.
         """
         # pylint: enable=line-too-long
+
         if obj is None:
             return self
 

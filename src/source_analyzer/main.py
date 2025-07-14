@@ -11,12 +11,11 @@ SourceCodeAnalyzer class.
 
 import sys
 import os
+from itertools import chain
 from pathlib import Path
-from common.utilities import (
-    LoggingUtils,
-    PathUtils,
-    GenericUtils,
-)
+from common.path_utils import PathUtils
+from common.logging_utils import LoggingUtils
+from common.generic_utils import GenericUtils
 from source_analyzer.source_analyzer_class import SourceCodeAnalyzer
 
 def main():
@@ -33,7 +32,7 @@ def main():
     """
     # pylint: enable=line-too-long
 
-    logging_utils: LoggingUtils = LoggingUtils()
+    main_logger: LoggingUtils = LoggingUtils().get_class_logger(class_name=__name__)
     path_utils: PathUtils = PathUtils()
     generic_utils = GenericUtils()
 
@@ -54,7 +53,7 @@ def main():
 
         print(f"Usage: python {script_name} [FILE|DIRECTORY]")
         print(
-            f"Invalid argument(s): {invalid_arg_values}"
+            f"Invalid argument(s): {",".join(chain.from_iterable(invalid_arg_values.values()))}"
             if invalid_args
             else "Analyze the source code in the specified file or directory."
         )
@@ -69,16 +68,12 @@ DIRECTORY     Path to an input directory
             print(
                 """
 Environment variables:
-    LOG_LEVEL_STDERR:
-        Sets the level of the logger writing to the file defined by LOG_FILE_STDERR.
+    LOG_LEVEL:
+        Sets the level of the logger writing to the file defined by LOG_FILE.
         Preferred values are TRACE, DEBUG, ERROR, or CRITICAL. All valid level
         values are listed below. Default is DEBUG.
-    LOG_LEVEL_STDOUT:
-        Sets the level of the logger writing to STDOUT. Preferred values are
-        TRACE, DEBUG, ERROR, or CRITICAL. All valid level values are listed
-        below. Default is SUCCESS.
     LOG_FILE_STDERR:
-        Set the name of the file to be written by the STDERR logger.
+        Set the name of the file to be written by the logger.
 
 Log Levels:
     NOTSET:
@@ -117,43 +112,40 @@ Log Levels:
         )
         sys.exit(1)
 
-    logging_utils.info(__name__, "Starting...")
+    print("Starting...")
 
     use_assistant = generic_utils.is_truthy(os.getenv("USE_ASSISTANT", "false"))
-    logging_utils.info(
-        __name__,
-        f"Using OpenAI with {'code interpreter' if use_assistant else 'no'} assistant",
-    )
+    print(f"Using GenAI with {'code interpreter' if use_assistant else 'no'} assistant")
 
     # Initialize the SourceCodeAnalyzerUtils with the configuration
     analyzer: SourceCodeAnalyzer = SourceCodeAnalyzer()
 
     # Analyze the source code
     source_path = sys.argv[1]
-    logging_utils.debug(__name__, f"source_path: {source_path}")
+    main_logger.debug(f"source_path: {source_path}")
 
     if path_utils.is_file(source_path):
-        logging_utils.debug(__name__, "Path(source_path)")
-        logging_utils.debug(__name__, Path(source_path))
+        main_logger.debug("Path(source_path)")
+        main_logger.debug(Path(source_path))
         try:
             analyzer.process_file(source_path, display_results=True)
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logging_utils.error(__name__, f"Failed to process file: {str(e)}")
-            logging_utils.trace(__name__, "end __main__ (file error)")
+            main_logger.error(f"Failed to process file: {str(e)}")
+            main_logger.trace("end __main__ (file error)")
     else:
         if path_utils.is_dir(source_path):
             try:
                 analyzer.process_directory(source_path)
             except Exception as e:  # pylint: disable=broad-exception-caught
-                logging_utils.error(__name__, f"Failed to process file: {str(e)}")
-                logging_utils.trace(__name__, "end __main__ (file error)")
+                main_logger.error(f"Failed to process file: {str(e)}")
+                main_logger.trace("end __main__ (file error)")
         else:
-            logging_utils.error(
+            main_logger.error(
                 __name__,
                 f"Source path '{source_path}' is neither a file nor a directory",
             )
 
-    logging_utils.debug(__name__, "end __main__")
+    main_logger.trace("end __main__")
 
 
 if __name__ == "__main__":

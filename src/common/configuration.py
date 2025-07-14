@@ -18,10 +18,9 @@ Classes:
 """
 # pylint: enable=line-too-long
 
-from pathlib import Path
-import yaml
 from common.parameterized_property import ParameterizedProperty
-
+from common.path_utils import PathUtils
+from common.yaml_utils import YamlUtils
 
 class Configuration:
     # pylint: disable=line-too-long
@@ -57,6 +56,7 @@ class Configuration:
             Configuration: The singleton instance of the Configuration class.
         """
         # pylint: enable=line-too-long
+
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -70,6 +70,9 @@ class Configuration:
             config_file_path (str): Path to the YAML configuration file to load.
         """
         # pylint: enable=line-too-long
+
+        self._path_utils = PathUtils()
+        self._yaml_utils = YamlUtils()
         self._config_content: Configuration = None
         self.safe_load_config(config_file_path)
 
@@ -84,6 +87,19 @@ class Configuration:
         # pylint: enable=line-too-long
 
         def dict_to_string(d, prefix: str = ""):
+            # pylint: disable=line-too-long
+            """
+            Recursively convert a dictionary to a formatted string representation.
+
+            Args:
+                d: The dictionary or value to convert to string.
+                prefix (str): The indentation prefix for nested levels.
+
+            Returns:
+                str: A formatted string representation of the dictionary.
+            """
+            # pylint: enable=line-too-long
+
             if isinstance(d, dict):
                 return (
                     "{"
@@ -121,60 +137,38 @@ class Configuration:
             TypeError: If the file content is not a dictionary.
         """
         # pylint: enable=line-too-long
-        try:
-            # Convert to Path object for better path handling
-            path: Path = Path(file_path)
 
+        try:
             # Check if file exists
-            if not path.exists():
+            if not self._path_utils.file_exists(file_path):
                 raise FileNotFoundError(f"The file {file_path} does not exist")
 
             # Check if path is actually a file
-            if not path.is_file():
+            if not self._path_utils.is_file(file_path):
                 raise IsADirectoryError(f"{file_path} is not a file")
 
             # Check if file is empty
-            if path.stat().st_size == 0:
+            if self._path_utils.stat(file_path).st_size == 0:
                 raise ValueError(f"The file {file_path} is empty")
 
             # Check file extension
-            if path.suffix.lower() not in [".yaml", ".yml"]:
+            if self._path_utils.lower_suffix(file_path) not in [".yaml", ".yml"]:
                 raise ValueError(
                     f"File {file_path} does not have a .yaml or .yml extension"
                 )
 
-            # Attempt to read and parse the YAML file
-            with path.open("r", encoding="utf-8") as file:
-                try:
-                    # Use safe_load instead of load for security
-                    self._config_content = yaml.safe_load(file)
+            self._config_content = self._yaml_utils.parse(file_path)
 
-                    # Check if content is None or not a dictionary
-                    if self._config_content is None:
-                        raise ValueError(
-                            f"The file {file_path} contains no valid YAML content"
-                        )
-                    if not isinstance(self._config_content, dict):
-                        raise TypeError(
-                            f"The file {file_path} must contain a YAML dictionary/object"
-                        )
+            # Check if content is None or not a dictionary
+            if self._config_content is None:
+                raise ValueError(
+                    f"The file {file_path} contains no valid YAML content"
+                )
+            if not isinstance(self._config_content, dict):
+                raise TypeError(
+                    f"The file {file_path} must contain a YAML dictionary/object"
+                )
 
-                    return
-
-                except yaml.YAMLError as e:
-                    # Handle specific YAML parsing errors
-                    if isinstance(e, yaml.scanner.ScannerError):
-                        raise yaml.YAMLError(
-                            f"YAML syntax error in {file_path}: {str(e)}"
-                        )
-                    if isinstance(e, yaml.parser.ParserError):
-                        raise yaml.YAMLError(
-                            f"YAML parsing error in {file_path}: {str(e)}"
-                        )
-
-                    raise yaml.YAMLError(
-                        f"Error parsing YAML file {file_path}: {str(e)}"
-                    )
 
         except PermissionError as pe:
             raise PermissionError(
@@ -189,23 +183,6 @@ class Configuration:
                 f"Unexpected error reading {file_path}: {str(e)}"
             ) from e
 
-    def validate_config(self) -> bool:
-        # pylint: disable=line-too-long
-        """
-        Validate the loaded configuration against a predefined schema.
-
-        Returns:
-            bool: True if the configuration is valid, False otherwise.
-
-        Note:
-            This is a placeholder method for future implementation of configuration validation.
-        """
-        # pylint: enable=line-too-long
-        # validate the loaded configuration against a predefined schema
-        # FUTURE add configuration validation
-
-        return True
-
     def items(self):
         # pylint: disable=line-too-long
         """
@@ -215,6 +192,7 @@ class Configuration:
             dict: A copy of the configuration content.
         """
         # pylint: enable=line-too-long
+
         return self._config_content.copy()
 
     def _config_getter(self, key_path: str, default_value=None):
@@ -413,6 +391,7 @@ class Configuration:
             >>> timeout = config.float_value('app.timeout', expected_min=0.1, expected_max=30.0)
         """
         # pylint: enable=line-too-long
+
         float_value = self._config_getter(
             key_path=key_path, default_value=default_value
         )
@@ -458,6 +437,7 @@ class Configuration:
             The method converts the configuration value to lowercase before comparison.
         """
         # pylint: enable=line-too-long
+
         bool_value = self._config_getter(key_path=key_path, default_value=default_value)
         return bool_value.lower() in ("true", "1", "yes", "on")
 
@@ -467,14 +447,15 @@ class Configuration:
         Recursively set a value in the configuration using a dot-separated key path.
 
         This is an internal helper method used by other configuration setters. It traverses a nested
-        dictionary structure using the provided dot-notation path. If any segment of the path is not
-        found or if any intermediate value is not a dictionary, it returns the default_value.
+        dictionary structure using the provided dot-notation path and creates intermediate dictionaries
+        as needed. The value is set at the final key in the path.
 
         Args:
             key_path (str): Dot-separated path to the desired key (e.g., "ai_model.custom.key").
             value: The value to set at the specified key path.
         """
         # pylint: enable=line-too-long
+
         keys = key_path.split(".")
         current = self._config_content
 
@@ -488,7 +469,7 @@ class Configuration:
         current[keys[-1]] = value
 
     @str_value.setter
-    def str_value(self, str_value: int, key_path: str):
+    def str_value(self, str_value: str, key_path: str):
         # pylint: disable=line-too-long
         """
         Set a string value in the configuration using a dot-separated key path.
@@ -498,7 +479,8 @@ class Configuration:
             key_path (str): Dot-separated path to the desired key (e.g., "app.name").
         """
         # pylint: enable=line-too-long
-        self._config_setter(str_value, key_path)
+
+        self._config_setter(key_path, str_value)
 
     @int_value.setter
     def int_value(self, int_value: int, key_path: str):
@@ -511,10 +493,11 @@ class Configuration:
             key_path (str): Dot-separated path to the desired key (e.g., "app.max_connections").
         """
         # pylint: enable=line-too-long
-        self._config_setter(int_value, key_path)
+
+        self._config_setter(key_path, int_value)
 
     @float_value.setter
-    def float_value(self, float_value: int, key_path: str):
+    def float_value(self, float_value: float, key_path: str):
         # pylint: disable=line-too-long
         """
         Set a float value in the configuration using a dot-separated key path.
@@ -524,10 +507,11 @@ class Configuration:
             key_path (str): Dot-separated path to the desired key (e.g., "app.timeout").
         """
         # pylint: enable=line-too-long
-        self._config_setter(float_value, key_path)
+
+        self._config_setter(key_path, float_value)
 
     @bool_value.setter
-    def bool_value(self, bool_value: int, key_path: str):
+    def bool_value(self, bool_value: bool, key_path: str):
         # pylint: disable=line-too-long
         """
         Set a boolean value in the configuration using a dot-separated key path.
@@ -537,10 +521,11 @@ class Configuration:
             key_path (str): Dot-separated path to the desired key (e.g., "feature.enabled").
         """
         # pylint: enable=line-too-long
-        self._config_setter(bool_value, key_path)
+
+        self._config_setter(key_path, bool_value)
 
     @list_value.setter
-    def list_value(self, list_value: int, key_path: str):
+    def list_value(self, list_value: list, key_path: str):
         # pylint: disable=line-too-long
         """
         Set a list value in the configuration using a dot-separated key path.
@@ -550,4 +535,5 @@ class Configuration:
             key_path (str): Dot-separated path to the desired key (e.g., "app.allowed_hosts").
         """
         # pylint: enable=line-too-long
+
         self._config_setter(key_path, list_value)

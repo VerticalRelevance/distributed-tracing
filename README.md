@@ -3,8 +3,9 @@ Trace Injection Advisor is an AI-powered solution that provides advice regarding
 
 ## Project Structure
 1. Python Source Code: `src/`
-   1. Package: `source_analyzer/`
-   2. Package: `call_tracer/`
+   1. Package: `call_tracer/`
+   2. Package: `common/`
+   3. Package: `source_analyzer/`
 2. Python Test Code: `tests/`
    1. Unit Test Code: `unit/`
       1. Package: `source_analyzer/`
@@ -17,6 +18,19 @@ Trace Injection Advisor is an AI-powered solution that provides advice regarding
  - All Python code in this repository has been developed and tested with Python 3.13.1.
 
 ## Getting Started
+
+### Logging
+Logging is performed by the `loguru` package via an interface class `common/logging_utils.py`.
+The following environment variables are used to configure the logger.
+
+| Name                 | Required | Default  | Description                                              |
+| -------------------- | -------- | -------- | -------------------------------------------------------- |
+| LOG_FILE_NAME        | Yes      | N/A      | Path to a file where the log should be written           |
+| LOG_FILE_COMPRESSION | No       | "zip"    | The log file compression format                          |
+| LOG_FILE_RETENTION   | No       | "7 days" | The amount of time to retain rotated log files           |
+| LOG_FILE_ROTATION    | No       | "10 MB"  | The size the log file that triggers rotation of the file |
+| LOG_LEVEL            | No       | DEBUG    | sets the Loguru logging level                            |
+
 ### General Setup
 1. Clone the distributed tracing repository:
 ```bash
@@ -36,34 +50,52 @@ cd /path/to/root/distributed-tracing/src
 ```
 
 ### Running Call Tracer
-1. Set the `PYTHONPATH` environment variable:
+1. Set the `PYTHONPATH` environment variable.
 ```bash
-export PYTHONPATH=common:.:call_tracer
+export export PYTHONPATH=common:.:call_tracer:call_tracer/renderers:source_analyzer:source_analyzer/models
 ```
-2. Run the call tracer:
+2. Set the `LOG_FILE` environment variable.
 ```bash
-python call_tracer/main.py (path to file or local repository) > (some location).md 2> (some location).err
+export LOG_FILE="/absolute/path/to/some/location/distributed-tracing/source_analyzer.err"`
+```
+3. (Optional) Set the `LOG_LEVEL` environment variable. Default is DEBUG.
+```bash
+export LOG_LEVEL="DEBUG"
+```
+4. (OPtional) Set other logging environment variables.
+5. Run the call tracer.
+```bash
+python call_tracer/main.py source_file_path entry_point search_paths
 ```
 
-### Running Source Analyzer
-1. Set the `PYTHONPATH` environment variable:
+### Running Source Analyzer Standalone
+1. Set the `PYTHONPATH` environment variable.
 ```bash
-export PYTHONPATH=common:.:source_analyzer
+export PYTHONPATH=common:.:source_analyzer:source_analyzer/models
 ```
-2. Set up configuration file (see [source_analyzer_configuration](#source-analyzer-configuration))
-3. Create any model-specific environment variables.
+2. Set up configuration file (see [source_analyzer_configuration](#source-analyzer-configuration)).
+3. Create any necessary model-specific environment variables.
 * For example, for an OpenAI model:
 ```bash
 export OPENAI_API_KEY="sk-proj-xyzzy..."
 ```
 * For a model accessed via AWS Bedrock, set up AWS credentials.
-4. Run the source analyzer:
+2. Set the `LOG_FILE` environment variable.
 ```bash
-python source_analyzer/main.py (path to file or local repository) > (some location).md 2> (some location).err
+export LOG_FILE="/absolute/path/to/some/location/distributed-tracing/source_analyzer.err"`
+```
+3. (Optional) Set the `LOG_LEVEL` environment variable. Default is DEBUG.
+```bash
+export LOG_LEVEL="DEBUG"
+```
+4. (Optional) Set other logging environment variables.
+4. Run the source analyzer.
+```bash
+python source_analyzer/main.py file_path or local_repository_path
 ```
 
 ## Package Details
-For more information on each package, refer to the following:
+For more information on each package, refer to the following.
  
 | Package         | Documentation                            |
 | --------------- | ---------------------------------------- |
@@ -73,7 +105,7 @@ For more information on each package, refer to the following:
 ## General Project Topics
 
 ### Project Spelling Words
-Some IDEs, such as Visual Studio Code, contain core or plug-in functionality to mark or otherwise
+Some IDE's, such as Visual Studio Code, contain core or plug-in functionality to mark or otherwise
 detect misspelled words in project files. Sometimes, due to the quirkiness of element naming, there
 are words that would otherwise be considered misspelled, that should be considered spelled
 correctly.  

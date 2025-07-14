@@ -1,8 +1,9 @@
 # pylint: disable=line-too-long
 """
-CodedJsonToMarkdownFormatter module that provides functionality for formatting JSON analysis data into structured Markdown reports.
+Module that provides functionality for formatting JSON analysis data into structured Markdown reports.
 
-This module implements a singleton pattern for the formatter and provides methods for transforming JSON data into readable Markdown documentation.
+This module implements a singleton pattern for the formatter and provides methods for transforming JSON data into
+human-readable Markdown documentation.
 """
 # pylint: enable=line-too-long
 
@@ -23,7 +24,7 @@ class CodedJsonToMarkdownFormatter(
 
     Attributes:
         _config: Configuration settings for the formatter.
-        _logging_utils: Utility for debug logging operations.
+        _logger: Utility for logging operations.
 
     The formatter requires proper configuration of tracing priorities and expects specific JSON structure
     for analysis data. It handles missing data gracefully and provides detailed debug logging.
@@ -94,24 +95,8 @@ class CodedJsonToMarkdownFormatter(
         output_strings.append(data.get("overall_analysis_summary"))
 
         priorities: dict = data.get("priorities", {})
-        self._logging_utils.debug(
-            __class__, f"type(data.get('priorities'): {type(priorities)}"
-        )
-        self._logging_utils.debug(
-            __name__, f"priorities: {priorities}", enable_pformat=True
-        )
         tracing_priorities: list = self._config.list_value("tracing_priorities", [])
-        self._logging_utils.debug(
-            __class__,
-            f"type(self._config('tracing_priorities')): {type(tracing_priorities)}",
-        )
         for tracing_priority in tracing_priorities:
-            self._logging_utils.debug(
-                __class__, f"type(tracing_priority): {type(tracing_priority)}"
-            )
-            self._logging_utils.debug(
-                __class__, f"tracing_priority: {tracing_priority}"
-            )
             output_strings.append("")
             output_strings.append(f"### {tracing_priority}")
             output_strings.append("")
@@ -120,13 +105,11 @@ class CodedJsonToMarkdownFormatter(
                 for element in priorities
                 if element["priority"] == tracing_priority
             ][0].get("critical_locations")
-            self._logging_utils.debug(__class__.__name__, f"locations: {locations}")
-            self._logging_utils.debug(__class__.__name__, f"len(locations): {len(locations)}")
             if len(locations) == 0:
                 output_strings.append("No critical findings for this priority.")
                 continue
             for location in locations:
-                self._logging_utils.debug(__class__.__name__, f"location: {location}")
+                self._logger.debug(__class__.__name__, f"location: {location}")
                 output_strings.append(f"#### Location {location.get('function_name')}")
                 output_strings.append(
                     f"- **Specific code blocks/lines to trace:**\n```python\n{location.get('code_block')}\n```"  # pylint: disable=line-too-long
