@@ -4,67 +4,99 @@
 
 ## Overview
 
-This Python code implements a source code analyzer tool designed to analyze Python code and identify optimal locations for adding trace statements. The goal of the tool is to ease the pain of code instrumentation by identifying the optimal points in Python code to add tracing or logging statements based on intelligent analysis of code structure and flow.
-
+This Python code implements a source code analyzer tool designed to analyze Python source files and identify optimal locations for adding trace statements using AI-powered analysis. The tool leverages configurable AI models (such as OpenAI or AWS Bedrock) to intelligently analyze code structure and recommend critical points for instrumentation based on user-defined priorities. It can process individual files or entire directories, providing formatted output with detailed recommendations for trace statement placement.
 
 ## Main Components and Logic Flow
 
-### 1. Core Classes
+### Core Classes
 
-- **SourceCodeNode**: Represents a node in the source code tree (module, class, function, etc.) with attributes for name, type, source location, and children.
+- **SourceCodeAnalyzer**: The main analysis class that orchestrates the entire process:
+  - Initializes dependencies (utilities, configuration, AI model, formatter)
+  - Manages AI model interactions with retry logic
+  - Processes source files and directories
+  - Generates formatted output
 
-- **SourceCodeTreeBuilder**: An AST (Abstract Syntax Tree) visitor that builds a hierarchical tree representation of Python source code. It traverses the AST and creates nodes for:
-  - Imports
-  - Classes
-  - Functions
-
-- **SourceCodeAnalyzer**: The main analysis class that:
-  - Parses source code
-  - Builds the source tree
-  - Uses AI models to analyze the code and identify critical locations for trace statements
-
-### 2. Analysis Process
+### Analysis Process
 
 The tool follows this logical flow:
 
-1. **Initialization**: Sets up utilities, configuration, a model (AI/LLM), and a formatter
+- **Initialization**
+ - Sets up utilities (GenericUtils, LoggingUtils, PathUtils)
+ - Loads configuration from YAML file
+ - Initializes AI model and formatter using factory patterns
+ - Configures retry and token tracking settings
 
-2. **Source Code Parsing**: Uses Python's [ast](https://docs.python.org/3/library/ast.html) module to parse source code into an Abstract Syntax Tree (AST)
+- **File Processing**
+ - Loads Python source file content
+ - Validates file exists and is not empty
+ - Handles errors gracefully with detailed logging
 
-3. **Tree Building**: Walks through the AST to build a hierarchical representation that shows the structure of:
-   - Import statements
-   - Class definitions
-   - Function/method definitions
+- **AI-Powered Analysis**
+ - Constructs detailed prompts with source code and tracing priorities
+ - Sends prompts to configured AI model with retry logic
+ - Analyzes responses for optimal trace point locations
+ - Tracks token usage and validates stop reasons
 
-4. **AI-Powered Analysis**: Uses an AI model to analyze the code and identify optimal trace statement locations based on configured priorities
+- **Output Generation**
+ - Processes AI model's JSON response
+ - Applies configured formatter to generate structured output
+ - Returns formatted recommendations or displays to console
 
-5. **Output Formatting**: Formats the AI's recommendations into a structured output
+### Directory Processing
 
-### 3. Key Features
+- Recursively walks directory structures
+- Identifies Python files (.py extension)
+- Processes each file individually
+- Provides comprehensive logging of the process
 
-- **Tree Representation**: Builds a visual tree representation of the code structure
-- **Prioritized Analysis**: Uses configurable priorities to identify critical trace points
-- **Robust Error Handling**: Implements retry logic for AI model calls
-- **Detailed Logging**: Comprehensive logging at various levels (TRACE, DEBUG, INFO, etc.)
+## Key Features
 
-### 4. Command-Line Interface
-
-The tool can be invoked to analyze:
-- A single Python file: `python main.py file.py`
-- A directory of Python files: `python main.py directory/`
+- **AI Model Integration**: Flexible support for multiple AI models through factory pattern (OpenAI, AWS Bedrock, etc.)
+- **Configurable Analysis Priorities**: User-defined priorities guide the AI's analysis focus.
+- **Robust Error Handling**: Comprehensive retry logic with exponential backoff for AI model calls.
+- **Token Usage Tracking**: Monitors and reports prompt and completion token consumption.
+- **Function-Specific Analysis**: Optional focus on specific functions or methods within source files.
+- **Flexible Output Formatting**: Pluggable formatter system for customized output formats.
+- **Comprehensive Logging**: Multi-level logging (TRACE, DEBUG, INFO, etc.) with structured output.
+- **Batch Processing**: Support for analyzing entire directories recursively.
+- **JSON-Structured Output**: AI responses formatted as structured JSON with detailed recommendations.
 
 ## Technical Details
 
-1. **AST Traversal**: The tool uses Python's built-in `ast` module to parse code and the visitor pattern to traverse the tree.
+- **Configuration Management**: Uses YAML-based configuration with support for.
+ - AI model settings (temperature, retry logic, token limits)
+ - Tracing priorities and clarifications
+ - Formatter and model class selection
+ - AWS region configuration for Bedrock models
 
-2. **AI Integration**: The tool sends prompts to an AI model asking it to identify critical locations for trace statements based on specified priorities.
+- **AI Model Abstraction**: 
+  - Factory pattern for model selection
+  - Standardized interface for different AI providers
+  - Automatic retry logic with configurable attempts and delays
+  - Token limit detection and handling
+  - Stop reason validation
 
-3. **Retry Mechanism**: Implements robust retry logic to handle API failures when communicating with the AI model.
+- **Error Handling**:
+  - Custom exception hierarchy (ModelException, ModelMaxTokenLimitException)
+  - Graceful degradation with informative error messages
+  - Comprehensive logging of failures and retries
 
-4. **Formatting**: The AI's output is formatted according to configured templates.
+- **Prompt Engineering**:
+  - Dynamic prompt construction based on configuration
+  - Support for function-specific analysis
+  - Structured JSON response format requirements
+  - Integration of user-defined priorities and clarifications
 
-5. **Configuration**: Uses YAML-based configuration to control analysis priorities, model settings, and other parameters.
+- **Output Processing**:
+  - JSON response parsing and validation
+  - Metadata injection (model info, token usage, timing)
+  - Flexible formatting through pluggable formatter system
 
+- **File System Operations**:
+  - Path validation and error handling
+  - ASCII file content loading
+  - Recursive directory traversal
+  - Support for both single file and batch processing modes
 
 ## Submodules
 
