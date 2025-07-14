@@ -220,7 +220,7 @@ class LoggingUtils:
             MissingEnvVarException: If LOG_FILE environment variable is not set.
         """
         # pylint: enable=line-too-long
-        stderr_level = os.getenv(LOG_LEVEL, "DEBUG").upper()
+        log_level = os.getenv(LOG_LEVEL, "DEBUG").upper()
         log_file = os.getenv(LOG_FILE_NAME)
 
         if log_file is None:
@@ -229,7 +229,7 @@ class LoggingUtils:
         logger.add(
             log_file,
             format="{time:YYYY-MM-DD HH:mm:ss} - {level:8} {message}",
-            level=stderr_level,
+            level=log_level,
             rotation=os.getenv(LOG_FILE_ROTATION, "10 MB"),  # Rotate when file reaches 10MB
             retention=os.getenv(LOG_FILE_RETENTION, "7 days"),  # Keep logs for 7 days
             compression=os.getenv(LOG_FILE_COMPRESSION, "zip")  # Compress old logs

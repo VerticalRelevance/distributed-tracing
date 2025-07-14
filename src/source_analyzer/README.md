@@ -1,5 +1,7 @@
 # Source Code Analyzer Logic Explanation
 
+## TODO refactor with Call Tracer README
+
 ## Overview
 
 This Python code implements a source code analyzer tool designed to analyze Python code and identify optimal locations for adding trace statements. The goal of the tool is to ease the pain of code instrumentation by identifying the optimal points in Python code to add tracing or logging statements based on intelligent analysis of code structure and flow.
@@ -51,14 +53,6 @@ The tool can be invoked to analyze:
 - A single Python file: `python main.py file.py`
 - A directory of Python files: `python main.py directory/`
 
-### 5. Environment
-
-The following environment variables are used for run-time configuration of the tool:
-
-| Name | Purpose | Default |
-| ---- | ------- | ------- |
-| TODO |         |         |
-
 ## Technical Details
 
 1. **AST Traversal**: The tool uses Python's built-in `ast` module to parse code and the visitor pattern to traverse the tree.
@@ -98,7 +92,7 @@ formatter
 │   └── name: the Python class to be used for formatting the analyzer output (required)
 ├── module
 │   └── name: the Python module containing the class to be used for formatting (required)
-└── any additional configuration as defined by the specific formatter class (reuqirement based on the model)
+└── any additional configuration as defined by the specific formatter class (requirement based on the model)
 
 ai_model
 ├── max_llm_tries: the number of times to try calling the AI model in case of error (required)
