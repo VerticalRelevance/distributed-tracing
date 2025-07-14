@@ -25,6 +25,7 @@ import json
 from typing import Dict, Any
 import streamlit as st
 from call_tracer.renderers.renderer import RendererObject
+from common.configuration import Configuration
 
 
 class StreamlitRenderer(RendererObject):
@@ -46,20 +47,23 @@ class StreamlitRenderer(RendererObject):
     """
     # pylint: enable=line-too-long
 
-    def __init__(self, json_file_path: str):
+    def __init__(self, configuration: Configuration, data: Dict[str, Any]):
         # pylint: disable=line-too-long
         """
-        Initialize the StreamlitRenderer with the path to the JSON file.
+        Initialize the StreamlitRenderer with configuration and data.
 
         Sets up the renderer by loading the JSON data and initializing Streamlit session state
         for node selection and expansion tracking. The first level of nodes is expanded by default.
 
         Args:
-            json_file_path (str): Path to the JSON file containing the function call data.
+            configuration (Configuration): Configuration object containing renderer settings.
+            data (Dict[str, Any]): The function call data to be rendered as a tree structure.
         """
         # pylint: enable=line-too-long
 
-        self.json_file_path = json_file_path
+        super().__init__(configuration=configuration, data=data)
+
+        self.json_file_path = None
         self.data = self._load_json()
 
         # Initialize session state for selected node if it doesn't exist
@@ -76,19 +80,23 @@ class StreamlitRenderer(RendererObject):
     def _load_json(self) -> Dict[str, Any]:
         # pylint: disable=line-too-long
         """
-        Load the JSON data from the file.
+        Load the JSON data from the instance data or file.
 
-        Attempts to read and parse the JSON file specified in the constructor. If the file
-        cannot be loaded or parsed, displays an error message in the Streamlit UI and returns
-        an empty dictionary.
+        Returns the data that was passed to the constructor. If json_file_path is set,
+        attempts to read and parse the JSON file. If the file cannot be loaded or parsed,
+        displays an error message in the Streamlit UI and returns an empty dictionary.
 
         Returns:
-            Dict[str, Any]: The loaded JSON data as a dictionary. Returns an empty dictionary if loading fails.
+            Dict[str, Any]: The loaded JSON data as a dictionary. Returns the instance data
+                           if no file path is set, or an empty dictionary if loading fails.
 
         Raises:
             Exception: Displays an error message in the Streamlit UI if the JSON file cannot be loaded.
         """
         # pylint: enable=line-too-long
+
+        if self.json_file_path is None:
+            return {}
 
         try:
             with open(self.json_file_path, "r", encoding="utf-8") as f:
@@ -151,8 +159,10 @@ class StreamlitRenderer(RendererObject):
         # Find the node in the data
         for key, value in self.data.items():
             if key == node_id:
-                return (f"# {key}\n\n**File Path:** {value.get('file_path', 'N/A')}"
-                "\n\n**Name:** {value.get('name', 'N/A')}")
+                return (
+                    f"# {key}\n\n**File Path:** {value.get('file_path', 'N/A')}"
+                    "\n\n**Name:** {value.get('name', 'N/A')}"
+                )
 
             # Check in calls list
             if "calls" in value:
@@ -250,6 +260,7 @@ class StreamlitRenderer(RendererObject):
         Currently provides basic file operations, with the close option terminating the Streamlit application.
         """
         # pylint: enable=line-too-long
+
         menu = st.sidebar.selectbox("Menu", ["File"])
 
         if menu == "File":
@@ -294,7 +305,20 @@ class StreamlitRenderer(RendererObject):
                 st.info("Select a node to view details")
 
 
-if __name__ == "__main__":
+# pylint: disable=line-too-long
+def main():
+    """
+    Main entry point for the Streamlit application.
+
+    This function handles command-line argument parsing and initializes the StreamlitRenderer
+    with the provided JSON file path. It validates that a JSON file path is provided as a
+    command-line argument before starting the application.
+
+    Raises:
+        SystemExit: If no JSON file path is provided as a command-line argument.
+    """
+    # pylint: enable=line-too-long
+
     if len(sys.argv) < 2:
         st.error("Please provide a JSON file path as a command line argument.")
         st.stop()
@@ -302,3 +326,6 @@ if __name__ == "__main__":
     main_json_file_path = sys.argv[1]
     app = StreamlitRenderer(main_json_file_path)
     app.render()
+
+if __name__ == "__main__":
+    main()

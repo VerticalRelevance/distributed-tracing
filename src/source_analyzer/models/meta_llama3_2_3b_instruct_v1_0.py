@@ -9,7 +9,7 @@ handling the specific formatting requirements and response parsing for this mode
 
 import json
 from botocore.exceptions import ClientError
-from source_analyzer.models.model import ModelObject, ModelException
+from source_analyzer.models.model import BedrockModelObject, ModelException
 from common.configuration import Configuration
 
 MAX_GEN_LEN_EXPECTED_MIN = 0
@@ -17,16 +17,19 @@ MAX_GEN_LEN_EXPECTED_MAX = 204800
 MAX_GEN_LEN_DEFAULT = 6144
 
 
-class MetaLlama323bInstructV1(ModelObject):
+class MetaLlama323bInstructV1(BedrockModelObject):
     # pylint: disable=line-too-long
     """
     Client for interacting with Meta's Llama 3.2 3B Instruct model via AWS Bedrock.
 
     This class handles the specific prompt formatting, request structure, and response
-    parsing required for the Llama 3.2 3B Instruct model.
+    parsing required for the Llama 3.2 3B Instruct model. It provides methods for
+    generating text and processing responses, including JSON extraction and token
+    usage tracking.
 
     Attributes:
-        completion_json (dict): Structured data extracted from the model's response.
+        completion_json (dict): Structured data extracted from the model's response,
+            containing overall analysis summary and priorities.
     """
     # pylint: enable=line-too-long
 
@@ -36,9 +39,11 @@ class MetaLlama323bInstructV1(ModelObject):
         Initialize the Llama 3.2 3B Instruct model client.
 
         Args:
-            configuration (Configuration): Configuration object containing model settings.
+            configuration (Configuration): Configuration object containing model settings
+                and parameters for the Llama 3.2 3B Instruct model.
         """
         # pylint: enable=line-too-long
+
         super().__init__(configuration=configuration)
 
     def generate_text(self, prompt):
@@ -47,19 +52,21 @@ class MetaLlama323bInstructV1(ModelObject):
         Generate text using the Llama 3.2 3B Instruct model.
 
         This method formats the prompt according to the model's expected input format,
-        sends the request to the model, and processes the response.
+        sends the request to the model, and processes the response. The prompt is
+        wrapped with the appropriate chat template tokens for the Llama 3.2 format.
 
         Args:
             prompt (str): The input prompt to send to the model.
 
         Raises:
-            ModelException: If there's an error invoking the model.
+            ModelException: If there's an error invoking the model through AWS Bedrock.
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__.__name__, "start generate_text")
 
-        self._logging_utils.debug(__class__.__name__, "prompt:")
-        self._logging_utils.debug(__class__.__name__, prompt)
+        self._logger.trace("start generate_text")
+
+        self._logger.debug("prompt:")
+        self._logger.debug(prompt)
         formatted_prompt = f"""
 <|begin_of_text|><|start_header_id|>user<|end_header_id|>
 {prompt}
@@ -73,15 +80,15 @@ class MetaLlama323bInstructV1(ModelObject):
             MAX_GEN_LEN_EXPECTED_MAX,
             MAX_GEN_LEN_DEFAULT,
         )
-        self._logging_utils.debug(__class__.__name__, f"max_gen_len: {max_gen_len}")
+        self._logger.debug(f"max_gen_len: {max_gen_len}")
         self.max_completion_tokens = max_gen_len
         native_request = {
             "prompt": formatted_prompt,
             "max_gen_len": max_gen_len,
             "temperature": self.temperature,
         }
-        self._logging_utils.debug(__class__.__name__, "native_request:")
-        self._logging_utils.debug(__class__.__name__, native_request, enable_pformat=True)
+        self._logger.debug("native_request:")
+        self._logger.debug(native_request, enable_pformat=True)
 
         # Convert the native request to JSON.
         request = json.dumps(native_request)
@@ -91,11 +98,11 @@ class MetaLlama323bInstructV1(ModelObject):
             client = self.model_client
             # Invoke the model with the request.
             response = client.invoke_model(modelId=self.model_id, body=request)
-            self._logging_utils.debug(__class__.__name__, "response:")
-            self._logging_utils.debug(__class__.__name__, response, enable_pformat=True)
+            self._logger.debug("response:")
+            self._logger.debug(response, enable_pformat=True)
         except ClientError as ce:
             error_code = ce.response["Error"]["Code"]
-            self._logging_utils.trace(
+            self._logger.trace(
                 __class__,
                 f"end generate_text with Bedrock invoke_model error ({error_code}): {str(ce)}",
             )
@@ -105,7 +112,7 @@ class MetaLlama323bInstructV1(ModelObject):
 
         # return self._handle_response(response=response)
         self._handle_response(response=response)
-        self._logging_utils.trace(__class__.__name__, "end generate_text")
+        self._logger.trace("end generate_text")
 
     def _handle_response(self, response):
         # pylint: disable=line-too-long
@@ -113,40 +120,44 @@ class MetaLlama323bInstructV1(ModelObject):
         Process the raw response from the model.
 
         This method extracts the generated text from the model's response,
-        parses any JSON content, and updates token usage statistics.
+        parses any JSON content, and updates token usage statistics. It specifically
+        looks for an overall_analysis_summary structure and extracts the message
+        and priorities from the JSON response.
 
         Args:
-            response: The raw response from the model invocation.
+            response: The raw response from the model invocation containing the
+                response body and metadata.
         """
         # pylint: enable=line-too-long
-        self._logging_utils.trace(__class__.__name__, "start _handle_response")
+
+        self._logger.trace("start _handle_response")
         # Decode the response body.
         model_response: dict = json.loads(response["body"].read())
-        self._logging_utils.debug(__class__.__name__, "model_response keys")
-        self._logging_utils.debug(__class__.__name__, model_response.keys(), enable_pformat=True)
-        self._logging_utils.debug(__class__.__name__, "model_response")
-        self._logging_utils.debug(__class__.__name__, model_response, enable_pformat=True)
+        self._logger.debug("model_response keys")
+        self._logger.debug(model_response.keys(), enable_pformat=True)
+        self._logger.debug("model_response")
+        self._logger.debug(model_response, enable_pformat=True)
 
         # Extract and return the response text.
         response_text = model_response["generation"]
-        self._logging_utils.debug(
+        self._logger.debug(
             __class__, f"response_text: {response_text}", enable_pformat=True
         )
 
         extracted_json = self._json_utils.extract_json(response_text)
-        self._logging_utils.debug(
+        self._logger.debug(
             __class__, f"Extracted code blocks type: {type(extracted_json)}"
         )
-        self._logging_utils.debug(
+        self._logger.debug(
             __class__, f"Extracted code blocks len: {len(extracted_json)}"
         )
-        self._logging_utils.debug(__class__.__name__, "Extracted json:")
-        self._logging_utils.debug(__class__.__name__, extracted_json, enable_pformat=True)
+        self._logger.debug("Extracted json:")
+        self._logger.debug(extracted_json, enable_pformat=True)
 
         data = self._json_utils.json_loads(json_string=extracted_json)
         data: dict = data[0] if isinstance(data, list) else data
-        self._logging_utils.debug(__class__.__name__, "data:")
-        self._logging_utils.debug(__class__.__name__, data, enable_pformat=True)
+        self._logger.debug("data:")
+        self._logger.debug(data, enable_pformat=True)
 
         self.completion_json = {}
         self.completion_json["overall_analysis_summary"] = data.get(
@@ -161,10 +172,10 @@ class MetaLlama323bInstructV1(ModelObject):
         self.stopped_reason = model_response["stop_reason"]
 
         # Return the response text.
-        self._logging_utils.debug(
+        self._logger.debug(
             __class__, f"response text: {response_text}", enable_pformat=True
         )
-        self._logging_utils.trace(__class__.__name__, "end _handle_response")
+        self._logger.trace("end _handle_response")
 
     @property
     def model_id(self) -> str:
@@ -173,9 +184,11 @@ class MetaLlama323bInstructV1(ModelObject):
         Get the AWS Bedrock model ID for Llama 3.2 3B Instruct.
 
         Returns:
-            str: The model ID.
+            str: The AWS Bedrock model identifier for the Llama 3.2 1B Instruct model.
+                Note: Despite the class name suggesting 3B, this returns the 1B model ID.
         """
         # pylint: enable=line-too-long
+
         return "us.meta.llama3-2-1b-instruct-v1:0"
 
     @property
@@ -185,9 +198,10 @@ class MetaLlama323bInstructV1(ModelObject):
         Get the human-readable name of the model.
 
         Returns:
-            str: The model name.
+            str: The display name of the Llama 3.2 3B Instruct model.
         """
         # pylint: enable=line-too-long
+
         return "Llama 3.2 3B Instruct"
 
     @property
@@ -197,7 +211,8 @@ class MetaLlama323bInstructV1(ModelObject):
         Get the vendor name for the model.
 
         Returns:
-            str: The model vendor.
+            str: The name of the model vendor (Meta).
         """
         # pylint: enable=line-too-long
+
         return "Meta"

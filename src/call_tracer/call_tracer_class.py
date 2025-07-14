@@ -9,7 +9,7 @@ files within a specified search path.
 """
 # pylint: enable=line-too-long
 
-# TODO add check for required env vars
+# FUTURE add check for required env vars
 
 import ast
 import os
@@ -62,8 +62,8 @@ class CallTracer:
         print(f"Initialized CallTracer with source file: {self.source_file}")
         print(f"Search paths: {self.search_paths}")
         print(f"Node filtering enabled: {self.enable_node_filtering}")
-        # self._logger.debug("Configuration items:")
-        # self._logger.debug(str(configuration.items()), enable_pformat=False)
+        self._logger.debug("Configuration items:")
+        self._logger.debug(str(configuration.items()), enable_pformat=False)
 
     def _is_builtin_function(self, func_name: str) -> bool:
         """
@@ -439,23 +439,23 @@ class CallTracer:
         if module_name.startswith("."):
             parts = module_name.split(".")
             self._logger.debug(f"parts: {parts}")
-            # TODO use PathUtils
-            current_dir = os.path.dirname(self.source_file)
+            current_dir = self._path_utils.dirname(self.source_file)
+
             # Navigate up the directory tree based on the number of dots
             level = 1  # Default for relative imports starting with "relative."
             for _ in range(level):
-                current_dir = os.path.dirname(current_dir)
+                current_dir = self._path_utils.dirname(current_dir)
             self._logger.debug(f"current_dir: {current_dir}")
 
             # Reconstruct the module path
-            module_path = os.path.join(current_dir, *parts[1:-1])
-            module_file = os.path.join(module_path, f"{parts[-1]}.py")
+            module_path = self._path_utils.join(current_dir, *parts[1:-1])
+            module_file = self._path_utils.join(module_path, f"{parts[-1]}.py")
             self._logger.debug(f"module_path: {module_path} module_file: {module_file}")
 
-            return module_file if os.path.exists(module_file) else None
+            return module_file if self._path_utils.file_exists(module_file) else None
 
         # Handle absolute imports
-        module_path = module_name.replace(".", os.path.sep)
+        module_path = module_name.replace(".", self._path_utils.sep)
         assert self.search_paths is not None
         self._logger.debug(f"module_path: {module_path}")
 
@@ -464,24 +464,24 @@ class CallTracer:
         for search_path in self.search_paths:
             self._logger.debug(f"search path: {search_path}")
             # Try as a direct module file
-            potential_path = os.path.join(search_path, f"{module_path}.py")
-            self._logger.debug(f"potential path: {potential_path},{os.path.exists(potential_path)}")
+            potential_path = self._path_utils.join(search_path, f"{module_path}.py")
+            self._logger.debug(f"potential path: {potential_path},{self._path_utils.file_exists(potential_path)}")
 
-            if os.path.exists(potential_path):
+            if self._path_utils.file_exists(potential_path):
                 self._logger.debug(f"potential path exists: {potential_path}")
                 return potential_path
 
             # Try as a directory with __init__.py
-            potential_dir = os.path.join(search_path, module_path)
+            potential_dir = self._path_utils.join(search_path, module_path)
             self._logger.debug(f"potential dir: {potential_dir}")
-            potential_init = os.path.join(potential_dir, "__init__.py")
+            potential_init = self._path_utils.join(potential_dir, "__init__.py")
             self._logger.debug(f"potential init: {potential_init}")
-            if os.path.exists(potential_init):
+            if self._path_utils.file_exists(potential_init):
                 self._logger.debug(f"potential init exists: {potential_init}")
                 return potential_init
 
             # Try as a directory without __init__.py
-            if os.path.isdir(potential_dir):
+            if self._path_utils.is_dir(potential_dir):
                 self._logger.debug(f"potential dir exists: {potential_dir}")
                 return potential_dir
 
@@ -489,20 +489,11 @@ class CallTracer:
             parts = module_name.split(".")
             self._logger.debug(f"parts: {parts}")
             if len(parts) > 1:
-                potential_module_path = f"{os.path.join(search_path, *parts[:-1])}.py"
-                # potential_module_path = os.path.join(module_path, f"{'/'.join(str(x) for x in parts[:-1])}.py")
+                potential_module_path = f"{self._path_utils.join(search_path, *parts[:-1])}.py"
                 self._logger.debug(f"potential module path: {potential_module_path}")
-                if os.path.exists(potential_module_path):
+                if self._path_utils.file_exists(potential_module_path):
                     self._logger.debug(f"potential path exists: {potential_module_path}")
                     return potential_module_path
-
-
-            # module_path = parts[:-1]
-            # potential_module = os.path.join(search_path, module_path, f"{parts[-1:]}.py")
-            # self._logging_utils.debug(f"potential module: {potential_module}")
-            # if os.path.exists(potential_module):
-            #     self._logging_utils.debug(f"potential module exists: {potential_module}")
-            #     return potential_module
 
         self._logger.warning(f"Could not find module path for {module_name}")
         self._logger.debug(f"Could not find module path for {module_name}")
@@ -929,7 +920,7 @@ class CallTracer:
         for root, _, files in os.walk(search_path):
             for file in files:
                 if file.endswith(".py"):
-                    file_path = os.path.join(root, file)
+                    file_path = self._path_utils.join(root, file)
                     file_path_abs = self._path_utils.abspath(file_path)
 
                     # Skip already visited files
@@ -1055,7 +1046,7 @@ class CallTracer:
         for root, _, files in os.walk(search_path):
             for file in files:
                 if file.endswith(".py"):
-                    file_path = os.path.join(root, file)
+                    file_path = self._path_utils.join(root, file)
                     file_path_abs = self._path_utils.abspath(file_path)
 
                     # Skip already visited files
@@ -1310,7 +1301,7 @@ class CallTracer:
             for root, _, files in os.walk(search_path):
                 for file in files:
                     if file.endswith(".py"):
-                        file_path = os.path.join(root, file)
+                        file_path = self._path_utils.join(root, file)
                         file_path_abs = self._path_utils.abspath(file_path)
 
                         # Skip the original source file

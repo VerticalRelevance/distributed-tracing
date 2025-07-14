@@ -42,6 +42,7 @@ class AnthropicClaude3Sonnet20240229V1(BedrockModelObject):
             configuration (Configuration): Configuration object containing model settings.
         """
         # pylint: enable=line-too-long
+
         super().__init__(configuration=configuration)
         self._max_completion_tokens = None
 
@@ -63,6 +64,7 @@ class AnthropicClaude3Sonnet20240229V1(BedrockModelObject):
             None: Results are stored in instance attributes.
         """
         # pylint: enable=line-too-long
+
         self._logger.trace(__class__.__name__, "start generate_text")
 
         self._logger.debug(__class__.__name__, "prompt:")
@@ -132,6 +134,7 @@ class AnthropicClaude3Sonnet20240229V1(BedrockModelObject):
             None: Results are stored in instance attributes.
         """
         # pylint: enable=line-too-long
+
         self._logger.trace(__class__.__name__, "start _handle_response")
 
         # Decode the response body.
@@ -169,9 +172,10 @@ class AnthropicClaude3Sonnet20240229V1(BedrockModelObject):
         Get the AWS Bedrock model ID for Claude 3 Sonnet.
 
         Returns:
-            str: The model ID string.
+            str: The model ID string for the Claude 3 Sonnet model.
         """
         # pylint: enable=line-too-long
+
         return "anthropic.claude-3-sonnet-20240229-v1:0"
 
     @property
@@ -181,9 +185,10 @@ class AnthropicClaude3Sonnet20240229V1(BedrockModelObject):
         Get the human-readable name of the model.
 
         Returns:
-            str: The model name.
+            str: The human-readable model name.
         """
         # pylint: enable=line-too-long
+
         return "Claude 3 Sonnet"
 
     @property
@@ -193,7 +198,8 @@ class AnthropicClaude3Sonnet20240229V1(BedrockModelObject):
         Get the vendor name for the model.
 
         Returns:
-            str: The vendor name.
+            str: The vendor name of the model.
         """
         # pylint: enable=line-too-long
+
         return "Anthropic"

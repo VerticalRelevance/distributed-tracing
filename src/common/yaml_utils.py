@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 # pylint: disable=line-too-long
 """
 YAML utility module providing safe parsing functionality for YAML files.

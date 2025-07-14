@@ -103,6 +103,7 @@ class ModelObject:
             configuration: Configuration object containing model settings and parameters
         """
         # pylint: enable=line-too-long
+
         self._config = configuration
         self._logger = LoggingUtils().get_class_logger(class_name=__class__.__name__)
         self._model_utils = ModelUtils(configuration=configuration)
@@ -130,6 +131,7 @@ class ModelObject:
             NotImplementedError: This method must be implemented by subclasses
         """
         # pylint: enable=line-too-long
+
         raise NotImplementedError("Subclasses must implement this method")
 
     @property
@@ -145,6 +147,7 @@ class ModelObject:
             ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
+
         if self._max_llm_tries is None:
             try:
                 self._max_llm_tries = self._config.int_value(
@@ -178,6 +181,7 @@ class ModelObject:
             The number of completion tokens
         """
         # pylint: enable=line-too-long
+
         return self._completion_tokens
 
     def increment_completion_tokens(self, value: int) -> None:
@@ -189,6 +193,7 @@ class ModelObject:
             value: The number of tokens to add to the completion token count
         """
         # pylint: enable=line-too-long
+
         self._completion_tokens += value
 
     @completion_tokens.setter
@@ -201,6 +206,7 @@ class ModelObject:
             value: The new completion token count
         """
         # pylint: enable=line-too-long
+
         self._completion_tokens = value
 
     @property
@@ -213,6 +219,7 @@ class ModelObject:
             The number of prompt tokens
         """
         # pylint: enable=line-too-long
+
         return self._prompt_tokens
 
     def increment_prompt_tokens(self, value: int) -> None:
@@ -224,6 +231,7 @@ class ModelObject:
             value: The number of tokens to add to the prompt token count
         """
         # pylint: enable=line-too-long
+
         self._prompt_tokens += value
 
     @prompt_tokens.setter
@@ -246,6 +254,7 @@ class ModelObject:
         This method should be called before starting a new model interaction to ensure accurate token counting.
         """
         # pylint: enable=line-too-long
+
         self.completion_tokens = 0
         self.prompt_tokens = 0
 
@@ -259,6 +268,7 @@ class ModelObject:
             The maximum number of completion tokens
         """
         # pylint: enable=line-too-long
+
         return self._max_completion_tokens
 
     @max_completion_tokens.setter
@@ -278,6 +288,7 @@ class ModelObject:
             NotImplementedError: This method must be implemented by subclasses
         """
         # pylint: enable=line-too-long
+
         raise NotImplementedError("Subclasses must implement this method")
 
     @property
@@ -293,6 +304,7 @@ class ModelObject:
             NotImplementedError: This method must be implemented by subclasses
         """
         # pylint: enable=line-too-long
+
         raise NotImplementedError("Subclasses must implement this method")
 
     @property
@@ -308,6 +320,7 @@ class ModelObject:
             NotImplementedError: This method must be implemented by subclasses
         """
         # pylint: enable=line-too-long
+
         raise NotImplementedError("Subclasses must implement this method")
 
     @property
@@ -323,6 +336,7 @@ class ModelObject:
             ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
+
         if not self._retry_delay:
             try:
                 self._retry_delay = self._config.int_value(
@@ -361,6 +375,7 @@ class ModelObject:
             ModelException: If the configuration value is invalid or outside the expected range
         """
         # pylint: enable=line-too-long
+
         if not self._temperature:
             try:
                 self._temperature = self._config.float_value(
@@ -392,6 +407,7 @@ class ModelObject:
             The maximum number of stop reasons
         """
         # pylint: enable=line-too-long
+
         if self._stop_max_tokens_reasons is None:
             try:
                 self._stop_max_tokens_reasons = self._config.list_value(
@@ -420,6 +436,7 @@ class ModelObject:
             stop_max_reasons: The maximum number of stop reasons
         """
         # pylint: enable=line-too-long
+
         self._stop_max_tokens_reasons = stop_max_reasons
 
     @property
@@ -438,6 +455,7 @@ class ModelObject:
             ModelException: If the configuration value is invalid
         """
         # pylint: enable=line-too-long
+
         if self._stop_valid_reasons is None:
             try:
                 self._stop_valid_reasons = self._config.list_value(
@@ -465,6 +483,7 @@ class ModelObject:
             The stop reason string
         """
         # pylint: enable=line-too-long
+
         return self._stopped_reason
 
     @stopped_reason.setter
@@ -489,6 +508,7 @@ class ModelObject:
             The completion response as a dictionary
         """
         # pylint: enable=line-too-long
+
         return self._completion_json
 
     @completion_json.setter
@@ -501,6 +521,7 @@ class ModelObject:
             completion_json: The completion response as a dictionary
         """
         # pylint: enable=line-too-long
+
         self._completion_json = completion_json
 
 
@@ -515,9 +536,6 @@ class BedrockModelObject(ModelObject, ABC):
     """
     # pylint: enable=line-too-long
 
-    # Remove the __init__ method entirely since it's just calling super()
-    # The parent's __init__ will be called automatically
-
     @property
     def model_client(self) -> boto3.client:
         # pylint: disable=line-too-long
@@ -528,6 +546,7 @@ class BedrockModelObject(ModelObject, ABC):
             A configured boto3 client for bedrock-runtime with appropriate region settings
         """
         # pylint: enable=line-too-long
+
         return boto3.client(
             "bedrock-runtime",
             region_name=self._model_utils.region_name,
@@ -551,6 +570,7 @@ class BedrockModelObject(ModelObject, ABC):
             ModelException: If a Bedrock-specific error occurs
         """
         # pylint: enable=line-too-long
+
         try:
             return func(*args, **kwargs)
         except TokenRetrievalError as tre:
@@ -588,6 +608,7 @@ class BedrockModelObject(ModelObject, ABC):
             ModelException: If there's an error invoking the model
         """
         # pylint: enable=line-too-long
+
         def _invoke():
             client = self.model_client
             return client.invoke_model(modelId=self.model_id, body=request)
@@ -668,6 +689,7 @@ class ModelUtils:
             ModelUtils: The singleton instance of the ModelUtils class.
         """
         # pylint: enable=line-too-long
+
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -684,6 +706,7 @@ class ModelUtils:
             configuration (Configuration): The configuration object to use for retrieving settings.
         """
         # pylint: enable=line-too-long
+
         self._config: Configuration = configuration
 
     @property
@@ -699,6 +722,7 @@ class ModelUtils:
             str: The configured class name for the AI model, or "not found" if not configured.
         """
         # pylint: enable=line-too-long
+
         return self._config.str_value("ai_model.class.name", "not found")
 
     @property
@@ -714,6 +738,7 @@ class ModelUtils:
             str: The configured module name for the AI model, or "not found" if not configured.
         """
         # pylint: enable=line-too-long
+
         return self._config.str_value("ai_model.module.name", "not found")
 
     @property
@@ -734,6 +759,7 @@ class ModelUtils:
             # Returns 'us-west-2' if AWS_REGION is not set, or uses the env value
         """
         # pylint: enable=line-too-long
+
         return os.getenv(
             "AWS_REGION", self._config.str_value("aws.region", "us-west-2")
         )
@@ -768,6 +794,7 @@ class ModelFactory:
             The singleton instance of the ModelFactory class
         """
         # pylint: enable=line-too-long
+
         if not cls._instance:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -781,6 +808,7 @@ class ModelFactory:
             configuration: Configuration object containing model settings and parameters
         """
         # pylint: enable=line-too-long
+
         self._generic_utils = GenericUtils()
         self._configuration = configuration
 
@@ -800,6 +828,7 @@ class ModelFactory:
             An instance of the specified model class
         """
         # pylint: enable=line-too-long
+
         model_class = self._generic_utils.load_class(
             module_name="source_analyzer.models." + module_name,
             class_name=class_name,

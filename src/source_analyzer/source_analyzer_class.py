@@ -121,9 +121,6 @@ class SourceCodeAnalyzer:
                 )
                 self._logger.debug(f"ModelException level: {me.level}")
                 if me.level == EXCEPTION_LEVEL_ERROR:
-                    self._logger.error(
-                        "me level is EXCEPTION_LEVEL_ERROR"
-                    )
                     raise me # pylint: disable=broad-exception-raised)
 
             if attempt < self._model.max_llm_tries - 1:
@@ -199,7 +196,6 @@ class SourceCodeAnalyzer:
         exclude_others = " Exclude all other functions and methods." if function_name is not None else ""
         found_text = f" within {function_name}" if function_name is not None else ""
 
-        # FUTURE move prompt to config
         prompt = f"""
 Analyze the following Python source code and identify critical locations for adding trace statements.
 Within the source code, analyze {embed_function_name}.{exclude_others}

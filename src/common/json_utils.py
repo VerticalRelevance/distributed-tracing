@@ -1,3 +1,37 @@
+# pylint: disable=line-too-long
+"""
+JSON Utilities Module
+
+This module provides a comprehensive utility class for JSON-related operations with singleton pattern implementation.
+The JsonUtils class offers various methods for handling JSON serialization, deserialization, and extraction of JSON
+blocks from text content.
+
+Key Features:
+    - JSON serialization with automatic datetime handling
+    - JSON deserialization from strings
+    - Code block extraction from markdown-formatted text
+    - JSON block extraction with fallback handling
+    - Singleton pattern implementation for consistent instance management
+    - Comprehensive logging integration
+
+Classes:
+    JsonUtils: Main utility class providing JSON operations with singleton pattern
+
+Dependencies:
+    - json: Standard library for JSON operations
+    - re: Regular expression operations for text parsing
+    - datetime: Date and time handling
+    - common.logging_utils.LoggingUtils: Custom logging utilities
+
+Usage Example:
+    >>> from json_utils import JsonUtils
+    >>> json_utils = JsonUtils()
+    >>> data = {'name': 'example', 'timestamp': datetime.now()}
+    >>> json_string = json_utils.json_dumps_with_datetime_serialization(data)
+    >>> parsed_data = json_utils.json_loads(json_string)
+"""
+# pylint: disable=line-too-long
+
 import json
 import re
 from datetime import datetime

@@ -1,3 +1,14 @@
+# pylint: disable=line-too-long
+"""
+A utility module providing general-purpose functionality for dynamic class loading
+and boolean value interpretation.
+
+This module contains the GenericUtils class, which implements the singleton pattern
+and provides utility methods for dynamic class loading from modules and packages,
+as well as string-to-boolean conversion using common truthy value representations.
+"""
+# pylint: enable=line-too-long
+
 import importlib
 
 

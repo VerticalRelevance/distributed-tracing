@@ -98,6 +98,8 @@ class PathUtils:
     """
     # pylint: enable=line-too-long
 
+    sep = os.path.sep
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
@@ -353,3 +355,57 @@ class PathUtils:
 
         return self.get_path(this_path).suffix in suffixes
 
+    def dirname(self, file_name: str):
+        """
+        Return the directory name of pathname file_name.
+
+        This is equivalent to the head of the pair returned by passing
+        file_name to the function split().
+
+        Args:
+            file_name (str): A pathname string
+
+        Returns:
+            str: The directory portion of the pathname. If the pathname contains
+                no directory separators, returns an empty string.
+        """
+        # pylint: enable=line-too-long
+
+        return os.path.dirname(file_name)
+
+    def join(self, *paths):
+        # pylint: disable=line-too-long
+        """
+        Join one or more path segments intelligently.
+
+        The return value is the concatenation of path segments with exactly one
+        directory separator following each non-empty part except the last,
+        meaning that the result will only end in a separator if the last
+        part is empty.
+
+        Args:
+            *paths: Variable number of path segments to join
+
+        Returns:
+            str: A single path string formed by joining the input path segments
+                with the appropriate directory separator for the current platform.
+        """
+        # pylint: enable=line-too-long
+
+        return os.path.join(*paths)
+
+    def get_relative_path(self, source_file: str, target_file: str) -> str:
+        # pylint: disable=line-too-long
+        """
+        Calculates the relative path from the source file to the target file.
+
+        Args:
+            source_file (str): The path of the source file.
+            target_file (str): The path of the target file.
+
+        Returns:
+            str: The relative path from the source file to the target file.
+        """
+        # pylint: enable=line-too-long
+
+        return os.path.relpath(target_file, start=os.path.dirname(source_file))
