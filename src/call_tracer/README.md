@@ -111,6 +111,17 @@ The tracer handles multiple types of function calls.
 
 Configuration for the Source Analyzer is stored in `config.yaml` in the `src/source_analyzer` directory. The configuration consists of the following sections.
 
+```
+enable_node_filtering:
+
+renderer:
+├── class:
+│   └── name: the Python class to be used for rendering the tracer output (required)
+├── module:
+│   └── name: the Python module containing the class to be used for rendering the tracer output (required)
+└── configuration:
+    └── any additional configuration as defined by the specific renderer class
+
 
 The Call Tracer supports several configuration options:
 

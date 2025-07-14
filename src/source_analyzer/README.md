@@ -1,7 +1,5 @@
 # Source Code Analyzer Logic Explanation
 
-## TODO refactor with Call Tracer README
-
 ## Overview
 
 This Python code implements a source code analyzer tool designed to analyze Python source files and identify optimal locations for adding trace statements using AI-powered analysis. The tool leverages configurable AI models (such as OpenAI or AWS Bedrock) to intelligently analyze code structure and recommend critical points for instrumentation based on user-defined priorities. It can process individual files or entire directories, providing formatted output with detailed recommendations for trace statement placement.
@@ -119,25 +117,25 @@ tracing_priorities:
 clarifications:
 ├── List of additional clarifications given to the model prompt. These are placed into the prompt in the order listed. (optional)
 
-formatter
-├── class
+formatter:
+├── class:
 │   └── name: the Python class to be used for formatting the analyzer output (required)
-├── module
+├── module:
 │   └── name: the Python module containing the class to be used for formatting (required)
 └── any additional configuration as defined by the specific formatter class (requirement based on the model)
 
-ai_model
+ai_model:
 ├── max_llm_tries: the number of times to try calling the AI model in case of error (required)
 ├── retry_delay: the number of seconds between retries of calling the AI model in case of error (required)
 ├── temperature: the model temperature, between 0.0 and 1.0, inclusive (required)
-├── custom
+├── custom:
 │   └── any custom values defined by the specific model
-├── class
+├── class:
 │   └── name: the Python class to be used for calling the AI model
-├── module
+├── module:
 │   └── name: the Python module containing the specific module class
-└── model_stop
-    └── reasons
-        └── valid
+└── model_stop:
+    └── reasons:
+        └── valid:
             └── list of valid stop reasons for the model; any other error causes the code to enter into an error state
 ```
