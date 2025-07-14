@@ -37,45 +37,29 @@ Before diving into the Trace Injection Advisor, it is important to acknowledge t
 
 When faced with implementing distributed tracing across complex Python applications, development teams need systematic approaches for identifying optimal instrumentation points. Manual analysis of large codebases is time-consuming and often misses critical trace opportunities. The Trace Injection Advisor solution uses AI-powered analysis and dynamic call tracing to provide data-driven recommendations that eliminate guesswork and ensure comprehensive coverage.
 
-The Trace Injection Advisor is composed of three main components: **Analysis** (AI-powered code examination), **Tracing** (dynamic call flow mapping), and **Formatting** (flexible output generation). This solution focuses primarily on analysis and tracing capabilities, with configurable formatting options to integrate with existing development workflows.
-
-To illustrate how these components work together, let's follow an example. A developer is implementing observability for a payment processing service with complex error handling and external API integrations. They need to identify where to place trace statements for optimal debugging and monitoring coverage. Using the Source Analyzer, they provide the service's source code along with their tracing priorities (exception handling, external API calls, conditional branches). The AI model analyzes the code structure, identifies critical instrumentation points, and provides detailed recommendations with rationale.
+The Trace Injection Advisor is composed of three main components: **Tracing** (dynamic call flow mapping), **Analysis** (AI-powered code examination), and **Formatting** (flexible output generation). This solution focuses primarily on tracing and analysis capabilities, with configurable rendering and formatting options to integrate with existing development workflows.
 
 During Analysis, the Source Analyzer builds an AST representation of the code and uses AI models to evaluate each section against the configured priorities. The AI provides specific recommendations including function names, code blocks to instrument, rationale for each recommendation, and suggested trace information to capture. Simultaneously, the Call Tracer can map the complete execution flow from any entry point, showing how functions call each other across modules and files, revealing the application's runtime behavior patterns.
 
 For more details on what each component does, see the details below.
 
-### Analysis
-
-The Source Analyzer serves as the intelligent core of our solution, leveraging AI models to provide data-driven recommendations for trace placement. This component begins when source code (file or directory) is provided for analysis. The analyzer parses the code into an AST representation, then uses configured AI models to evaluate the code structure against predefined tracing priorities.
-
-The analysis workflow follows a structured approach, with the AI model examining code patterns and providing comprehensive recommendations. The system supports multiple AI models through AWS Bedrock, including Anthropic Claude 3 Sonnet and Meta Llama 3.2, with configurable parameters for temperature, retry logic, and token limits. Each model brings different strengths: Claude excels at detailed code analysis and contextual understanding, while Llama provides efficient processing for large codebases.
-
-The AI evaluation process considers eight key tracing priorities by default:
-- **Message Bus with Amazon SQS** – Async communication points
-- **Conditional Branches** – Decision points that affect flow
-- **Exception Handling Blocks** – Error scenarios and recovery paths  
-- **Function Entry/Exit Points** – Method boundaries and lifecycle
-- **Complex Algorithm Sections** – Computation-intensive operations
-- **Performance-Critical Code Paths** – High-frequency execution routes
-- **State Changes** – Data modification operations
-- **External Resource Interactions** – API calls, database operations
-
-For each identified location, the AI provides detailed analysis including the specific function/method name, fully-qualified name for context, exact code blocks to instrument, clear rationale explaining why tracing is beneficial, and recommended trace information to capture (parameters, return values, timing, etc.).
-
-The system implements robust error handling with configurable retry logic, supports both single-file and directory analysis modes, and outputs results in structured JSON format for downstream processing. Advanced features include token usage tracking for cost management, validation of AI model responses, and flexible configuration through YAML files.
-
 ### Tracing
 
 The Call Tracer component provides dynamic analysis capabilities, mapping complete function call flows to understand application execution patterns. This component takes a different approach from static analysis, actually following the call chain from specified entry points to build comprehensive execution trees.
 
-The tracing process begins with source file specification and entry point identification (function or method name). The tracer then parses the source file into an AST, finds the entry point function, and recursively follows all function calls within that function. The system handles multiple call types including direct function calls (`func()`), method calls (`obj.method()`), self method calls (`self.method()`), module function calls (`module.func()`), and nested attribute calls (`module.class.method()`).
-
-As the tracer encounters each function call, it attempts to resolve the call to its actual definition by checking if it's in the current file, following import statements to external modules, and searching specified directories for matching functions. The resolution process handles both absolute and relative imports, maintains caches for parsed modules to improve performance, and tracks visited functions to prevent infinite recursion.
-
-The tracer builds a hierarchical tree structure where each node represents a function call with metadata including function name and type, source file location, line number and column offset, qualified name for context, and nested calls within that function. This tree structure reveals the complete execution flow, showing how functions interact across module boundaries and highlighting potential trace injection points.
-
 Key features include cross-file call resolution that follows imports and searches directories, import mapping that handles both absolute and relative imports, class attribute analysis to resolve method calls on objects, and circular reference prevention through visited function tracking. The system supports configurable search paths for finding external modules and generates unique IDs for each call node to enable tree navigation.
+
+### Analysis
+
+The Source Analyzer serves as the intelligent core of our solution, leveraging AI models to provide data-driven recommendations for trace placement. This component begins when source code (file or directory) is provided for analysis, i.e., from the Call Tracer. The analyzer parses the code into an AST representation, then uses configured AI models to evaluate the code structure against predefined tracing priorities.
+
+The analysis workflow follows a structured approach, with the AI model examining code patterns and providing comprehensive recommendations. The system supports multiple AI models through AWS Bedrock, including Anthropic Claude 3 Sonnet and Meta Llama 3.2, with configurable parameters for temperature, retry logic, and token limits. Each model brings different strengths: Claude excels at detailed code analysis and contextual understanding, while Llama provides efficient processing for large codebases.
+
+For each identified location, the AI provides detailed analysis including the specific function/method name, fully-qualified name for context, exact code blocks to instrument, clear rationale explaining why tracing is beneficial, and recommended trace information to capture (parameters, return values, timing, etc.).
+
+### Error Handling
+
+The system implements robust error handling with configurable retry logic, supports both single-file and directory analysis modes, and outputs results in structured JSON format for downstream processing. Advanced features include token usage tracking for cost management, validation of AI model responses, and flexible configuration through YAML files.
 
 ### Formatting
 
@@ -86,8 +70,6 @@ The system includes two primary formatting implementations: **Coded Formatter** 
 The formatting output includes comprehensive sections covering model information and configuration details, executive summary of analysis findings, priority-based recommendations organized by tracing categories, detailed code block analysis with specific instrumentation guidance, and token usage statistics for cost tracking and optimization.
 
 For trace visualization, the Call Tracer integrates with multiple rendering systems including **FastHTML Renderer** for interactive web-based trace trees with expandable nodes and detailed call information, and **Streamlit Renderer** for dashboard-style visualization with filtering and search capabilities. These rendering options make it easy to explore complex call trees and understand application execution patterns.
-
-The formatting system supports variable substitution for dynamic content, template inheritance for consistent styling, configurable output paths for integration with CI/CD pipelines, and custom template development for organization-specific formats. This flexibility ensures the solution can adapt to diverse development workflows and integrate seamlessly with existing toolchains.
 
 ## Best Practices / Design Principles
 
@@ -104,8 +86,6 @@ Organizations requiring on-premises deployment or custom fine-tuning may prefer 
 ### Configuration Management
 
 The solution uses YAML-based configuration files that centralize all system settings, making it easy to customize behavior for different projects and environments. Key configuration areas include AI model selection and parameters (temperature, retry logic, token limits), tracing priorities and their relative importance, formatter selection and template paths, and AWS region configuration for Bedrock access.
-
-Configuration validation ensures proper parameter ranges and catches misconfigurations early in the process. Default values provide reasonable starting points while allowing customization for specific needs. The hierarchical configuration structure supports environment-specific overrides and maintains configuration consistency across team members.
 
 ### Search Path Strategy
 
@@ -145,204 +125,124 @@ Call tracing operations are computationally local and don't incur AI model costs
 ## Trace Injection Advisor Architecture
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Development Environment"
         DEV[Developer Workstation]
         CODE[Python Codebase]
         CONFIG[YAML Configuration]
     end
-    
+
     subgraph "Trace Injection Advisor Core"
-        CORE[Core Engine]
+        AIMODEL[AI Model]
         SA[Source Analyzer]
         CT[Call Tracer]
         UTILS[Common Utilities]
     end
-    
+
     subgraph "AI Model Integration"
         BEDROCK[AWS Bedrock]
         CLAUDE[Claude 3 Sonnet]
         LLAMA[Meta Llama 3.2]
     end
-    
-    subgraph "Analysis Pipeline"
-        AST[AST Parser]
-        PRIORITY[Priority Engine]
-        RESOLVER[Call Resolver]
-        TRACKER[Token Tracker]
-    end
-    
+
     subgraph "Output Generation"
         FORMATTER[Formatter Factory]
-        JINJA[Jinja2 Templates]
-        CODED[Coded Formatters]
         RENDERER[Renderer Factory]
     end
-    
+
     subgraph "Visualization"
         FASTHTML[FastHTML Web UI]
         STREAMLIT[Streamlit Dashboard]
-        JSON[JSON Tree Viewer]
-        MARKDOWN[Markdown Reports]
+        JINJA[Jinja2 Templates]
+        CODED[Coded Formatters]
     end
-    
-    DEV --> CORE
+
+    subgraph "Analysis Pipeline"
+        AST[AST Parser]
+        RECURSIVE[Recursive Call Tracing]
+        RESOLVER[Call Resolver]
+        PRIORITY[Generative AI]
+        TRACKER[Token Tracker]
+    end
+
+    DEV --> AIMODEL
     CODE --> SA
     CODE --> CT
-    CONFIG --> CORE
-    
-    SA --> AST
-    SA --> PRIORITY
-    CT --> RESOLVER
-    
-    CORE --> BEDROCK
-    BEDROCK --> CLAUDE
-    BEDROCK --> LLAMA
-    
-    SA --> FORMATTER
-    CT --> FORMATTER
-    FORMATTER --> JINJA
-    FORMATTER --> CODED
-    
-    FORMATTER --> RENDERER
+    CONFIG --> AIMODEL
+    CT --> SA
+    CT --> AST
+    CT --> RECURSIVE
+    CT --> RENDERER
     RENDERER --> FASTHTML
     RENDERER --> STREAMLIT
-    RENDERER --> JSON
-    RENDERER --> MARKDOWN
-    
+
+    CT --> RESOLVER
+    SA --> PRIORITY
+
+    AIMODEL --> BEDROCK
+    BEDROCK --> CLAUDE
+    BEDROCK --> LLAMA
+
+    SA --> TRACKER
+    SA --> FORMATTER
+    FORMATTER --> JINJA
+    FORMATTER --> CODED
+
     UTILS --> SA
     UTILS --> CT
-    TRACKER --> SA
 ```
 
-The Trace Injection Advisor consists of two main analysis components working in concert: the **Source Analyzer** for AI-powered static analysis and the **Call Tracer** for dynamic execution flow mapping. Both components integrate through a shared configuration system and flexible output formatting pipeline.
-
-### AWS Cloud Architecture
-
-```mermaid
-graph TB
-    subgraph "Enterprise Network"
-        DEV[Developer Workstation]
-        CI[CI/CD Pipeline]
-        REPO[Code Repository]
-    end
-    
-    subgraph "AWS Cloud Environment"
-        subgraph "AWS Bedrock"
-            BR[Bedrock Service]
-            CLAUDE[Claude 3 Sonnet Model]
-            LLAMA[Meta Llama 3.2 Model]
-        end
-        
-        subgraph "Compute Services"
-            EC2[EC2 Instance]
-            LAMBDA[Lambda Functions]
-            ECS[ECS Container Service]
-        end
-        
-        subgraph "Storage & Configuration"
-            S3[S3 Bucket]
-            SSM[Systems Manager]
-            SECRETS[Secrets Manager]
-        end
-        
-        subgraph "Monitoring & Logging"
-            CW[CloudWatch]
-            XRAY[X-Ray Tracing]
-            LOGS[CloudWatch Logs]
-        end
-        
-        subgraph "Security & Access"
-            IAM[IAM Roles]
-            VPC[VPC Network]
-            SG[Security Groups]
-        end
-    end
-    
-    subgraph "Analysis Outputs"
-        REPORTS[Analysis Reports]
-        DASHBOARDS[Interactive Dashboards]
-        APIS[REST APIs]
-    end
-    
-    DEV --> VPC
-    CI --> EC2
-    REPO --> LAMBDA
-    
-    EC2 --> BR
-    LAMBDA --> BR
-    ECS --> BR
-    
-    BR --> CLAUDE
-    BR --> LLAMA
-    
-    EC2 --> S3
-    EC2 --> SSM
-    EC2 --> SECRETS
-    
-    EC2 --> CW
-    EC2 --> XRAY
-    EC2 --> LOGS
-    
-    IAM --> EC2
-    IAM --> LAMBDA
-    IAM --> BR
-    
-    VPC --> SG
-    SG --> EC2
-    
-    EC2 --> REPORTS
-    ECS --> DASHBOARDS
-    LAMBDA --> APIS
-    
-    style BR fill:#ff9900
-    style CLAUDE fill:#ff6b6b
-    style LLAMA fill:#4ecdc4
-    style DEV fill:#45b7d1
-```
+The Trace Injection Advisor consists of two main analysis components working in concert: the **Call Tracer** for dynamic execution flow mapping and the **Source Analyzer** for AI-powered static analysis. Both components integrate through a shared configuration system and flexible output formatting pipeline.
 
 ### Components
 
-**Python Runtime Environment** – Development platform supporting Python 3.13+ with required dependencies
-**Configuration Management** – YAML-based configuration with validation and environment-specific overrides  
-**Source Analyzer Engine** – AI-powered static code analysis with AST parsing and intelligent trace recommendation
-**Call Tracer Engine** – Dynamic call flow analysis with cross-module resolution and tree generation
-**AI Model Integration** – AWS Bedrock connectivity supporting multiple model providers (Claude, Llama)
-**Formatting Pipeline** – Flexible output generation with template support and multiple rendering options
-**Utility Framework** – Shared logging, file operations, and configuration management services
-**Output Renderers** – FastHTML and Streamlit integration for interactive trace visualization
+- **Python Runtime Environment:**: Development platform supporting Python 3.13+ with required dependencies
+- **Configuration Management**: YAML-based configuration with validation and environment-specific overrides  
+- **Source Analyzer Engine**: AI-powered static code analysis with intelligent trace recommendation
+- **Call Tracer Engine**: Dynamic call flow analysis with cross-module resolution and tree generation
+- **AI Model Integration**: AWS Bedrock connectivity supporting multiple model providers (Claude, Llama)
+- **Formatting Pipeline**: Flexible output generation with template support and multiple rendering options
+- **Utility Framework**: Shared logging, file operations, and configuration management services
+- **Output Renderers**: FastHTML and Streamlit integration for interactive trace visualization
 
 ### How it works
 
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant TIA as Trace Injection Advisor
-    participant SA as Source Analyzer
     participant CT as Call Tracer
+    participant SA as Source Analyzer
     participant AI as AI Model (Bedrock)
     participant VIZ as Visualization
     
-    Dev->>TIA: Submit Python code for analysis
-    TIA->>SA: Initiate source analysis
-    SA->>SA: Parse code into AST
-    SA->>AI: Send code + priorities for analysis
-    AI->>SA: Return trace recommendations
-    SA->>TIA: Formatted recommendations
-    
-    Dev->>CT: Request call flow analysis
+    Dev->>CT: Submit Python code for analysis
     CT->>CT: Parse source file
     CT->>CT: Trace function calls
-    CT->>CT: Build execution tree
-    CT->>TIA: Call flow hierarchy
+    CT->>CT: Build AST tree
+    CT->>VIZ: Call flow hierarchy
+
+    Dev->>VIZ: Iterate through call flow
+    Dev->>VIZ: Select function for analysis
+    VIZ->>CT: Selected source entry point
+    CT->>SA: Initiate source analysis
+    SA->>AI: Send code + priorities for analysis
+    AI->>SA: Return trace recommendations
+    SA->>VIZ: Format JSON results
+    VIZ->>SA: Formatted JSON results
+    SA->>CT: Formatted recommendations
     
-    TIA->>VIZ: Generate interactive reports
-    VIZ->>Dev: FastHTML/Streamlit UI
+    CT->>VIZ: Display recommendations
     Dev->>VIZ: Explore results
-    VIZ->>SA: Request detailed analysis
-    SA->>AI: Analyze specific code sections
-    AI->>VIZ: Enhanced trace guidance
+
 ```
+
+#### Call Tracing Workflow
+
+Dynamic call tracing operates independently, mapping execution flows from specified entry points. Developers provide a source file, entry point name, and a list of search paths, and the Call Tracer builds a complete execution tree showing how functions call each other across modules.
+
+The tracer follows imports, resolves function calls across files, and handles various call patterns including method calls, module functions, and nested attributes. The resulting call tree reveals application execution patterns and helps identify additional trace opportunities missed by static analysis.
+
+Interactive visualization through FastHTML or Streamlit renderers enables exploration of complex call trees, making it easy to understand application flow and plan comprehensive tracing strategies.
 
 #### Source Analysis Workflow
 
@@ -352,13 +252,6 @@ The AI model analyzes each source file section against the configured priorities
 
 Results are processed through the formatting pipeline, generating structured Markdown reports that development teams can use to guide their instrumentation efforts. The flexible formatter architecture supports custom output formats and integration with existing development workflows.
 
-#### Call Tracing Workflow
-
-Dynamic call tracing operates independently, mapping execution flows from specified entry points. Developers provide a source file and entry point function, and the Call Tracer builds a complete execution tree showing how functions call each other across modules.
-
-The tracer follows imports, resolves function calls across files, and handles various call patterns including method calls, module functions, and nested attributes. The resulting call tree reveals application execution patterns and helps identify additional trace opportunities missed by static analysis.
-
-Interactive visualization through FastHTML or Streamlit renderers enables exploration of complex call trees, making it easy to understand application flow and plan comprehensive tracing strategies.
 
 ## Blueprint
 
