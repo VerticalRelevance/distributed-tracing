@@ -38,7 +38,7 @@ The tool follows this logical flow:
 - **Output Generation**
  - Processes AI model's JSON response
  - Applies configured formatter to generate structured output
- - Returns formatted recommendations or displays to console
+ - Returns formatted recommendations to caller or displays to console
 
 ### Directory Processing
 

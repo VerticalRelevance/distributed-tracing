@@ -1,0 +1,63 @@
+graph TB
+    subgraph "Python Application"
+        Main[Main Function]
+
+        subgraph "call_tracer/"
+            CT[CallTracer Class]
+            subgraph "renderers/"
+                R[Renderer]
+            end
+        end
+
+        subgraph "source_code_analyzer/"
+            SCA[SourceCodeAnalyzer Class]
+            subgraph "modules/"
+                GenAI[GenAI Modules]
+            end
+            subgraph "formatters/"
+                F[Formatters]
+            end
+        end
+
+        User[User]
+        SourceFile[Source File]
+        TreeDiagram[Tree Diagram Display]
+        MarkdownResults[Markdown Results]
+    end
+
+    %% Main flow
+    User -->|Invokes| Main
+    Main -->|Initializes| CT
+    SourceFile -->|Input| CT
+
+    %% Call Tracer workflow
+    CT -->|Parse & Build AST| CT
+    CT -->|Find Entry Point| CT
+    CT -->|Trace Call Paths| CT
+    CT -->|Render Output| R
+    R -->|Generate| TreeDiagram
+    TreeDiagram -->|Display| User
+
+    %% User interaction
+    User -->|Selects Function/Method| CT
+    CT -->|Selected Function| SCA
+
+    %% Source Code Analyzer workflow
+    SCA -->|Parse Selected File| SCA
+    SCA -->|Build Prompt| GenAI
+    GenAI -->|Analyze| GenAI
+    GenAI -->|Results| F
+    F -->|Format as Markdown| MarkdownResults
+    MarkdownResults -->|Return to| CT
+    CT -->|Display Results| User
+
+    %% Styling
+    classDef mainComponent stroke-width:2px
+    classDef subComponent stroke-width:2px
+    classDef userInterface stroke-width:2px
+    classDef dataFlow stroke-width:2px
+
+    class CT,SCA mainComponent
+    class R,GenAI,F subComponent
+    class User,TreeDiagram,MarkdownResults userInterface
+    class Main,SourceFile dataFlow
