@@ -59,43 +59,6 @@ The analysis workflow follows a structured approach, with the AI model examining
 
 For each identified location, the AI provides detailed analysis including the specific function/method name, fully-qualified name for context, exact code blocks to instrument, clear rationale explaining why tracing is beneficial, and recommended trace information to capture (parameters, return values, timing, etc.).
 
-## Trace Injection Advisor
-
-![Trace Injection Advisor Architecture](diagrams/trace_injection_advisor_architecture.png)
-
-The Trace Injection Advisor consists of two main analysis components working in concert: the **Call Tracer** for dynamic execution flow mapping and the **Source Analyzer** for AI-powered static analysis. Both components integrate through a shared configuration system and flexible output formatting pipeline.
-
-### Components
-
-- **Python Runtime Environment:**: Development platform supporting Python 3.13+ with required dependencies
-- **Configuration Management**: YAML-based configuration with validation and environment-specific overrides  
-- **Source Analyzer Engine**: AI-powered static code analysis with intelligent trace recommendation
-- **Call Tracer Engine**: Dynamic call flow analysis with cross-module resolution and tree generation
-- **AI Model Integration**: AWS Bedrock connectivity supporting multiple model providers (Claude, Llama)
-- **Formatting Pipeline**: Flexible output generation with template support and multiple rendering options
-- **Utility Framework**: Shared logging, file operations, and configuration management services
-- **Output Renderers**: FastHTML and Streamlit integration for interactive trace visualization
-
-### How it works
-
-![Trace Injection Advisor Sequence Diagram](diagrams/trace_injection_advisor_sequence_diagram.png)
-
-#### Call Tracing Workflow
-
-The process begins with the Call. Dynamic call tracing operates independently, mapping execution flows from specified entry points. Developers provide a source file, entry point name, and a list of search paths, and the Call Tracer builds a complete execution tree showing how functions call each other across modules.
-
-The tracer follows imports, resolves function calls across files, and handles various call patterns including method calls, module functions, and nested attributes. The resulting call tree reveals application execution patterns and helps identify additional trace opportunities missed by static analysis.
-
-Interactive visualization through FastHTML or Streamlit renderers enables exploration of complex call trees, making it easy to understand application flow and plan comprehensive tracing strategies.
-
-#### Source Analysis Workflow
-
-The source analysis process begins when developers specify source files or directories for examination, or from Call Tracer UI. The Source Analyzer loads the specified files, parses them into AST representations, and prepares analysis prompts based on configured tracing priorities.
-
-The AI model analyzes each source file section against the configured priorities, identifying critical locations for trace injection. The model provides comprehensive recommendations including specific function names, code block locations, rationale for each recommendation, and suggested trace information to capture.
-
-Results are processed through the formatting pipeline, generating structured Markdown reports that development teams can use to guide their instrumentation efforts. The flexible formatter architecture supports custom output formats and integration with existing development workflows.
-
 ## Best Practices / Design Principles
 
 ### Choice of AI Model
@@ -161,6 +124,42 @@ Source code analysis typically costs between $0.05-$0.15 per file depending on m
 
 Call tracing operations are computationally local and don't incur AI model costs, making them suitable for iterative analysis and large codebase exploration. The combination of both components provides comprehensive analysis with controlled costs.
 
+## Trace Injection Advisor
+
+![Trace Injection Advisor Architecture](diagrams/trace_injection_advisor_architecture.png)
+
+The Trace Injection Advisor consists of two main analysis components working in concert: the **Call Tracer** for dynamic execution flow mapping and the **Source Analyzer** for AI-powered static analysis. Both components integrate through a shared configuration system and flexible output formatting pipeline.
+
+### Components
+
+- **Python Runtime Environment:**: Development platform supporting Python 3.13+ with required dependencies
+- **Configuration Management**: YAML-based configuration with validation and environment-specific overrides  
+- **Source Analyzer Engine**: AI-powered static code analysis with intelligent trace recommendation
+- **Call Tracer Engine**: Dynamic call flow analysis with cross-module resolution and tree generation
+- **AI Model Integration**: AWS Bedrock connectivity supporting multiple model providers (Claude, Llama)
+- **Formatting Pipeline**: Flexible output generation with template support and multiple rendering options
+- **Utility Framework**: Shared logging, file operations, and configuration management services
+- **Output Renderers**: FastHTML and Streamlit integration for interactive trace visualization
+
+### How it works
+
+![Trace Injection Advisor Sequence Diagram](diagrams/trace_injection_advisor_sequence_diagram.png)
+
+#### Call Tracing Workflow
+
+The process begins with the Call. Dynamic call tracing operates independently, mapping execution flows from specified entry points. Developers provide a source file, entry point name, and a list of search paths, and the Call Tracer builds a complete execution tree showing how functions call each other across modules.
+
+The tracer follows imports, resolves function calls across files, and handles various call patterns including method calls, module functions, and nested attributes. The resulting call tree reveals application execution patterns and helps identify additional trace opportunities missed by static analysis.
+
+Interactive visualization through FastHTML or Streamlit renderers enables exploration of complex call trees, making it easy to understand application flow and plan comprehensive tracing strategies.
+
+#### Source Analysis Workflow
+
+The source analysis process begins when developers specify source files or directories for examination, or from Call Tracer UI. The Source Analyzer loads the specified files, parses them into AST representations, and prepares analysis prompts based on configured tracing priorities.
+
+The AI model analyzes each source file section against the configured priorities, identifying critical locations for trace injection. The model provides comprehensive recommendations including specific function names, code block locations, rationale for each recommendation, and suggested trace information to capture.
+
+Results are processed through the formatting pipeline, generating structured Markdown reports that development teams can use to guide their instrumentation efforts. The flexible formatter architecture supports custom output formats and integration with existing development workflows.
 
 ## Blueprint
 
