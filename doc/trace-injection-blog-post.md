@@ -126,7 +126,7 @@ Call tracing operations are computationally local and don't incur AI model costs
 
 ## Trace Injection Advisor Architecture
 
-![Trace Injection Advisor Architecture](doc/diagrams/trace_injection_advisor_architecture.png)
+![Trace Injection Advisor Architecture](diagrams/trace_injection_advisor_architecture.png)
 
 The Trace Injection Advisor consists of two main analysis components working in concert: the **Call Tracer** for dynamic execution flow mapping and the **Source Analyzer** for AI-powered static analysis. Both components integrate through a shared configuration system and flexible output formatting pipeline.
 
@@ -143,35 +143,7 @@ The Trace Injection Advisor consists of two main analysis components working in 
 
 ### How it works
 
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant CT as Call Tracer
-    participant SA as Source Analyzer
-    participant AI as AI Model (Bedrock)
-    participant VIZ as Visualization
-    
-    Dev->>CT: Submit Python code for analysis
-    CT->>CT: Parse source file
-    CT->>CT: Trace function calls
-    CT->>CT: Build AST tree
-    CT->>VIZ: Call flow hierarchy
-
-    Dev->>VIZ: Iterate through call flow
-    Dev->>VIZ: Select function for analysis
-    VIZ->>CT: Selected source entry point
-    CT->>SA: Initiate source analysis
-    SA->>AI: Send code + priorities for analysis
-    AI->>SA: Return trace recommendations
-    SA->>VIZ: Format JSON results
-    VIZ->>SA: Formatted JSON results
-    SA->>CT: Formatted recommendations
-    
-    CT->>VIZ: Display recommendations
-    Dev->>VIZ: Explore results
-    Dev->>VIZ: Iterate through call flow or exit
-
-```
+![Trace Injection Advisor Sequence Diagram](diagrams/trace_injection_advisor_sequence_diagram.png)
 
 #### Call Tracing Workflow
 
