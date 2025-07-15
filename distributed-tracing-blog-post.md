@@ -1,5 +1,7 @@
 # Insights Solution Spotlights
+
 ## Solution Spotlight – Trace Injection Advisor
+
 AI-Powered Tool for Intelligent Distributed Tracing Implementation
 
 ## Overview
@@ -124,73 +126,7 @@ Call tracing operations are computationally local and don't incur AI model costs
 
 ## Trace Injection Advisor Architecture
 
-```mermaid
-flowchart TB
-    subgraph "Development Environment"
-        DEV[Developer Workstation]
-        CODE[Python Codebase]
-        CONFIG[YAML Configuration]
-    end
-
-    subgraph "Trace Injection Advisor Core"
-        AIMODEL[AI Model]
-        SA[Source Analyzer]
-        CT[Call Tracer]
-        UTILS[Common Utilities]
-    end
-
-    subgraph "AI Model Integration"
-        BEDROCK[AWS Bedrock]
-        CLAUDE[Claude 3 Sonnet]
-        LLAMA[Meta Llama 3.2]
-    end
-
-    subgraph "Output Generation"
-        FORMATTER[Formatter Factory]
-        RENDERER[Renderer Factory]
-    end
-
-    subgraph "Visualization"
-        FASTHTML[FastHTML Web UI]
-        STREAMLIT[Streamlit Dashboard]
-        JINJA[Jinja2 Templates]
-        CODED[Coded Formatters]
-    end
-
-    subgraph "Analysis Pipeline"
-        AST[AST Parser]
-        RECURSIVE[Recursive Call Tracing]
-        RESOLVER[Call Resolver]
-        PRIORITY[Generative AI]
-        TRACKER[Token Tracker]
-    end
-
-    DEV --> AIMODEL
-    CODE --> SA
-    CODE --> CT
-    CONFIG --> AIMODEL
-    CT --> SA
-    CT --> AST
-    CT --> RECURSIVE
-    CT --> RENDERER
-    RENDERER --> FASTHTML
-    RENDERER --> STREAMLIT
-
-    CT --> RESOLVER
-    SA --> PRIORITY
-
-    AIMODEL --> BEDROCK
-    BEDROCK --> CLAUDE
-    BEDROCK --> LLAMA
-
-    SA --> TRACKER
-    SA --> FORMATTER
-    FORMATTER --> JINJA
-    FORMATTER --> CODED
-
-    UTILS --> SA
-    UTILS --> CT
-```
+![Trace Injection Advisor Architecture](doc/diagrams/trace_injection_advisor_architecture.png)
 
 The Trace Injection Advisor consists of two main analysis components working in concert: the **Call Tracer** for dynamic execution flow mapping and the **Source Analyzer** for AI-powered static analysis. Both components integrate through a shared configuration system and flexible output formatting pipeline.
 
@@ -233,12 +169,13 @@ sequenceDiagram
     
     CT->>VIZ: Display recommendations
     Dev->>VIZ: Explore results
+    Dev->>VIZ: Iterate through call flow or exit
 
 ```
 
 #### Call Tracing Workflow
 
-Dynamic call tracing operates independently, mapping execution flows from specified entry points. Developers provide a source file, entry point name, and a list of search paths, and the Call Tracer builds a complete execution tree showing how functions call each other across modules.
+The process begins with the Call. Dynamic call tracing operates independently, mapping execution flows from specified entry points. Developers provide a source file, entry point name, and a list of search paths, and the Call Tracer builds a complete execution tree showing how functions call each other across modules.
 
 The tracer follows imports, resolves function calls across files, and handles various call patterns including method calls, module functions, and nested attributes. The resulting call tree reveals application execution patterns and helps identify additional trace opportunities missed by static analysis.
 
@@ -246,7 +183,7 @@ Interactive visualization through FastHTML or Streamlit renderers enables explor
 
 #### Source Analysis Workflow
 
-The source analysis process begins when developers specify source files or directories for examination. The Source Analyzer loads the specified files, parses them into AST representations, and prepares analysis prompts based on configured tracing priorities.
+The source analysis process begins when developers specify source files or directories for examination, or from Call Tracer UI. The Source Analyzer loads the specified files, parses them into AST representations, and prepares analysis prompts based on configured tracing priorities.
 
 The AI model analyzes each source file section against the configured priorities, identifying critical locations for trace injection. The model provides comprehensive recommendations including specific function names, code block locations, rationale for each recommendation, and suggested trace information to capture.
 
