@@ -24,16 +24,16 @@ Before diving into the Trace Injection Advisor, it is important to acknowledge t
 
 - **AI Model** – Large language model used for intelligent code analysis, supporting multiple providers including AWS Bedrock
 - **AST (Abstract Syntax Tree)** – Tree representation of source code structure used for code analysis
+- **AWS Bedrock** – Amazon's managed AI service platform for accessing foundation models
 - **Call Tracer** – Component that dynamically traces function calls across files to build execution flow maps
+- **Entry Point** – Starting function or method from which call tracing begins
+- **FastHTML** – Rendering framework used for interactive trace visualization
+- **Formatter** – Component responsible for converting analysis results into human-readable formats
+- **Jinja2** – Template engine used for flexible output formatting
+- **Search Paths** – Directories where the tracer looks for external modules and dependencies
 - **Source Analyzer** – AI-powered component that identifies optimal locations for trace statement placement
 - **Trace Injection** – The process of adding observability instrumentation to specific code locations
-- **Entry Point** – Starting function or method from which call tracing begins
-- **Formatter** – Component responsible for converting analysis results into human-readable formats
-- **Search Paths** – Directories where the tracer looks for external modules and dependencies
 - **Tracing Priorities** – Configurable criteria used by AI to identify critical locations for instrumentation
-- **AWS Bedrock** – Amazon's managed AI service platform for accessing foundation models
-- **Jinja2** – Template engine used for flexible output formatting
-- **FastHTML** – Rendering framework used for interactive trace visualization
 
 ### Strategy
 
