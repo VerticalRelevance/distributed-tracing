@@ -35,35 +35,6 @@ Before diving into the Trace Injection Advisor, it is important to acknowledge t
 - **Trace Injection** – The process of adding observability instrumentation to specific code locations
 - **Tracing Priorities** – Configurable criteria used by AI to identify critical locations for instrumentation
 
-## Best Practices / Design Principles
-
-### Choice of AI Model
-
-Model selection significantly impacts analysis quality, accuracy, and cost. The Trace Injection Advisor supports multiple AI models through AWS Bedrock, providing flexibility to choose models based on specific requirements and constraints.
-
-**Anthropic Claude 3 Sonnet** excels at detailed code analysis and provides nuanced understanding of complex codebases. It offers excellent reasoning capabilities for identifying subtle trace opportunities and provides detailed rationale for recommendations. This model is ideal for comprehensive analysis of critical applications where accuracy is paramount.
-
-**Meta Llama 3.2 3B Instruct** provides efficient processing with faster response times and lower token costs. While less detailed than Claude, it offers solid performance for large-scale code analysis and bulk processing scenarios. This model suits development teams processing extensive codebases with cost constraints.
-
-Organizations requiring on-premises deployment or custom fine-tuning may prefer self-hosted models. The solution's modular architecture supports custom model implementations, enabling integration with organization-specific AI infrastructure while maintaining the same analysis capabilities.
-
-### Configuration Management
-
-The solution uses YAML-based configuration files that centralize all system settings, making it easy to customize behavior for different projects and environments. Key configuration areas include AI model selection and parameters (temperature, retry logic, token limits), tracing priorities and their relative importance, formatter selection and template paths, and AWS region configuration for Bedrock access.
-
-### Search Path Strategy
-
-Effective search path configuration is crucial for accurate call tracing across complex Python projects. The Call Tracer requires proper search paths to resolve imports and follow function calls across modules. Best practices include adding project root directory for local module resolution, including virtual environment site-packages for dependency analysis, and specifying custom library paths for proprietary modules.
-
-Search path ordering affects resolution priority, with earlier paths taking precedence. This allows override behavior for testing or development scenarios. The system caches parsed modules across search paths to improve performance during analysis of large codebases.
-
-### Output Integration
-
-The flexible formatting system enables integration with various development tools and workflows. Teams can customize output formats to match their documentation standards, integrate with existing observability tooling, and automate report generation through CI/CD pipelines.
-
-For interactive analysis, the FastHTML renderer provides web-based exploration of call trees, while Streamlit integration offers dashboard-style visualization with filtering capabilities. Custom formatters can generate outputs compatible with specific monitoring platforms or development tools.
-
-
 ### Strategy
 
 When faced with implementing distributed tracing across complex Python applications, development teams need systematic approaches for identifying optimal instrumentation points. Manual analysis of large codebases is time-consuming and often misses critical trace opportunities. The Trace Injection Advisor solution uses AI-powered analysis and dynamic call tracing to provide data-driven recommendations that eliminate guesswork and ensure comprehensive coverage.
@@ -102,30 +73,8 @@ The formatting output includes comprehensive sections covering model information
 
 For trace visualization, the Call Tracer integrates with multiple rendering systems including **FastHTML Renderer** for interactive web-based trace trees with expandable nodes and detailed call information, and **Streamlit Renderer** for dashboard-style visualization with filtering and search capabilities. These rendering options make it easy to explore complex call trees and understand application execution patterns.
 
-## Security Concerns
 
-Access control for the Trace Injection Advisor primarily relies on filesystem permissions and AWS credentials management. Since the solution analyzes source code locally, ensure proper file system access controls and secure handling of analysis results that may contain sensitive code information.
-
-For AI model interactions through AWS Bedrock, the main security consideration involves data transmission to third-party model providers. According to AWS Bedrock's data protection policies, "Amazon Bedrock doesn't store or log your prompts and completions. Amazon Bedrock doesn't use your prompts and completions to train any AWS models and doesn't distribute them to third parties." Models operate in isolated environments within dedicated deployment accounts.
-
-When using self-hosted models, data privacy concerns are eliminated since all processing occurs within the organization's infrastructure. This approach provides complete control over sensitive code analysis while maintaining the solution's analytical capabilities.
-
-Additional security considerations include secure storage of configuration files containing API keys, audit logging of analysis activities for compliance, and encryption of analysis results when stored persistently. Teams should implement appropriate data classification policies for code analysis outputs.
-
-## Cost and Usage
-
-Source code analysis typically costs between $0.05-$0.15 per file depending on model choice and file complexity. Analysis time ranges from 10-30 seconds per file for most codebases. Cost and performance are primarily influenced by AI model selection, code complexity and file size, number of configured tracing priorities, and retry logic configuration.
-
-**Cost Optimization Strategies:**
-- Use Meta Llama models for large-scale batch processing
-- Configure appropriate token limits to prevent runaway costs  
-- Implement file filtering to exclude non-critical files
-- Batch similar files together for efficient processing
-- Monitor token usage through built-in tracking capabilities
-
-Call tracing operations are computationally local and don't incur AI model costs, making them suitable for iterative analysis and large codebase exploration. The combination of both components provides comprehensive analysis with controlled costs.
-
-## Trace Injection Advisor Architecture
+## Trace Injection Advisor
 
 ![Trace Injection Advisor Architecture](diagrams/trace_injection_advisor_architecture.png)
 
@@ -161,6 +110,57 @@ The source analysis process begins when developers specify source files or direc
 The AI model analyzes each source file section against the configured priorities, identifying critical locations for trace injection. The model provides comprehensive recommendations including specific function names, code block locations, rationale for each recommendation, and suggested trace information to capture.
 
 Results are processed through the formatting pipeline, generating structured Markdown reports that development teams can use to guide their instrumentation efforts. The flexible formatter architecture supports custom output formats and integration with existing development workflows.
+
+## Best Practices / Design Principles
+
+### Choice of AI Model
+
+Model selection significantly impacts analysis quality, accuracy, and cost. The Trace Injection Advisor supports multiple AI models through AWS Bedrock, providing flexibility to choose models based on specific requirements and constraints.
+
+**Anthropic Claude 3 Sonnet** excels at detailed code analysis and provides nuanced understanding of complex codebases. It offers excellent reasoning capabilities for identifying subtle trace opportunities and provides detailed rationale for recommendations. This model is ideal for comprehensive analysis of critical applications where accuracy is paramount.
+
+**Meta Llama 3.2 3B Instruct** provides efficient processing with faster response times and lower token costs. While less detailed than Claude, it offers solid performance for large-scale code analysis and bulk processing scenarios. This model suits development teams processing extensive codebases with cost constraints.
+
+Organizations requiring on-premises deployment or custom fine-tuning may prefer self-hosted models. The solution's modular architecture supports custom model implementations, enabling integration with organization-specific AI infrastructure while maintaining the same analysis capabilities.
+
+### Configuration Management
+
+The solution uses YAML-based configuration files that centralize all system settings, making it easy to customize behavior for different projects and environments. Key configuration areas include AI model selection and parameters (temperature, retry logic, token limits), tracing priorities and their relative importance, formatter selection and template paths, and AWS region configuration for Bedrock access.
+
+### Search Path Strategy
+
+Effective search path configuration is crucial for accurate call tracing across complex Python projects. The Call Tracer requires proper search paths to resolve imports and follow function calls across modules. Best practices include adding project root directory for local module resolution, including virtual environment site-packages for dependency analysis, and specifying custom library paths for proprietary modules.
+
+Search path ordering affects resolution priority, with earlier paths taking precedence. This allows override behavior for testing or development scenarios. The system caches parsed modules across search paths to improve performance during analysis of large codebases.
+
+### Output Integration
+
+The flexible formatting system enables integration with various development tools and workflows. Teams can customize output formats to match their documentation standards, integrate with existing observability tooling, and automate report generation through CI/CD pipelines.
+
+For interactive analysis, the FastHTML renderer provides web-based exploration of call trees, while Streamlit integration offers dashboard-style visualization with filtering capabilities. Custom formatters can generate outputs compatible with specific monitoring platforms or development tools.
+
+## Security Concerns
+
+Access control for the Trace Injection Advisor primarily relies on filesystem permissions and AWS credentials management. Since the solution analyzes source code locally, ensure proper file system access controls and secure handling of analysis results that may contain sensitive code information.
+
+The two AI models initially integrated perform interactions through AWS Bedrock. For Amazon Bedrock, see [https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html](Data protection – Amazon Bedrock). With Amazon Bedrock, the main security consideration involves data transmission to third-party model providers. According to AWS Bedrock's data protection policies, "Amazon Bedrock doesn't store or log your prompts and completions. Amazon Bedrock doesn't use your prompts and completions to train any AWS models and doesn't distribute them to third parties." Models are further isolated into a “Model Deployment Account”, to which model providers lack access.
+
+When using self-hosted models, data privacy concerns are eliminated since all processing occurs within the organization's infrastructure. This approach provides complete control over sensitive code analysis while maintaining the solution's analytical capabilities.
+
+Additional security considerations include secure storage of configuration files containing API keys, audit logging of analysis activities for compliance, and encryption of analysis results when stored persistently. Teams should implement appropriate data classification policies for code analysis outputs.
+
+### Cost and Usage
+
+Source code analysis typically costs between $0.05-$0.15 per file depending on model choice and file complexity. Analysis time ranges from 10-30 seconds per file for most codebases. Cost and performance are primarily influenced by AI model selection, code complexity and file size, number of configured tracing priorities, and retry logic configuration.
+
+**Cost Optimization Strategies:**
+- Use Meta Llama models for large-scale batch processing
+- Configure appropriate token limits to prevent runaway costs  
+- Implement file filtering to exclude non-critical files
+- Batch similar files together for efficient processing
+- Monitor token usage through built-in tracking capabilities
+
+Call tracing operations are computationally local and don't incur AI model costs, making them suitable for iterative analysis and large codebase exploration. The combination of both components provides comprehensive analysis with controlled costs.
 
 
 ## Blueprint
@@ -208,28 +208,3 @@ The GitHub repository is [here](https://github.com/VerticalRelevance/distributed
 ## End Result
 
 The ultimate goal of the Trace Injection Advisor is to democratize effective distributed tracing implementation while significantly advancing organizational observability maturity. This solution enables development teams to quickly identify and instrument optimal trace points without requiring specialized observability expertise, fundamentally transforming how enterprises approach system instrumentation.
-
-### Immediate Technical Impact
-By combining AI-powered static analysis with dynamic call flow mapping, teams gain comprehensive visibility into their applications' execution patterns and can implement targeted instrumentation strategies. This intelligent approach leads to more effective observability coverage, faster incident resolution through better trace data, reduced time-to-insight during debugging sessions, and improved system reliability through proactive monitoring.
-
-### Long-term Organizational Transformation
-The solution transforms distributed tracing from a complex manual process into an intelligent, data-driven practice that scales with application complexity. For large enterprise organizations, this represents a fundamental shift toward:
-
-**Observability Center of Excellence**: Establishes standardized practices and tooling that can be scaled across multiple development teams, business units, and technology stacks, creating organization-wide consistency in approach to system instrumentation.
-
-**Reduced Time-to-Production**: New applications and features reach production faster with comprehensive observability coverage from day one, eliminating the traditional lag between development and proper instrumentation that often leads to blind spots during critical early production phases.
-
-**Enhanced Incident Response Maturity**: Teams respond to production issues with significantly better context and data, reducing mean time to resolution (MTTR) and improving overall system reliability. The proactive identification of trace points means fewer "unknown unknowns" during outages.
-
-**Cross-functional Knowledge Sharing**: Interactive visualizations and standardized analysis reports facilitate better communication between development, SRE, operations, and business stakeholders, breaking down traditional silos and improving overall technical decision-making.
-
-**Regulatory Compliance and Audit Readiness**: Deterministic, repeatable analysis processes support compliance requirements in regulated industries while providing clear audit trails for observability implementation decisions.
-
-**Strategic Technical Debt Management**: Systematic identification of observability gaps enables organizations to prioritize infrastructure improvements and technical debt reduction based on actual risk assessment rather than guesswork.
-
-The Trace Injection Advisor ultimately positions organizations to achieve mature, enterprise-grade observability practices that scale efficiently across complex, distributed systems while maintaining the agility needed for rapid innovation and growth.
-
-## Summary
-The Trace Injection Advisor is an AI-powered solution designed to address the complex challenges of implementing distributed tracing in modern microservices architectures, where manual instrumentation is time-intensive, error-prone, and often results in incomplete observability coverage. The solution combines a dynamic Call Tracer that maps complete function call flows across modules to understand application execution patterns with an AI-powered source analyzer that leverages advanced language models to identify optimal trace placement locations based on configurable priorities. Through its flexible architecture supporting multiple AI models, YAML-based configuration management, and various output formats including interactive web visualizations, the solution enables development teams to systematically implement comprehensive observability strategies without requiring specialized expertise.
-
-The system provides significant benefits including enterprise scalability with CI/CD integration, robust security through local processing options, and enhanced developer productivity through intelligent recommendations and interactive visualizations. Ultimately, the Trace Injection Advisor transforms distributed tracing from a manual, guesswork-based process into an intelligent, data-driven practice that establishes standardized observability practices across organizations, reduces time-to-production for new applications, improves incident response capabilities, and positions enterprises to achieve mature observability practices that scale efficiently across complex distributed systems while maintaining development agility.
