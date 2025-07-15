@@ -36,15 +36,15 @@ The following environment variables are used to configure the logger.
 ```bash
 git clone https://github.com/VerticalRelevance/distributed-tracing
 ```
-1. Set up the development environment:
+2. Set up the development environment:
    * Set up a Python virtual environment
    * From the repository root, install requirements:
 ```bash
 pip install -U -r requirements.txt
 pip install -U -r requirements-dev.txt
 ```
-1. Clone a remote repository to be analyzed to a local disk location outside the distributed tracing local repository.
-2. Change to the `src` directory in the `distributed-tracing` repository root:
+3. Clone a remote repository to be analyzed to a local disk location outside the distributed tracing local repository.
+4. Change to the `src` directory in the `distributed-tracing` repository root:
 ```bash
 cd /path/to/root/distributed-tracing/src
 ```
@@ -80,16 +80,16 @@ export PYTHONPATH=common:.:source_analyzer:source_analyzer/models
 export OPENAI_API_KEY="sk-proj-xyzzy..."
 ```
 * For a model accessed via AWS Bedrock, set up AWS credentials.
-2. Set the `LOG_FILE` environment variable.
+4. Set the `LOG_FILE` environment variable.
 ```bash
 export LOG_FILE="/absolute/path/to/some/location/distributed-tracing/source_analyzer.err"`
 ```
-3. (Optional) Set the `LOG_LEVEL` environment variable. Default is DEBUG.
-```bash
+5. (Optional) Set the `LOG_LEVEL` environment variable. Default is DEBUG.
+``bash
 export LOG_LEVEL="DEBUG"
 ```
-4. (Optional) Set other logging environment variables.
-4. Run the source analyzer.
+6. (Optional) Set other logging environment variables.
+7. Run the source analyzer.
 ```bash
 python source_analyzer/main.py file_path or local_repository_path
 ```
@@ -134,15 +134,14 @@ add the following to the workspace or folder configuration:
 ```
 
 ## Call Tracer remaining
+
+TODO see TODO and FUTURE tags in the code  
 TODO add dynamic setting of max tokens to fasthtml renderer
 TODO add unit and integration tests
-TODO update docstrings
-
 
 ## Source Analyzer remaining
+
 TODO see TODO and FUTURE tags in the code  
-TODO swap out Python logging for a modern logger  
 TODO add unit and integration tests  
 TODO standardize some of the repetitive code  
-TODO OpenAI model  
-TODO update docstrings
+TODO add OpenAI model  
