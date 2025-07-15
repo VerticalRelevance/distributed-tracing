@@ -10,7 +10,7 @@ In today's complex microservices architectures, effective observability through 
 
 Traditional approaches to distributed tracing instrumentation require developers to manually identify and instrument key points in their code. This process demands deep understanding of application flow, significant time investment, and specialized expertise in observability best practices. Many teams struggle with over-instrumentation that impacts performance or under-instrumentation that misses critical insights. The result is often incomplete visibility during production incidents when observability matters most.
 
-To address these challenges, we introduce the **Trace Injection Advisor**, an AI-powered solution that combines intelligent code analysis with dynamic call tracing to provide comprehensive guidance on optimal trace placement. Our solution features two complementary components: an AI-powered Source Analyzer that identifies critical trace points based on configurable priorities, and a dynamic Call Tracer that maps complete function call flows to understand application behavior patterns.
+To address these challenges, we introduce the **Trace Injection Advisor**, an AI-powered solution that combines intelligent code analysis with dynamic call tracing to provide comprehensive guidance on optimal trace placement. Our solution features two complementary components: a dynamic **Call Tracer** that maps complete function call flows to understand application behavior patterns, and an AI-powered **Source Analyzer** that identifies critical trace points based on configurable priorities.
 
 The Source Analyzer leverages advanced AI models (including Anthropic Claude 3 Sonnet and Meta Llama 3.2) to analyze Python source code and recommend optimal locations for trace injection based on priorities like exception handling blocks, conditional branches, external resource interactions, and performance-critical code paths. The Call Tracer dynamically follows function calls across files and modules, building comprehensive call trees that reveal how application components interact. Together, these tools provide developers with intelligent, data-driven guidance for implementing effective distributed tracing strategies.
 
@@ -34,6 +34,35 @@ Before diving into the Trace Injection Advisor, it is important to acknowledge t
 - **Source Analyzer** – AI-powered component that identifies optimal locations for trace statement placement
 - **Trace Injection** – The process of adding observability instrumentation to specific code locations
 - **Tracing Priorities** – Configurable criteria used by AI to identify critical locations for instrumentation
+
+## Best Practices / Design Principles
+
+### Choice of AI Model
+
+Model selection significantly impacts analysis quality, accuracy, and cost. The Trace Injection Advisor supports multiple AI models through AWS Bedrock, providing flexibility to choose models based on specific requirements and constraints.
+
+**Anthropic Claude 3 Sonnet** excels at detailed code analysis and provides nuanced understanding of complex codebases. It offers excellent reasoning capabilities for identifying subtle trace opportunities and provides detailed rationale for recommendations. This model is ideal for comprehensive analysis of critical applications where accuracy is paramount.
+
+**Meta Llama 3.2 3B Instruct** provides efficient processing with faster response times and lower token costs. While less detailed than Claude, it offers solid performance for large-scale code analysis and bulk processing scenarios. This model suits development teams processing extensive codebases with cost constraints.
+
+Organizations requiring on-premises deployment or custom fine-tuning may prefer self-hosted models. The solution's modular architecture supports custom model implementations, enabling integration with organization-specific AI infrastructure while maintaining the same analysis capabilities.
+
+### Configuration Management
+
+The solution uses YAML-based configuration files that centralize all system settings, making it easy to customize behavior for different projects and environments. Key configuration areas include AI model selection and parameters (temperature, retry logic, token limits), tracing priorities and their relative importance, formatter selection and template paths, and AWS region configuration for Bedrock access.
+
+### Search Path Strategy
+
+Effective search path configuration is crucial for accurate call tracing across complex Python projects. The Call Tracer requires proper search paths to resolve imports and follow function calls across modules. Best practices include adding project root directory for local module resolution, including virtual environment site-packages for dependency analysis, and specifying custom library paths for proprietary modules.
+
+Search path ordering affects resolution priority, with earlier paths taking precedence. This allows override behavior for testing or development scenarios. The system caches parsed modules across search paths to improve performance during analysis of large codebases.
+
+### Output Integration
+
+The flexible formatting system enables integration with various development tools and workflows. Teams can customize output formats to match their documentation standards, integrate with existing observability tooling, and automate report generation through CI/CD pipelines.
+
+For interactive analysis, the FastHTML renderer provides web-based exploration of call trees, while Streamlit integration offers dashboard-style visualization with filtering capabilities. Custom formatters can generate outputs compatible with specific monitoring platforms or development tools.
+
 
 ### Strategy
 
@@ -72,34 +101,6 @@ The system includes two primary formatting implementations: **Coded Formatter** 
 The formatting output includes comprehensive sections covering model information and configuration details, executive summary of analysis findings, priority-based recommendations organized by tracing categories, detailed code block analysis with specific instrumentation guidance, and token usage statistics for cost tracking and optimization.
 
 For trace visualization, the Call Tracer integrates with multiple rendering systems including **FastHTML Renderer** for interactive web-based trace trees with expandable nodes and detailed call information, and **Streamlit Renderer** for dashboard-style visualization with filtering and search capabilities. These rendering options make it easy to explore complex call trees and understand application execution patterns.
-
-## Best Practices / Design Principles
-
-### Choice of AI Model
-
-Model selection significantly impacts analysis quality, accuracy, and cost. The Trace Injection Advisor supports multiple AI models through AWS Bedrock, providing flexibility to choose models based on specific requirements and constraints.
-
-**Anthropic Claude 3 Sonnet** excels at detailed code analysis and provides nuanced understanding of complex codebases. It offers excellent reasoning capabilities for identifying subtle trace opportunities and provides detailed rationale for recommendations. This model is ideal for comprehensive analysis of critical applications where accuracy is paramount.
-
-**Meta Llama 3.2 3B Instruct** provides efficient processing with faster response times and lower token costs. While less detailed than Claude, it offers solid performance for large-scale code analysis and bulk processing scenarios. This model suits development teams processing extensive codebases with cost constraints.
-
-Organizations requiring on-premises deployment or custom fine-tuning may prefer self-hosted models. The solution's modular architecture supports custom model implementations, enabling integration with organization-specific AI infrastructure while maintaining the same analysis capabilities.
-
-### Configuration Management
-
-The solution uses YAML-based configuration files that centralize all system settings, making it easy to customize behavior for different projects and environments. Key configuration areas include AI model selection and parameters (temperature, retry logic, token limits), tracing priorities and their relative importance, formatter selection and template paths, and AWS region configuration for Bedrock access.
-
-### Search Path Strategy
-
-Effective search path configuration is crucial for accurate call tracing across complex Python projects. The Call Tracer requires proper search paths to resolve imports and follow function calls across modules. Best practices include adding project root directory for local module resolution, including virtual environment site-packages for dependency analysis, and specifying custom library paths for proprietary modules.
-
-Search path ordering affects resolution priority, with earlier paths taking precedence. This allows override behavior for testing or development scenarios. The system caches parsed modules across search paths to improve performance during analysis of large codebases.
-
-### Output Integration
-
-The flexible formatting system enables integration with various development tools and workflows. Teams can customize output formats to match their documentation standards, integrate with existing observability tooling, and automate report generation through CI/CD pipelines.
-
-For interactive analysis, the FastHTML renderer provides web-based exploration of call trees, while Streamlit integration offers dashboard-style visualization with filtering capabilities. Custom formatters can generate outputs compatible with specific monitoring platforms or development tools.
 
 ## Security Concerns
 
