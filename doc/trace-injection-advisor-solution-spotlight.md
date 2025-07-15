@@ -59,21 +59,6 @@ The analysis workflow follows a structured approach, with the AI model examining
 
 For each identified location, the AI provides detailed analysis including the specific function/method name, fully-qualified name for context, exact code blocks to instrument, clear rationale explaining why tracing is beneficial, and recommended trace information to capture (parameters, return values, timing, etc.).
 
-### Error Handling
-
-The system implements robust error handling with configurable retry logic, supports both single-file and directory analysis modes, and outputs results in structured JSON format for downstream processing. Advanced features include token usage tracking for cost management, validation of AI model responses, and flexible configuration through YAML files.
-
-### Formatting
-
-The Trace Injection Advisor includes a flexible formatting system that converts analysis results into actionable reports. The formatting component supports multiple output strategies through a pluggable architecture, allowing teams to customize output formats for their specific workflows and tools.
-
-The system includes two primary formatting implementations: **Coded Formatter** that implements formatting logic directly in Python code for maximum control and customization, and **Jinja2 Formatter** that uses template-based formatting for easier modification without code changes. Both formatters convert JSON analysis results into well-structured Markdown reports with consistent formatting.
-
-The formatting output includes comprehensive sections covering model information and configuration details, executive summary of analysis findings, priority-based recommendations organized by tracing categories, detailed code block analysis with specific instrumentation guidance, and token usage statistics for cost tracking and optimization.
-
-For trace visualization, the Call Tracer integrates with multiple rendering systems including **FastHTML Renderer** for interactive web-based trace trees with expandable nodes and detailed call information, and **Streamlit Renderer** for dashboard-style visualization with filtering and search capabilities. These rendering options make it easy to explore complex call trees and understand application execution patterns.
-
-
 ## Trace Injection Advisor
 
 ![Trace Injection Advisor Architecture](diagrams/trace_injection_advisor_architecture.png)
@@ -139,7 +124,21 @@ The flexible formatting system enables integration with various development tool
 
 For interactive analysis, the FastHTML renderer provides web-based exploration of call trees, while Streamlit integration offers dashboard-style visualization with filtering capabilities. Custom formatters can generate outputs compatible with specific monitoring platforms or development tools.
 
-## Security Concerns
+### Error Handling
+
+The system implements robust error handling with configurable retry logic, supports both single-file and directory analysis modes, and outputs results in structured JSON format for downstream processing. Advanced features include token usage tracking for cost management, validation of AI model responses, and flexible configuration through YAML files.
+
+### Formatting
+
+The Trace Injection Advisor includes a flexible formatting system that converts analysis results into actionable reports. The formatting component supports multiple output strategies through a pluggable architecture, allowing teams to customize output formats for their specific workflows and tools.
+
+The system includes two primary formatting implementations: **Coded Formatter** that implements formatting logic directly in Python code for maximum control and customization, and **Jinja2 Formatter** that uses template-based formatting for easier modification without code changes. Both formatters convert JSON analysis results into well-structured Markdown reports with consistent formatting.
+
+The formatting output includes comprehensive sections covering model information and configuration details, executive summary of analysis findings, priority-based recommendations organized by tracing categories, detailed code block analysis with specific instrumentation guidance, and token usage statistics for cost tracking and optimization.
+
+For trace visualization, the Call Tracer integrates with multiple rendering systems including **FastHTML Renderer** for interactive web-based trace trees with expandable nodes and detailed call information, and **Streamlit Renderer** for dashboard-style visualization with filtering and search capabilities. These rendering options make it easy to explore complex call trees and understand application execution patterns.
+
+### Security Concerns
 
 Access control for the Trace Injection Advisor primarily relies on filesystem permissions and AWS credentials management. Since the solution analyzes source code locally, ensure proper file system access controls and secure handling of analysis results that may contain sensitive code information.
 
@@ -154,10 +153,10 @@ Additional security considerations include secure storage of configuration files
 Source code analysis typically costs between $0.05-$0.15 per file depending on model choice and file complexity. Analysis time ranges from 10-30 seconds per file for most codebases. Cost and performance are primarily influenced by AI model selection, code complexity and file size, number of configured tracing priorities, and retry logic configuration.
 
 **Cost Optimization Strategies:**
+- We recommend using the Claude 3 Sonnet implementation provided by default
 - Use Meta Llama models for large-scale batch processing
 - Configure appropriate token limits to prevent runaway costs  
-- Implement file filtering to exclude non-critical files
-- Batch similar files together for efficient processing
+- Use source file filtering to exclude non-critical files
 - Monitor token usage through built-in tracking capabilities
 
 Call tracing operations are computationally local and don't incur AI model costs, making them suitable for iterative analysis and large codebase exploration. The combination of both components provides comprehensive analysis with controlled costs.
