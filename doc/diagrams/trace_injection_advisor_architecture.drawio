@@ -4,19 +4,19 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="main-app" value="Trace Injection Advisor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=16;fontStyle=1;verticalAlign=top;spacingTop=10;" parent="1" vertex="1">
-          <mxGeometry x="80" y="40" width="1040" height="720" as="geometry" />
+        <mxCell id="main-app" value="" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;fontStyle=1;verticalAlign=top;spacingTop=10;labelBackgroundColor=light-dark(#faf9f9, #ededed);" parent="1" vertex="1">
+          <mxGeometry x="80" y="40" width="1040" height="700" as="geometry" />
         </mxCell>
         <mxCell id="user-interface" value="User Interface&#xa;(Tree Diagram)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;" parent="1" vertex="1">
           <mxGeometry x="500" y="80" width="200" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="call-tracer-section" value="Call Tracer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=10;" parent="1" vertex="1">
+        <mxCell id="call-tracer-section" value="Call Tracer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=10;labelBackgroundColor=light-dark(#d5efd4, #ededed);" parent="1" vertex="1">
           <mxGeometry x="120" y="200" width="460" height="320" as="geometry" />
         </mxCell>
-        <mxCell id="_ySLYXuoBXfLbxMS13eO-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="user-interface" target="call-tracer-class">
+        <mxCell id="_ySLYXuoBXfLbxMS13eO-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" parent="1" source="user-interface" target="call-tracer-class" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_ySLYXuoBXfLbxMS13eO-2" value="Iterate trace call paths" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="_ySLYXuoBXfLbxMS13eO-1">
+        <mxCell id="_ySLYXuoBXfLbxMS13eO-2" value="Iterate trace call paths" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="_ySLYXuoBXfLbxMS13eO-1" vertex="1" connectable="0">
           <mxGeometry x="-0.1179" y="-1" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -45,7 +45,7 @@
         <mxCell id="renderer-module" value="Renderer Module" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" parent="1" vertex="1">
           <mxGeometry x="280" y="430" width="140" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="source-analyzer-section" value="Source Code Analyzer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=10;" parent="1" vertex="1">
+        <mxCell id="source-analyzer-section" value="Source Code Analyzer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=10;labelBackgroundColor=light-dark(#d5efd4, #ededed);" parent="1" vertex="1">
           <mxGeometry x="620" y="200" width="460" height="320" as="geometry" />
         </mxCell>
         <mxCell id="source-analyzer-class" value="SourceCodeAnalyzer&lt;div&gt;Class&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" parent="1" vertex="1">
@@ -67,12 +67,12 @@
           <mxGeometry x="680" y="430" width="100" height="40" as="geometry" />
         </mxCell>
         <mxCell id="formatters" value="Formatters" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1;verticalAlign=top;spacingTop=0;" parent="1" vertex="1">
-          <mxGeometry x="840" y="400" width="140" height="80" as="geometry" />
+          <mxGeometry x="886" y="400" width="140" height="80" as="geometry" />
         </mxCell>
         <mxCell id="formatter-module" value="Markdown Formatter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" parent="1" vertex="1">
-          <mxGeometry x="860" y="430" width="100" height="40" as="geometry" />
+          <mxGeometry x="906" y="430" width="100" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="main-to-class" value="Initialize" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;" parent="1" source="main-function" target="call-tracer-class" edge="1">
+        <mxCell id="main-to-class" value="Initialize" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;fillColor=#d5e8d4;labelBackgroundColor=light-dark(#d5efd4, #ededed);" parent="1" source="main-function" target="call-tracer-class" edge="1">
           <mxGeometry y="-10" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -104,7 +104,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="trace-to-renderer" value="Render Output" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;strokeWidth=2;" parent="1" source="trace-calls" target="renderer-module" edge="1">
+        <mxCell id="trace-to-renderer" value="Render Output" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;strokeWidth=2;labelBackgroundColor=light-dark(#d5efd4, #ededed);labelBorderColor=none;" parent="1" source="trace-calls" target="renderer-module" edge="1">
           <mxGeometry x="-0.0476" relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="500" y="390" />
@@ -117,7 +117,12 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="ui-to-analyzer" value="Function Selection" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" parent="1" source="user-interface" target="source-analyzer-class" edge="1">
-          <mxGeometry relative="1" as="geometry" />
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="190" />
+              <mxPoint x="760" y="190" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <mxCell id="analyzer-to-parse" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;strokeWidth=1;" parent="1" source="source-analyzer-class" target="parse-selected" edge="1">
           <mxGeometry relative="1" as="geometry" />
@@ -128,7 +133,7 @@
         <mxCell id="analyzer-to-genai" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;strokeWidth=1;" parent="1" source="source-analyzer-class" target="invoke-genai" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="genai-to-module" value="AI Processing" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;strokeWidth=2;" parent="1" source="invoke-genai" target="genai-module" edge="1">
+        <mxCell id="genai-to-module" value="AI Processing" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;strokeWidth=2;labelBackgroundColor=light-dark(#d5efd4, #ededed);" parent="1" source="invoke-genai" target="genai-module" edge="1">
           <mxGeometry x="0.3333" relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="940" y="390" />
@@ -137,7 +142,7 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="genai-to-formatter" value="Format&lt;div&gt;Json Response&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;strokeWidth=2;" parent="1" source="genai-module" target="formatter-module" edge="1">
+        <mxCell id="genai-to-formatter" value="Format&lt;div&gt;Json Response&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;strokeWidth=2;labelBackgroundColor=light-dark(#d5efd4, #ededed);" parent="1" source="genai-module" target="formatter-module" edge="1">
           <mxGeometry y="-20" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -145,8 +150,8 @@
         <mxCell id="result-to-ui" value="Display Results" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;" parent="1" source="formatter-module" target="user-interface" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1020" y="450" />
-              <mxPoint x="1020" y="120" />
+              <mxPoint x="1050" y="450" />
+              <mxPoint x="1050" y="120" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -165,8 +170,11 @@
         <mxCell id="legend-ui" value="User Interface" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" parent="1" vertex="1">
           <mxGeometry x="290" y="620" width="100" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="_ySLYXuoBXfLbxMS13eO-3" value="Actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+        <mxCell id="_ySLYXuoBXfLbxMS13eO-3" value="Actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" parent="1" vertex="1">
           <mxGeometry x="290" y="590" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="7GBFpRlFU2j4W9hZiyhl-1" value="Architecture" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="530" y="10" width="120" height="20" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
