@@ -1,3 +1,5 @@
+# THIS PAGE IS OBSOLETE AS OF 7/15/2025; THE SOLUTION SPOTLIGHT NOW RESIDES AS A WORD DOC IN SHAREPOINT
+
 # Insights Solution Spotlights
 
 ## Solution Spotlight – Trace Injection Advisor
